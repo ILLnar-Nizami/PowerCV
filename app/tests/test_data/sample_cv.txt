@@ -1,7 +1,7 @@
-Name: Ilnar Nizametdinov
+Name: John Doe
 Position: Python Backend Developer
-Location: Purmerend, Netherlands
-Email: nizametdinov@gmail.com
+Location: Amsterdam, Netherlands
+Email: john.doe@example.com
 
 PROFESSIONAL SUMMARY
 Backend Developer with 2+ years of experience in Python development, 
