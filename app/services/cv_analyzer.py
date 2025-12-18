@@ -60,8 +60,16 @@ class CVAnalyzer:
             
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse analyzer response: {str(e)}")
-            logger.debug(f"Raw response: {response[:500]}")
-            raise ValueError(f"Failed to parse analyzer response: {str(e)}")
+            logger.debug(f"Raw response (first 500 chars): {response[:500]}")
+            
+            # Try to extract basic info with regex fallback
+            try:
+                fallback_analysis = self._fallback_parse(response)
+                logger.info("Using fallback parsing method")
+                return fallback_analysis
+            except Exception as fallback_error:
+                logger.error(f"Fallback parsing also failed: {str(fallback_error)}")
+                raise ValueError(f"Failed to parse analyzer response: {str(e)}")
     
     def _clean_json_response(self, response: str) -> str:
         """Remove markdown code fences and cleanup JSON.
@@ -90,4 +98,76 @@ class CVAnalyzer:
         if json_start >= 0 and json_end > json_start:
             response = response[json_start:json_end+1]
         
+        # Fix common JSON issues
+        response = response.strip()
+        
+        # Fix trailing commas before closing braces
+        response = response.replace(',\n}', '\n}')
+        response = response.replace(', }', ' }')
+        
+        # Fix missing commas between array elements
+        response = response.replace('}\n    {', '},\n    {')
+        response = response.replace('"\n    "', '",\n    "')
+        
+        # Remove any remaining markdown
+        response = response.replace('```json', '').replace('```', '')
+        
         return response.strip()
+    
+    def _fallback_parse(self, response: str) -> Dict:
+        """Fallback parsing method for malformed JSON responses.
+        
+        Args:
+            response: Raw response from API
+            
+        Returns:
+            dict: Basic analysis structure
+        """
+        import re
+        
+        # Initialize basic structure
+        analysis = {
+            "ats_score": 50,
+            "summary": "Analysis completed with fallback parsing",
+            "keyword_analysis": {
+                "matched_keywords": [],
+                "missing_critical": [],
+                "missing_nice_to_have": []
+            },
+            "experience_analysis": {
+                "relevant_roles": [],
+                "transferable_roles": []
+            },
+            "skill_gaps": {
+                "critical": [],
+                "important": [],
+                "nice_to_have": []
+            },
+            "strengths": [],
+            "education_relevance": {
+                "relevant_degrees": [],
+                "relevant_certifications": []
+            },
+            "optimization_priorities": [],
+            "recommendations": []
+        }
+        
+        # Try to extract ATS score
+        ats_match = re.search(r'"?ats_score"?\s*:\s*(\d+)', response, re.IGNORECASE)
+        if ats_match:
+            analysis["ats_score"] = int(ats_match.group(1))
+        
+        # Try to extract keywords
+        keyword_matches = re.findall(r'"?keyword"?\s*:\s*"([^"]+)"', response, re.IGNORECASE)
+        if keyword_matches:
+            analysis["keyword_analysis"]["matched_keywords"] = [
+                {"keyword": kw, "jd_mentions": 1, "cv_mentions": 1} 
+                for kw in keyword_matches[:10]
+            ]
+        
+        # Try to extract summary
+        summary_match = re.search(r'"?summary"?\s*:\s*"([^"]+)"', response, re.IGNORECASE)
+        if summary_match:
+            analysis["summary"] = summary_match.group(1)
+        
+        return analysis

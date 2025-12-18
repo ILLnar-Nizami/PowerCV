@@ -52,11 +52,18 @@ Provide your response in this exact JSON structure:
 
 ## Critical Instructions
 
-1. **JSON Format Only**: Always respond with valid JSON, no markdown formatting
-2. **Complete Section**: Return the entire optimized section, not just changes
-3. **All Keywords**: Ensure every target keyword appears naturally in the optimized text
-4. **Authenticity**: Don't invent skills or experiences not present in the original
-5. **Metrics**: Add reasonable, industry-standard metrics where original lacks quantification
+1. **JSON Format Only**: Always respond with valid, parseable JSON with no markdown code blocks
+2. **Preserve CV Structure**: Maintain exact section headers and organization from original CV
+3. **No Content Invention**: Only optimize existing content - never invent new jobs, skills, or experiences
+4. **Maintain Authenticity**: Keep candidate's actual achievements, just enhance presentation
+5. **Section Integrity**: Each section should remain complete - don't truncate or merge sections
+6. **Keyword Integration**: Weave target keywords naturally into existing content
+7. **Quantify When Possible**: Add specific metrics where original has vague statements
+8. **Professional Formatting**: Ensure consistent bullet points, proper spacing, clean structure
+9. **Contact Information**: Preserve exactly as provided - never duplicate or modify
+10. **Education Section**: Maintain all degrees, institutions, and dates exactly
+11. **Work Experience**: Keep all companies, roles, and dates - enhance descriptions only
+12. **Skills Organization**: Group by category and proficiency level as appropriate
 
 ## Example Optimization
 

@@ -74,26 +74,63 @@ class CVWorkflowOrchestrator:
             analysis: Analysis results from analyzer
             
         Returns:
-            dict: Optimized sections
+            dict: Optimized CV sections
         """
-        # Extract top keywords from analysis
+        # Extract keywords from analysis
         keywords = []
         if 'keyword_analysis' in analysis:
             matched = analysis['keyword_analysis'].get('matched_keywords', [])
             missing = analysis['keyword_analysis'].get('missing_critical', [])
             
-            # Get top 5 matched + top 5 missing
-            keywords = [k['keyword'] for k in matched[:5]]
-            keywords += [k['keyword'] for k in missing[:5]]
+            # Get top keywords for optimization
+            keywords = [k['keyword'] for k in matched[:10]]
+            if missing:
+                keywords += [k['keyword'] for k in missing[:5]]
         
-        optimized = {}
+        # Parse CV into sections and optimize each
+        optimized_sections = {}
         
-        # TODO: Parse CV sections and optimize each
-        # For now, return placeholder
-        # You should implement actual section extraction from cv_text
+        # Extract contact info (preserve exactly)
+        contact_section = self._extract_section(cv_text, ['Name:', 'Email:', 'Phone:', 'Location:'])
+        if contact_section:
+            optimized_sections['contact'] = contact_section
         
-        logger.info(f"Optimization completed with {len(keywords)} keywords")
-        return optimized
+        # Extract and optimize professional summary
+        summary_section = self._extract_section(cv_text, ['PROFESSIONAL SUMMARY', 'SUMMARY'])
+        if summary_section:
+            optimized_summary = self.optimizer.optimize_professional_summary(
+                summary_section, jd_text, keywords
+            )
+            optimized_sections['summary'] = optimized_summary
+        
+        # Extract and optimize experience section
+        experience_section = self._extract_section(cv_text, ['EXPERIENCE', 'WORK EXPERIENCE'])
+        if experience_section:
+            optimized_experience = self.optimizer.optimize_section(
+                experience_section, jd_text, keywords, "experience"
+            )
+            optimized_sections['experience'] = optimized_experience
+        
+        # Extract and optimize skills section
+        skills_section = self._extract_section(cv_text, ['SKILLS', 'TECHNICAL SKILLS'])
+        if skills_section:
+            optimized_skills = self.optimizer.optimize_section(
+                skills_section, jd_text, keywords, "skills"
+            )
+            optimized_sections['skills'] = optimized_skills
+        
+        # Extract education section (preserve as-is)
+        education_section = self._extract_section(cv_text, ['EDUCATION', 'ACADEMIC'])
+        if education_section:
+            optimized_sections['education'] = education_section
+        
+        # Preserve any other sections
+        other_sections = self._extract_other_sections(cv_text, ['PROFESSIONAL SUMMARY', 'EXPERIENCE', 'WORK EXPERIENCE', 'SKILLS', 'TECHNICAL SKILLS', 'EDUCATION', 'ACADEMIC'])
+        for section_name, section_content in other_sections.items():
+            optimized_sections[section_name] = section_content
+        
+        logger.info(f"Optimized {len(optimized_sections)} CV sections")
+        return optimized_sections
     
     def _generate_cover_letter(
         self,
@@ -109,28 +146,180 @@ class CVWorkflowOrchestrator:
         Returns:
             dict: Cover letter and metadata
         """
-        # Extract relevant info from analysis
-        # TODO: Implement proper data extraction
-        # For now, use placeholder data
-        
+        # Extract candidate info from analysis
         candidate_data = {
-            'name': 'Ilnar Nizametdinov',
-            'current_title': 'Python Backend Developer',
-            'location': 'Purmerend, Netherlands',
-            'years_exp': '2+',
-            'top_skills': ['Python', 'Flask/FastAPI', 'Docker'],
-            'achievements': [
-                'Automated ETL pipelines with 100% deployment success',
-                'Designed Dockerized microservices architecture',
-                'Mentored junior developers'
-            ]
+            'name': self._extract_name_from_analysis(analysis),
+            'current_title': self._extract_current_title_from_analysis(analysis),
+            'location': self._extract_location_from_analysis(analysis),
+            'years_exp': self._extract_experience_from_analysis(analysis),
+            'top_skills': self._extract_skills_from_analysis(analysis),
+            'achievements': self._extract_achievements_from_analysis(analysis)
         }
         
+        # Extract job info from JD
         job_data = {
-            'company': 'Target Company',
-            'position': 'Backend Developer',
-            'location': 'Netherlands',
-            'requirements': ['Python', 'Flask', 'Docker', 'PostgreSQL']
+            'company': 'Target Company',  # This could be extracted from JD
+            'position': self._extract_position_from_jd(jd_text),
+            'location': self._extract_location_from_jd(jd_text),
+            'requirements': self._extract_requirements_from_jd(jd_text)
         }
         
         return self.cover_letter_gen.generate(candidate_data, job_data)
+    
+    def _extract_section(self, cv_text: str, section_headers: List[str]) -> Optional[str]:
+        """Extract a CV section by its header.
+        
+        Args:
+            cv_text: Full CV text
+            section_headers: List of possible section headers
+            
+        Returns:
+            str: Section content or None if not found
+        """
+        lines = cv_text.split('\n')
+        section_start = None
+        section_lines = []
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            # Check if this line matches any of our section headers
+            if any(header in line.upper() for header in section_headers):
+                if section_start is not None and section_lines:
+                    # Found new section, return the previous one
+                    return '\n'.join(section_lines)
+                section_start = i
+                section_lines = []
+            elif section_start is not None:
+                # Add content lines until we hit another major section
+                if line and not line.startswith('•') and not line.startswith('-') and len(line) > 3:
+                    # Check if this is a new section header (all caps)
+                    if line.isupper() and len(line) < 50 and not any(char.isdigit() for char in line):
+                        # New section found, stop here
+                        break
+                section_lines.append(line)
+        
+        if section_start is not None and section_lines:
+            return '\n'.join(section_lines)
+        
+        return None
+    
+    def _extract_other_sections(self, cv_text: str, exclude_headers: List[str]) -> Dict[str, str]:
+        """Extract all CV sections except specified ones.
+        
+        Args:
+            cv_text: Full CV text
+            exclude_headers: Headers to exclude from extraction
+            
+        Returns:
+            dict: Mapping of section names to content
+        """
+        sections = {}
+        lines = cv_text.split('\n')
+        current_section = None
+        current_content = []
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Check if this is a section header
+            if line and len(line) < 50 and line.isupper() and not any(char.isdigit() for char in line):
+                # This looks like a section header
+                if current_section and current_content:
+                    sections[current_section] = '\n'.join(current_content)
+                
+                # Check if this should be excluded
+                should_exclude = any(header in line.upper() for header in exclude_headers)
+                if not should_exclude:
+                    current_section = line
+                    current_content = []
+                else:
+                    current_section = None
+                    current_content = []
+            elif current_section:
+                # Add content to current section
+                current_content.append(line)
+        
+        # Don't forget the last section
+        if current_section and current_content:
+            sections[current_section] = '\n'.join(current_content)
+        
+        return sections
+    
+    def _extract_name_from_analysis(self, analysis: Dict) -> str:
+        """Extract candidate name from analysis."""
+        # Try to find name in experience analysis or other sections
+        if 'experience_analysis' in analysis:
+            relevant_roles = analysis['experience_analysis'].get('relevant_roles', [])
+            if relevant_roles:
+                return relevant_roles[0].get('title', '').split(' — ')[0] or 'Candidate'
+        return 'Candidate'
+    
+    def _extract_current_title_from_analysis(self, analysis: Dict) -> str:
+        """Extract current job title from analysis."""
+        if 'experience_analysis' in analysis:
+            relevant_roles = analysis['experience_analysis'].get('relevant_roles', [])
+            if relevant_roles:
+                return relevant_roles[0].get('title', 'Professional')
+        return 'Professional'
+    
+    def _extract_location_from_analysis(self, analysis: Dict) -> str:
+        """Extract location from analysis."""
+        # Location might not be in analysis, return default
+        return 'Netherlands'
+    
+    def _extract_experience_from_analysis(self, analysis: Dict) -> str:
+        """Extract years of experience from analysis."""
+        # This is a rough estimate based on roles
+        if 'experience_analysis' in analysis:
+            relevant_roles = analysis['experience_analysis'].get('relevant_roles', [])
+            if len(relevant_roles) >= 2:
+                return '3+ years'
+            elif len(relevant_roles) >= 1:
+                return '2+ years'
+        return 'Experienced'
+    
+    def _extract_skills_from_analysis(self, analysis: Dict) -> List[str]:
+        """Extract top skills from analysis."""
+        skills = []
+        if 'keyword_analysis' in analysis:
+            matched = analysis['keyword_analysis'].get('matched_keywords', [])
+            skills = [k.get('keyword', '') for k in matched[:8] if k.get('keyword')]
+        return skills
+    
+    def _extract_achievements_from_analysis(self, analysis: Dict) -> List[str]:
+        """Extract achievements from analysis."""
+        achievements = []
+        if 'experience_analysis' in analysis:
+            relevant_roles = analysis['experience_analysis'].get('relevant_roles', [])
+            for role in relevant_roles:
+                key_achievements = role.get('key_achievements', [])
+                achievements.extend(key_achievements[:2])  # Top 2 per role
+        return achievements[:5]  # Max 5 total
+    
+    def _extract_position_from_jd(self, jd_text: str) -> str:
+        """Extract position from job description."""
+        lines = jd_text.split('\n')
+        for line in lines[:10]:  # Check first 10 lines
+            if any(keyword in line.lower() for keyword in ['position:', 'role:', 'job title:']):
+                return line.split(':')[-1].strip()
+        return 'Backend Developer'
+    
+    def _extract_location_from_jd(self, jd_text: str) -> str:
+        """Extract location from job description."""
+        if 'netherlands' in jd_text.lower():
+            return 'Netherlands'
+        elif 'amsterdam' in jd_text.lower():
+            return 'Amsterdam'
+        return 'Remote/Hybrid'
+    
+    def _extract_requirements_from_jd(self, jd_text: str) -> List[str]:
+        """Extract key requirements from job description."""
+        requirements = []
+        # Look for common tech keywords
+        tech_keywords = ['python', 'docker', 'kubernetes', 'flask', 'fastapi', 'postgresql', 'mongodb', 'aws', 'gcp']
+        
+        for keyword in tech_keywords:
+            if keyword in jd_text.lower():
+                requirements.append(keyword.title())
+        
+        return requirements[:8]  # Top 8 requirements

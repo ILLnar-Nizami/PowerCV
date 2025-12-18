@@ -179,13 +179,19 @@ Return ONLY valid JSON (no markdown, no explanations):
 ## Critical Rules
 
 1. **JSON ONLY**: Output must be valid, parseable JSON with no markdown code blocks
-2. **NO FABRICATION**: Only analyze what exists in the CV—never invent experience
-3. **SPECIFIC**: Use exact keywords from JD, not synonyms or generalizations
-4. **PRIORITIZED**: Always mark items as CRITICAL/HIGH/MEDIUM/LOW priority
-5. **ACTIONABLE**: Every recommendation must be specific and implementable
-6. **PRESERVE FACTS**: Never suggest changing employer names, dates, or factual details
-7. **CONCISE**: Limit arrays to maximum 5 items unless more genuinely needed
-8. **RELEVANT**: Focus on sections that impact target role—ignore irrelevant content
+2. **NO FABRICATION**: Only analyze what exists in the CV—never invent experience, skills, or education
+3. **EXTRACTION FOCUS**: Carefully extract and preserve ALL sections from CV:
+   - Contact information (name, email, phone, location)
+   - Professional summary
+   - Work experience (all roles with companies, dates, responsibilities)
+   - Skills (technical and soft skills)
+   - Education (degrees, institutions, dates)
+   - Projects (if present)
+4. **PRESERVE FACTS**: Never suggest changing employer names, dates, or factual details
+5. **DUPLICATE HANDLING**: If contact info appears multiple times, note it but don't duplicate in analysis
+6. **SECTION ANALYSIS**: Analyze each CV section separately for relevance to target role
+7. **ATS-FRIENDLY**: Consider formatting and keyword placement for ATS scanning
+8. **COMPLETE PICTURE**: Include all relevant content, not just keywords
 
 ---
 

@@ -79,31 +79,32 @@ class CVOptimizer:
     
     def optimize_professional_summary(
         self,
-        cv_data: Dict,
+        cv_data: str,
         jd_text: str,
         keywords: List[str]
     ) -> Dict:
         """Optimize professional summary section.
         
         Args:
-            cv_data: Dictionary containing CV information
+            cv_data: CV data (string or dict containing professional summary)
             jd_text: Job description text
             keywords: List of target keywords to include
             
         Returns:
             dict: Optimized professional summary
         """
-        # Extract current summary from CV data
-        current_summary = cv_data.get('professional_summary', '')
-        if not current_summary:
-            current_summary = cv_data.get('summary', '')
+        # Handle string input (current summary text)
+        current_summary = ""
+        if isinstance(cv_data, str):
+            current_summary = cv_data
+        elif isinstance(cv_data, dict):
+            current_summary = cv_data.get('professional_summary', '')
+            if not current_summary:
+                current_summary = cv_data.get('summary', '')
         
-        if not current_summary:
-            # Create a basic summary from available data
-            name = cv_data.get('name', 'Professional')
-            title = cv_data.get('current_title', 'Developer')
-            experience = cv_data.get('years_experience', 'experienced')
-            current_summary = f"{name} - {title} with {experience} years of experience."
+        if not current_summary or current_summary.strip() == "":
+            # Create a basic summary
+            current_summary = "Experienced professional with technical expertise and proven track record."
         
         optimization_focus = (
             "Create a compelling 3-4 line professional summary that highlights "
