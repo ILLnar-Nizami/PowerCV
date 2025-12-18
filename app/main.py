@@ -12,15 +12,19 @@ from app.api.routers.token_usage import router as token_usage_router
 from app.api.routers.resume import resume_router
 from app.api.routers.cover_letter import cover_letter_router
 from app.api.routers.comprehensive_optimizer import comprehensive_router
-from fastapi import FastAPI, Request
+from app.services.workflow_orchestrator import CVWorkflowOrchestrator
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from pydantic import BaseModel
+from typing import Optional
 from dotenv import load_dotenv
 import os
+import logging
 
 # Load environment variables from .env file
 load_dotenv(override=True)
@@ -28,6 +32,26 @@ load_dotenv(override=True)
 
 # Initialize Jinja2 templates for HTML rendering
 templates = Jinja2Templates(directory="app/templates")
+
+# Initialize orchestrator for new Cerebras integration
+orchestrator = CVWorkflowOrchestrator()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Request models for new endpoints
+class OptimizationRequest(BaseModel):
+    cv_text: str
+    jd_text: str
+    generate_cover_letter: bool = True
+
+
+class CoverLetterRequest(BaseModel):
+    candidate_data: dict
+    job_data: dict
+    tone: str = "Professional"
 
 
 async def startup_logic(app: FastAPI) -> None:
@@ -228,6 +252,63 @@ async def health_check():
         content={"status": "healthy",
                  "version": app.version, "service": "myresumo"}
     )
+
+
+# New Cerebras-powered endpoints
+@app.post("/api/v2/optimize", tags=["CV Optimization v2"], summary="Complete CV optimization workflow")
+async def optimize_cv_v2(request: OptimizationRequest):
+    """
+    New Cerebras-powered CV optimization endpoint.
+    Uses modular prompts for better quality.
+    """
+    try:
+        result = orchestrator.optimize_cv_for_job(
+            cv_text=request.cv_text,
+            jd_text=request.jd_text,
+            generate_cover_letter=request.generate_cover_letter
+        )
+        return result
+        
+    except Exception as e:
+        logger.error(f"Optimization error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v2/analyze", tags=["CV Analysis v2"], summary="Analyze CV against job description")
+async def analyze_cv_v2(request: OptimizationRequest):
+    """
+    Analyze CV without optimization.
+    Returns ATS score, keyword analysis, and recommendations.
+    """
+    try:
+        from app.services.cv_analyzer import CVAnalyzer
+        analyzer = CVAnalyzer()
+        analysis = analyzer.analyze(request.cv_text, request.jd_text)
+        return analysis
+        
+    except Exception as e:
+        logger.error(f"Analysis error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v2/cover-letter", tags=["Cover Letter v2"], summary="Generate cover letter")
+async def generate_cover_letter_v2(request: CoverLetterRequest):
+    """
+    Generate cover letter based on candidate and job data.
+    """
+    try:
+        from app.services.cover_letter_gen import CoverLetterGenerator
+        generator = CoverLetterGenerator()
+        result = generator.generate(
+            request.candidate_data,
+            request.job_data,
+            request.tone
+        )
+        return result
+        
+    except Exception as e:
+        logger.error(f"Cover letter generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Include routers - These must come BEFORE the catch-all route

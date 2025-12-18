@@ -1,0 +1,30 @@
+Name: Ilnar Nizametdinov
+Position: Python Backend Developer
+Location: Purmerend, Netherlands
+Email: nizametdinov@gmail.com
+
+PROFESSIONAL SUMMARY
+Backend Developer with 2+ years of experience in Python development, 
+API design, and cloud deployment. Skilled in Flask, FastAPI, Docker, 
+and microservices architecture.
+
+PYTHON BACKEND DEVELOPER — Jan 2023 - Present
+Freelance Remote
+- Develop REST APIs with Flask, boosting backend efficiency and response times.
+- Design Dockerized microservices for scalable deployments, enhancing system reliability.
+- Create automated ETL pipelines, ensuring flawless data processing and deployment success.
+- Conduct code reviews to optimize application stability and performance.
+- Collaborate with frontend teams for seamless integration, improving project delivery timelines.
+- Mentor junior developers, nurturing their skills and promoting a positive, collaborative team environment.
+
+SKILLS
+- Programming: Python, JavaScript, SQL
+- Frameworks: Flask, FastAPI, Django
+- Databases: PostgreSQL, MongoDB, Redis
+- DevOps: Docker, Kubernetes, CI/CD
+- Cloud: AWS, Google Cloud Platform
+- Tools: Git, GitHub Actions, Jenkins
+
+EDUCATION
+Bachelor of Science in Computer Science
+Technical University - 2010-2014

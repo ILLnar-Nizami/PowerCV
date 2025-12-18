@@ -1,0 +1,32 @@
+Backend Developer - Python & Microservices
+
+Company: TechCorp Solutions
+Location: Amsterdam, Netherlands
+Type: Full-time
+
+Job Description:
+We are seeking a talented Backend Developer to join our growing engineering team. 
+You will be responsible for designing, developing, and maintaining scalable 
+backend services and APIs.
+
+Requirements:
+- 3+ years Python development experience
+- Strong expertise in Flask or FastAPI frameworks
+- Experience with Docker and Kubernetes
+- Proficiency in PostgreSQL database design and optimization
+- Knowledge of CI/CD pipelines and automated testing
+- Familiarity with microservices architecture
+- Understanding of RESTful API design principles
+- Experience with cloud platforms (AWS/GCP)
+
+Nice to have:
+- Bachelor's degree in Computer Science or related field
+- Experience with mentoring junior developers
+- Knowledge of frontend technologies (React/Vue.js)
+- Contribution to open source projects
+
+What we offer:
+- Competitive salary and benefits
+- Flexible working arrangements
+- Professional development opportunities
+- Collaborative and innovative work environment

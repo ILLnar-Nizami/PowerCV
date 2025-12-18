@@ -36,3 +36,8 @@ sentence-transformers
 tiktoken
 mkdocs
 mkdocs-material
+
+# Additional dependencies for Cerebras integration
+python-dotenv>=1.0.0
+requests>=2.31.0
+pydantic>=2.0.0
