@@ -181,17 +181,21 @@ Return ONLY valid JSON (no markdown, no explanations):
 1. **JSON ONLY**: Output must be valid, parseable JSON with no markdown code blocks
 2. **NO FABRICATION**: Only analyze what exists in the CV—never invent experience, skills, or education
 3. **EXTRACTION FOCUS**: Carefully extract and preserve ALL sections from CV:
-   - Contact information (name, email, phone, location)
-   - Professional summary
-   - Work experience (all roles with companies, dates, responsibilities)
-   - Skills (technical and soft skills)
-   - Education (degrees, institutions, dates)
-   - Projects (if present)
+   - Contact information (name, email, phone, location) - preserve exactly once
+   - Professional summary - extract complete content
+   - Work experience (all roles with companies, dates, responsibilities) - extract all roles
+   - Skills (technical and soft skills) - extract complete skill lists
+   - Education (degrees, institutions, dates) - extract all education details
+   - Projects (if present) - extract project information
 4. **PRESERVE FACTS**: Never suggest changing employer names, dates, or factual details
-5. **DUPLICATE HANDLING**: If contact info appears multiple times, note it but don't duplicate in analysis
+5. **DUPLICATE HANDLING**: If contact info appears multiple times, note it but preserve only once in analysis
 6. **SECTION ANALYSIS**: Analyze each CV section separately for relevance to target role
 7. **ATS-FRIENDLY**: Consider formatting and keyword placement for ATS scanning
 8. **COMPLETE PICTURE**: Include all relevant content, not just keywords
+9. **STRUCTURE INTEGRITY**: Maintain the logical flow and organization of the original CV
+10. **CONTENT COMPLETENESS**: Ensure no sections are lost or fragmented during analysis
+11. **BOUNDARY RESPECT**: Identify and respect section boundaries to prevent content mixing
+12. **VERIFICATION**: Double-check that all original content is accounted for in analysis
 
 ---
 

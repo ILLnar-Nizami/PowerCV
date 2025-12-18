@@ -72,14 +72,20 @@ class CVAnalyzer:
                 raise ValueError(f"Failed to parse analyzer response: {str(e)}")
     
     def _clean_json_response(self, response: str) -> str:
-        """Remove markdown code fences and cleanup JSON.
+        """Remove markdown code fences and cleanup JSON with enhanced error handling.
         
         Args:
             response: Raw response from API
             
         Returns:
             str: Cleaned JSON string
+            
+        Raises:
+            ValueError: If response cannot be cleaned to valid JSON
         """
+        if not response or not response.strip():
+            raise ValueError("Empty response received from API")
+        
         response = response.strip()
         
         # Remove ```json and ``` markers
@@ -95,24 +101,34 @@ class CVAnalyzer:
         json_start = response.find('{')
         json_end = response.rfind('}')
         
-        if json_start >= 0 and json_end > json_start:
-            response = response[json_start:json_end+1]
+        if json_start == -1 or json_end == -1 or json_end <= json_start:
+            raise ValueError("No valid JSON object found in response")
         
-        # Fix common JSON issues
+        response = response[json_start:json_end+1]
+        
+        # Fix common JSON issues with enhanced patterns
         response = response.strip()
         
-        # Fix trailing commas before closing braces
-        response = response.replace(',\n}', '\n}')
-        response = response.replace(', }', ' }')
+        # Fix trailing commas before closing braces/brackets
+        response = re.sub(r',\s*}', '}', response)
+        response = re.sub(r',\s*\]', ']', response)
         
         # Fix missing commas between array elements
-        response = response.replace('}\n    {', '},\n    {')
-        response = response.replace('"\n    "', '",\n    "')
+        response = re.sub(r'}\s*{', '},{', response)
+        response = re.sub(r'"\s*"', '","', response)
+        
+        # Fix quotes around keys and values
+        response = re.sub(r'(\w+):', r'"\1":', response)  # Add quotes to unquoted keys
+        response = re.sub(r':\s*([^",\[\]\{\}][^",\[\]\{\}]*?)\s*([,\]\}])', r': "\1"\2', response)  # Add quotes to unquoted values
         
         # Remove any remaining markdown
         response = response.replace('```json', '').replace('```', '')
         
-        return response.strip()
+        # Validate basic JSON structure
+        if not response.startswith('{') or not response.endswith('}'):
+            raise ValueError("Invalid JSON structure after cleaning")
+        
+        return response
     
     def _fallback_parse(self, response: str) -> Dict:
         """Fallback parsing method for malformed JSON responses.

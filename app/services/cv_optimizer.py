@@ -74,8 +74,19 @@ class CVOptimizer:
             
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse optimizer response: {str(e)}")
-            logger.debug(f"Raw response: {response[:500]}")
-            raise ValueError(f"Failed to parse optimizer response: {str(e)}")
+            logger.debug(f"Raw response (first 500 chars): {response[:500]}")
+            
+            # Try to extract basic info with regex fallback
+            try:
+                fallback_result = self._fallback_parse(response)
+                logger.info("Using fallback parsing method for optimizer")
+                return fallback_result
+            except Exception as fallback_error:
+                logger.error(f"Fallback parsing also failed: {str(fallback_error)}")
+                raise ValueError(f"Failed to parse optimizer response: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error in optimizer: {str(e)}")
+            raise ValueError(f"Optimizer error: {str(e)}")
     
     def optimize_professional_summary(
         self,
@@ -120,14 +131,20 @@ class CVOptimizer:
         )
     
     def _clean_json_response(self, response: str) -> str:
-        """Remove markdown code fences and cleanup JSON.
+        """Remove markdown code fences and cleanup JSON with enhanced error handling.
         
         Args:
             response: Raw response from API
             
         Returns:
             str: Cleaned JSON string
+            
+        Raises:
+            ValueError: If response cannot be cleaned to valid JSON
         """
+        if not response or not response.strip():
+            raise ValueError("Empty response received from API")
+        
         response = response.strip()
         
         # Remove ```json and ``` markers
@@ -143,10 +160,66 @@ class CVOptimizer:
         json_start = response.find('{')
         json_end = response.rfind('}')
         
-        if json_start >= 0 and json_end > json_start:
-            response = response[json_start:json_end+1]
+        if json_start == -1 or json_end == -1 or json_end <= json_start:
+            raise ValueError("No valid JSON object found in response")
         
-        return response.strip()
+        response = response[json_start:json_end+1]
+        
+        # Fix common JSON issues with enhanced patterns
+        response = response.strip()
+        
+        # Fix trailing commas before closing braces/brackets
+        response = re.sub(r',\s*}', '}', response)
+        response = re.sub(r',\s*\]', ']', response)
+        
+        # Fix missing commas between array elements
+        response = re.sub(r'}\s*{', '},{', response)
+        response = re.sub(r'"\s*"', '","', response)
+        
+        # Fix quotes around keys and values
+        response = re.sub(r'(\w+):', r'"\1":', response)  # Add quotes to unquoted keys
+        response = re.sub(r':\s*([^",\[\]\{\}][^",\[\]\{\}]*?)\s*([,\]\}])', r': "\1"\2', response)  # Add quotes to unquoted values
+        
+        # Remove any remaining markdown
+        response = response.replace('```json', '').replace('```', '')
+        
+        # Validate basic JSON structure
+        if not response.startswith('{') or not response.endswith('}'):
+            raise ValueError("Invalid JSON structure after cleaning")
+        
+        return response
+    
+    def _fallback_parse(self, response: str) -> Dict:
+        """Fallback parsing method for malformed JSON responses.
+        
+        Args:
+            response: Raw response from API
+            
+        Returns:
+            dict: Basic optimization structure
+        """
+        import re
+        
+        # Initialize basic structure
+        optimization_result = {
+            "optimized_content": response.strip(),
+            "changes_made": "Content extracted with fallback parsing due to JSON errors",
+            "keywords_used": [],
+            "ats_score_impact": "Unable to determine due to parsing issues",
+            "recommendations": ["Review and manually optimize the content"]
+        }
+        
+        # Try to extract keywords
+        keyword_matches = re.findall(r'"?keyword"?\s*:\s*"([^"]+)"', response, re.IGNORECASE)
+        if keyword_matches:
+            optimization_result["keywords_used"] = keyword_matches[:10]
+        
+        # Try to extract optimized content
+        content_match = re.search(r'"?optimized_content"?\s*:\s*"([^"]+)"', response, re.IGNORECASE)
+        if content_match:
+            optimization_result["optimized_content"] = content_match.group(1)
+        
+        return optimization_result
     
     def _extract_optimized_section(self, response: Dict) -> str:
         """Extract just the optimized content from response.

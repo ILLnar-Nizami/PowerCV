@@ -72,6 +72,11 @@ Provide your response in this exact JSON structure:
 13. **PREVENT DUPLICATION**: Never repeat the same information in multiple sections
 14. **COMPLETE SECTIONS**: Return full optimized sections, not fragments
 15. **BOUNDARY RESPECT**: Stop at section boundaries, don't merge adjacent sections
+16. **CONTENT PRESERVATION**: Ensure all original content is present in optimized version
+17. **STRUCTURAL CONSISTENCY**: Maintain the same section order and hierarchy as original
+18. **ENHANCEMENT FOCUS**: Improve wording and impact without losing original meaning
+19. **VERIFICATION**: Double-check that no content is lost during optimization
+20. **CONTEXT AWARENESS**: Consider the role of each section within the overall CV
 
 ## Example Optimization
 
