@@ -8,6 +8,11 @@ document.addEventListener('alpine:init', () => {
             average_score: 0,
             last_updated: null
         },
+        resumeStats: {
+            total_resumes: 0,
+            average_score: 0,
+            last_updated: null
+        },
         averageScore: 0,
         lastUpdated: null,
         isLoading: true,
@@ -148,7 +153,7 @@ document.addEventListener('alpine:init', () => {
         
         // Filter resumes based on search and filter criteria
         filterResumes() {
-            this.filteredResumes = this.resumes.filter(resume => {
+            return this.resumes.filter(resume => {
                 const matchesSearch = !this.searchQuery || 
                     resume.title?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                     resume.target_company?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
@@ -173,11 +178,11 @@ document.addEventListener('alpine:init', () => {
                 } else if (this.sortBy === 'created_at') {
                     comparison = new Date(b.created_at) - new Date(a.created_at);
                 } else if (this.sortBy === 'title') {
-                    comparison = (a.job_title || '').localeCompare(b.job_title || '');
+                    comparison = (a.title || '').localeCompare(b.title || '');
                 } else if (this.sortBy === 'company') {
-                    comparison = (a.company || '').localeCompare(b.company || '');
+                    comparison = (a.target_company || '').localeCompare(b.target_company || '');
                 } else if (this.sortBy === 'score') {
-                    comparison = (a.score || 0) - (b.score || 0);
+                    comparison = (a.matching_score || 0) - (b.matching_score || 0);
                 }
                 
                 return this.sortOrder === 'asc' ? comparison : -comparison;

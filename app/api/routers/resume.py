@@ -1244,18 +1244,80 @@ async def optimize_resume(
                 elif isinstance(data, list):
                     return [clean_markdown_formatting(item) for item in data]
                 elif isinstance(data, str):
-                    # Remove markdown link formatting [text](url) -> text
-                    # Also handles [email] -> email
                     import re
-                    # Pattern for [text](url) -> text
+                    # Remove markdown link formatting [text](url) -> text
                     cleaned = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', data)
                     # Pattern for [text] -> text
                     cleaned = re.sub(r'\[([^\]]+)\]', r'\1', cleaned)
                     return cleaned
                 return data
 
+            def sanitize_for_pydantic(data):
+                """Ensure data matches ResumeData model requirements."""
+                if not isinstance(data, dict):
+                    return {}
+
+                # 1. Ensure user_information exists
+                if "user_information" not in data or not isinstance(data["user_information"], dict):
+                    data["user_information"] = {
+                        "name": "Candidate",
+                        "main_job_title": "Professional",
+                        "profile_description": "Experienced professional.",
+                        "email": "candidate@example.com",
+                        "experiences": [],
+                        "education": [],
+                        "skills": {"hard_skills": [], "soft_skills": []}
+                    }
+
+                ui = data["user_information"]
+
+                # 2. Fix mandatory strings in user_information
+                for field in ["name", "main_job_title", "profile_description", "email"]:
+                    if field not in ui or not ui[field]:
+                        ui[field] = "None Provided" if field != "email" else "none@example.com"
+
+                # 3. Ensure experiences is a list and items have required fields
+                if "experiences" not in ui or not isinstance(ui["experiences"], list):
+                    ui["experiences"] = []
+
+                for exp in ui["experiences"]:
+                    if not isinstance(exp, dict):
+                        continue
+                    for f in ["job_title", "company", "start_date", "end_date"]:
+                        if f not in exp:
+                            exp[f] = "Unknown"
+                    if "four_tasks" not in exp or not isinstance(exp["four_tasks"], list):
+                        exp["four_tasks"] = ["Responsible for core duties."]
+                    elif not exp["four_tasks"]:
+                        exp["four_tasks"] = ["Responsible for core duties."]
+
+                # 4. Ensure education is a list
+                if "education" not in ui or not isinstance(ui["education"], list):
+                    ui["education"] = []
+                for edu in ui["education"]:
+                    if not isinstance(edu, dict):
+                        continue
+                    for f in ["institution", "degree", "start_date", "end_date"]:
+                        if f not in edu:
+                            edu[f] = "Unknown"
+
+                # 5. Ensure skills object
+                if "skills" not in ui or not isinstance(ui["skills"], dict):
+                    ui["skills"] = {"hard_skills": [], "soft_skills": []}
+                for s_field in ["hard_skills", "soft_skills"]:
+                    if s_field not in ui["skills"] or not isinstance(ui["skills"][s_field], list):
+                        ui["skills"][s_field] = []
+
+                # 6. Optional top level fields
+                for list_field in ["projects", "certificate", "extra_curricular_activities"]:
+                    if list_field in data and not isinstance(data[list_field], list):
+                        data[list_field] = []
+
+                return data
+
             cleaned_result = clean_markdown_formatting(result)
-            optimized_data = ResumeData.parse_obj(cleaned_result)
+            sanitized_result = sanitize_for_pydantic(cleaned_result)
+            optimized_data = ResumeData.parse_obj(sanitized_result)
             logger.info("Successfully validated result through Pydantic model")
         except Exception as validation_error:
             logger.error(
