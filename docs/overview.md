@@ -1,9 +1,9 @@
 # Project Overview
 
-Welcome to the MyResumo project! This document provides an overview of the project, its purpose, and its key components.
+Welcome to the PowerCV project! This document provides an overview of the project, its purpose, and its key components.
 
 ## Purpose
-MyResumo is designed to help users create, optimize, and manage resumes efficiently. It leverages AI to provide insights and recommendations for improving resumes based on job descriptions.
+PowerCV is designed to help users create, optimize, and manage resumes efficiently. It leverages AI to provide insights and recommendations for improving resumes based on job descriptions.
 
 ## Key Features
 - Resume creation and optimization

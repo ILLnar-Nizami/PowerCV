@@ -12,13 +12,13 @@ from .providers import CerebrasProvider, OpenAIProvider, OllamaProvider
 
 class LLMProviderFactory:
     """Factory for creating LLM providers."""
-    
+
     _providers: Dict[ProviderType, Type[BaseLLMProvider]] = {
         ProviderType.CEREBRAS: CerebrasProvider,
         ProviderType.OPENAI: OpenAIProvider,
         ProviderType.OLLAMA: OllamaProvider,
     }
-    
+
     @classmethod
     def register_provider(
         cls,
@@ -27,7 +27,7 @@ class LLMProviderFactory:
     ) -> None:
         """Register a new provider type."""
         cls._providers[provider_type] = provider_class
-    
+
     @classmethod
     def create_from_env(cls, **overrides) -> BaseLLMProvider:
         """Create provider from environment variables."""
@@ -38,7 +38,7 @@ class LLMProviderFactory:
             os.getenv('PROVIDER_TYPE') or
             'cerebras'
         ).lower()
-        
+
         # Map string to ProviderType
         provider_mapping = {
             'cerebras': ProviderType.CEREBRAS,
@@ -47,23 +47,25 @@ class LLMProviderFactory:
             'anthropic': ProviderType.ANTHROPIC,
             'huggingface': ProviderType.HUGGINGFACE,
         }
-        
-        provider_type = provider_mapping.get(provider_str, ProviderType.CEREBRAS)
-        
+
+        provider_type = provider_mapping.get(
+            provider_str, ProviderType.CEREBRAS)
+
         # Get configuration
         config = cls._get_config_from_env(provider_type, **overrides)
-        
+
         return cls.create(config)
-    
+
     @classmethod
     def create(cls, config: LLMConfig) -> BaseLLMProvider:
         """Create a provider instance from configuration."""
         if config.provider_type not in cls._providers:
-            raise ValueError(f"Unsupported provider type: {config.provider_type}")
-        
+            raise ValueError(
+                f"Unsupported provider type: {config.provider_type}")
+
         provider_class = cls._providers[config.provider_type]
         return provider_class(config)
-    
+
     @staticmethod
     def _get_config_from_env(provider_type: ProviderType, **overrides) -> LLMConfig:
         """Get configuration from environment variables."""
@@ -92,7 +94,8 @@ class LLMProviderFactory:
             ),
             max_tokens=(
                 overrides.get('max_tokens') or
-                (int(os.getenv('LLM_MAX_TOKENS')) if os.getenv('LLM_MAX_TOKENS') else None)
+                (int(os.getenv('LLM_MAX_TOKENS'))
+                 if os.getenv('LLM_MAX_TOKENS') else None)
             ),
             timeout=(
                 overrides.get('timeout') or
@@ -103,59 +106,64 @@ class LLMProviderFactory:
                 int(os.getenv('LLM_RETRY_ATTEMPTS', '3'))
             )
         )
-        
+
         # Provider-specific defaults
         if provider_type == ProviderType.CEREBRAS:
             if not config.api_key:
-                config.api_key = os.getenv('CEREBRASAI_API_KEY')
+                config.api_key = os.getenv(
+                    'CEREBRAS_API_KEY') or os.getenv('CEREBRASAI_API_KEY')
             if not config.api_base:
-                config.api_base = os.getenv('CEREBRAS_API_BASE', 'https://api.cerebras.ai/v1')
+                config.api_base = os.getenv('CEREBRAS_API_BASE') or os.getenv(
+                    'CEREBRASAI_API_BASE', 'https://api.cerebras.ai/v1')
             if not config.model_name:
-                config.model_name = os.getenv('CEREBRAS_MODEL_NAME', 'gpt-oss-120b')
-        
+                config.model_name = os.getenv('CEREBRAS_MODEL') or os.getenv(
+                    'CEREBRAS_MODEL_NAME', 'gpt-oss-120b')
+
         elif provider_type == ProviderType.OPENAI:
             if not config.api_key:
                 config.api_key = os.getenv('OPENAI_API_KEY')
             if not config.api_base:
-                config.api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
+                config.api_base = os.getenv(
+                    'OPENAI_API_BASE', 'https://api.openai.com/v1')
             if not config.model_name:
                 config.model_name = os.getenv('OPENAI_MODEL_NAME', 'gpt-4')
-        
+
         elif provider_type == ProviderType.OLLAMA:
             if not config.api_base:
-                config.api_base = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+                config.api_base = os.getenv(
+                    'OLLAMA_BASE_URL', 'http://localhost:11434')
             if not config.model_name:
                 config.model_name = os.getenv('OLLAMA_MODEL', 'llama2')
             # Ollama doesn't need API key
             config.api_key = None
-        
+
         # Apply any overrides
         for key, value in overrides.items():
             if hasattr(config, key):
                 setattr(config, key, value)
-        
+
         return config
-    
+
     @staticmethod
     def get_available_providers() -> List[ProviderType]:
         """Get list of available provider types."""
         return list(LLMProviderFactory._providers.keys())
-    
+
     @staticmethod
     def detect_provider_from_config() -> Optional[ProviderType]:
         """Auto-detect provider type from available environment variables."""
         # Check for Cerebras
         if os.getenv('CEREBRASAI_API_KEY'):
             return ProviderType.CEREBRAS
-        
+
         # Check for OpenAI
         if os.getenv('OPENAI_API_KEY'):
             return ProviderType.OPENAI
-        
+
         # Check for Ollama (local)
         if os.getenv('OLLAMA_BASE_URL') or 'localhost' in os.getenv('API_BASE', ''):
             return ProviderType.OLLAMA
-        
+
         # Default to Cerebras
         return ProviderType.CEREBRAS
 

@@ -1,7 +1,7 @@
 """Base router module for web interface routes.
 
 This module provides the WebRouter class, which extends FastAPI's APIRouter
-to provide specialized functionality for MyResumo's web interface routes.
+to provide specialized functionality for PowerCV's web interface routes.
 """
 
 from fastapi import APIRouter

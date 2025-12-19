@@ -1,9 +1,9 @@
 # Core Business Logic
 
-This document explains the core business logic implemented in the MyResumo project. It provides insights into the key functionalities and their underlying principles.
+This document explains the core business logic implemented in the PowerCV project. It provides insights into the key functionalities and their underlying principles.
 
 ## Resume Optimization
-The primary feature of MyResumo is to optimize resumes for better alignment with job descriptions. This involves:
+The primary feature of PowerCV is to optimize resumes for better alignment with job descriptions. This involves:
 
 1. **Keyword Matching**:
    - Extracts keywords from job descriptions using natural language processing (NLP).

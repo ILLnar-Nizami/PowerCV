@@ -32,7 +32,7 @@ class BaseRepository:
             db_name (str): The name of the database.
             collection_name (str): The name of the collection.
         """
-        self.db_name = db_name or os.getenv("DB_NAME", "myresumo")
+        self.db_name = db_name or os.getenv("DB_NAME", "powercv")
         self.collection_name = collection_name
         self.connection_manager = MongoConnectionManager.get_instance()
 

@@ -1,6 +1,6 @@
-"""MyResumo application package.
+"""PowerCV application package.
 
-This package contains all the modules and subpackages that make up the MyResumo application,
+This package contains all the modules and subpackages that make up the PowerCV application,
 a resume creation and optimization system using AI technologies.
 """
 

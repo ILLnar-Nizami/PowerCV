@@ -1,6 +1,6 @@
 # Documentation Index
 
-Welcome to the MyResumo Documentation! This index serves as a guide to navigate through the various documentation pages available in this project.
+Welcome to the PowerCV Documentation! This index serves as a guide to navigate through the various documentation pages available in this project.
 
 ## Table of Contents
 

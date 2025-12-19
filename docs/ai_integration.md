@@ -1,6 +1,6 @@
-# AI Integration in MyResumo
+# AI Integration in PowerCV
 
-This document outlines how AI is integrated into the MyResumo project to enhance its functionalities.
+This document outlines how AI is integrated into the PowerCV project to enhance its functionalities.
 
 ## AI Models Used
 - **NLP Models**:

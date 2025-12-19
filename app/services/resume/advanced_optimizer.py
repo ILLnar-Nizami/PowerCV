@@ -28,7 +28,7 @@ class AdvancedResumeOptimizer:
     ) -> Dict[str, Any]:
         """Run comprehensive resume optimization using the master prompt."""
         
-        master_prompt = f"""You are a resume writer. Create a clean, professional resume.
+        master_prompt = f"""You are optimizing a resume for a job application.
 
 TARGET JOB: {job_title} at {company}
 
@@ -38,33 +38,29 @@ JOB DESCRIPTION:
 CURRENT RESUME:
 {resume_text}
 
-REWRITE THIS RESUME:
-- Keep ALL real experiences, education, and skills from original
-- Add job-relevant keywords from description
-- Format exactly as shown below
-- NO analysis, NO comments, NO extra formatting
+TASK: Create an optimized resume that:
+1. Keeps ALL real experiences, education, and skills from the original
+2. Adds relevant keywords from the job description
+3. Formats professionally
+
+IMPORTANT: Extract and use the ACTUAL work experience from the current resume. Do not invent or omit any real positions.
 
 OUTPUT FORMAT:
 Ilnar Nizametdinov
 nizametdinov@gmail.com | +31 6 53230968 | 1441 DR Purmerend, The Netherlands
 
 PROFESSIONAL SUMMARY
-[3-4 lines about software engineering experience]
+[3-4 lines highlighting relevant experience]
 
 SKILLS
-Hard Skills: Python, Go, TypeScript, Flask, FastAPI, Docker, Kubernetes, AI/ML
-Soft Skills: Communication, Problem-Solving, Teamwork, Adaptability
+Hard Skills: [extract from resume + add relevant from JD]
+Soft Skills: [extract from resume]
 
 EXPERIENCE
-[Company] - [Position] | [Dates]
-• [Specific achievement with metric]
-• [Another achievement with metric]
-• [Third achievement with metric]
-
-[Continue with all experiences from original]
+[Extract ALL real experiences from current resume with dates and achievements]
 
 EDUCATION
-[Degree] - [Institution] | [Years]
+[Extract from current resume]
 
 READY FOR INTERVIEW"""
 

@@ -24,7 +24,7 @@ class ResumeRepository(BaseRepository):
 
     def __init__(
         self,
-        db_name: str = os.getenv("DB_NAME", "myresumo"),
+        db_name: str = os.getenv("DB_NAME", "powercv"),
         collection_name: str = "resumes",
     ):
         """Initialize the resume repository with database and collection names.

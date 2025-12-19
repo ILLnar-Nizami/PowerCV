@@ -23,7 +23,7 @@ core_web_router = WebRouter()
 @core_web_router.get(
     "/",
     summary="Homepage",
-    response_description="Welcome to MyResumo",
+    response_description="Welcome to PowerCV",
     response_class=HTMLResponse,
 )
 async def home(
@@ -47,7 +47,7 @@ async def home(
 @core_web_router.get(
     "/about",
     summary="About Us",
-    response_description="Learn more about MyResumo",
+    response_description="Learn more about PowerCV",
     response_class=HTMLResponse,
 )
 async def about(
@@ -55,7 +55,7 @@ async def about(
 ):
     """Render the about page.
 
-    This endpoint renders information about MyResumo, its features,
+    This endpoint renders information about PowerCV, its features,
     and the team behind it.
 
     Args:
@@ -71,7 +71,7 @@ async def about(
 @core_web_router.get(
     "/contribution",
     summary="Contribution",
-    response_description="Get involved with MyResumo development",
+    response_description="Get involved with PowerCV development",
     response_class=HTMLResponse,
 )
 async def contribution(

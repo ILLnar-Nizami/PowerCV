@@ -171,3 +171,18 @@ node_modules
 
 myresumo-prd.md
 .ruff_cache/
+
+# Security and sensitive files
+.env
+.env.*
+config.py
+secrets.json
+api_keys.txt
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
+client_secret.json
+service_account.json
+database_credentials.json

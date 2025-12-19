@@ -28,7 +28,7 @@ Automated routine reporting and analytics tasks, improving efficiency and precis
 
 PROJECT
 
-MyResumo | Python, Streamlit, Natural Language Processing, Prompt Engineering
+PowerCV | Python, Streamlit, Natural Language Processing, Prompt Engineering
 Built an AI-backed resume generator designed to tailor your resume and skills based on a given job description. This innovative tool leverages the latest advancements in AI to provide you with an ATS friendly resume.
 MyTorch  | Python, Computational Analysis, Azure
 Developed a neural network-based chessboard analyzer from scratch without deep learning libraries. Trained models on FEN notation to classify six game states, achieving 90% accuracy in binary classification and 60-70% in multi-class tasks.

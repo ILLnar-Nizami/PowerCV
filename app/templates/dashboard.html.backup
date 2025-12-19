@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - MyResumo{% endblock %}
+{% block title %}Dashboard - PowerCV{% endblock %}
 
 {% block content %}
 <div class="max-w-full sm:max-w-7xl mx-auto py-4 sm:py-6 px-2 sm:px-6 lg:px-8 overflow-hidden" x-data="dashboardApp" x-init="init()" x-cloak>

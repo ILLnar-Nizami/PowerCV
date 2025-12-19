@@ -1,4 +1,4 @@
-"""Notifications utility module for MyResumo.
+"""Notifications utility module for PowerCV.
 
 This module provides helper functions for creating and managing notifications,
 including toast messages for the frontend.

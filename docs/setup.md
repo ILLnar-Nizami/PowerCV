@@ -1,6 +1,6 @@
 # Project Setup
 
-This document provides instructions for setting up the MyResumo project locally.
+This document provides instructions for setting up the PowerCV project locally.
 
 ## Prerequisites
 - Python 3.10 or higher
@@ -10,8 +10,8 @@ This document provides instructions for setting up the MyResumo project locally.
 ## Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/AnalyticAce/MyResumo.git
-   cd MyResumo
+   git clone https://github.com/AnalyticAce/PowerCV.git
+   cd PowerCV
    ```
 
 2. Create and activate a virtual environment:

@@ -1,4 +1,4 @@
-"""Main application entry point for MyResumo.
+"""Main application entry point for PowerCV.
 
 This module initializes the FastAPI application, configures routers, middleware,
 and handles application startup and shutdown events. It serves as the central
@@ -92,10 +92,10 @@ async def shutdown_logic(app: FastAPI) -> None:
 
 
 app = FastAPI(
-    title="MyResumo API",
+    title="PowerCV API",
     summary="",
     description=""" 
-    MyResumo is an AI-backed resume generator designed to tailor your resume and skills based on a given job description. This innovative tool leverages the latest advancements in AI technology to provide you with a customized resume that stands out.
+    PowerCV is an AI-backed resume generator designed to tailor your resume and skills based on a given job description. This innovative tool leverages the latest advancements in AI technology to provide you with a customized resume that stands out.
     """,
     license_info={"name": "MIT License",
                   "url": "https://opensource.org/licenses/MIT"},
@@ -226,7 +226,7 @@ async def custom_swagger_ui_html():
             template = f.read()
 
         return HTMLResponse(
-            template.replace("{{ title }}", "MyResumo API Documentation").replace(
+            template.replace("{{ title }}", "PowerCV API Documentation").replace(
                 "{{ openapi_url }}", "/openapi.json"
             )
         )

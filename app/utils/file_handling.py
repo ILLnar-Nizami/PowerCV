@@ -2,7 +2,7 @@
 
 This module provides functions and classes for handling various file operations,
 including file uploads, downloads, conversion between formats, and temporary
-file management for the MyResumo application.
+file management for the PowerCV application.
 """
 
 import os

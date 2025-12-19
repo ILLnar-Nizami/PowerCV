@@ -1,6 +1,8 @@
 """Validate PowerCV Cerebras integration installation."""
 import sys
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 
 def check_files():
@@ -17,18 +19,18 @@ def check_files():
         "app/services/workflow_orchestrator.py",
         ".env"
     ]
-    
+
     missing = []
     for filepath in required_files:
         if not Path(filepath).exists():
             missing.append(filepath)
-    
+
     if missing:
         print("❌ Missing files:")
         for f in missing:
             print(f"   - {f}")
         return False
-    
+
     print("✓ All required files present")
     return True
 
@@ -61,51 +63,28 @@ def check_prompts():
 
 def check_env():
     """Check environment variables."""
-    import os
-    from dotenv import load_dotenv
-    
     load_dotenv()
-    
+
     api_key = os.getenv("CEREBRAS_API_KEY")
     if not api_key or api_key == "your_api_key_here_REPLACE_THIS":
         print("⚠️  Warning: CEREBRAS_API_KEY not set in .env")
         return False
-    
+
     print("✓ Environment variables configured")
     return True
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("PowerCV Cerebras Integration - Validation")
-    print("=" * 60)
-    
-    all_ok = True
-    
-    print("\n1. Checking files...")
-    all_ok &= check_files()
-    
-    print("\n2. Checking imports...")
-    all_ok &= check_imports()
-    
-    print("\n3. Checking prompts...")
-    all_ok &= check_prompts()
-    
-    print("\n4. Checking environment...")
-    env_ok = check_env()
-    
-    print("\n" + "=" * 60)
-    if all_ok and env_ok:
-        print("✅ Installation validated successfully!")
-        print("\nNext steps:")
-        print("  1. Run: pytest app/tests/test_integration.py")
-        print("  2. Start app: uvicorn app.main:app --reload")
-        sys.exit(0)
-    elif all_ok and not env_ok:
-        print("⚠️  Installation OK, but API key needed")
-        print("\nSet CEREBRAS_API_KEY in .env file")
-        sys.exit(1)
+    print("--- PowerCV Installation Validation ---")
+    results = [
+        check_files(),
+        check_imports(),
+        check_prompts(),
+        check_env()
+    ]
+
+    if all(results):
+        print("\n✨ Installation looks solid!")
     else:
-        print("❌ Installation incomplete")
-        print("\nPlease fix the issues above")
+        print("\n⚠️  Some checks failed. Please review the output above.")
         sys.exit(1)

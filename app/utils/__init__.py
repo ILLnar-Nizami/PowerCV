@@ -1,4 +1,4 @@
-"""Utility modules for the MyResumo application.
+"""Utility modules for the PowerCV application.
 
 This package contains utility modules that provide helper functions and classes
 for file handling, OCR processing, notifications, and other auxiliary functionality

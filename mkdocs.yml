@@ -1,13 +1,13 @@
-site_name: MyResumo Documentation
-site_url: https://analyticace.github.io/MyResumo/
+site_name: PowerCV Documentation
+site_url: https://analyticace.github.io/PowerCV/
 site_description: >-
-  MyResumo is a powerful tool that helps you summarize and analyze your data
+  PowerCV is a powerful tool that helps you summarize and analyze your data
   efficiently. This documentation provides a comprehensive guide to using
-  MyResumo, including setup instructions, business logic, and AI integration.
+  PowerCV, including setup instructions, business logic, and AI integration.
 site_author: DOSSEH Shalom
 
-repo_name: AnalyticAce/MyResumo
-repo_url: https://github.com/AnalyticAce/MyResumo
+repo_name: AnalyticAce/PowerCV
+repo_url: https://github.com/AnalyticAce/PowerCV
 
 theme:
   name: material

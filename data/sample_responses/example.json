@@ -74,7 +74,7 @@
     },
     "projects": [
       {
-        "project_name": "MyResumo",
+        "project_name": "PowerCV",
         "two_goals_of_the_project": [
           "Built an AI-backed resume generator designed to tailor your resume and skills based on a given job description.",
           "Leveraged the latest advancements in AI to provide an ATS-friendly resume."

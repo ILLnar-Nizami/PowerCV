@@ -1,4 +1,4 @@
-# MyResumo <img src="https://img.shields.io/badge/version-2.0.0-blue" alt="Version 2.0.0"/>
+# PowerCV <img src="https://img.shields.io/badge/version-2.0.0-blue" alt="Version 2.0.0"/>
 
 <div align="center">
 
@@ -7,17 +7,17 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95.0%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.4%2B-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![AI Powered](https://img.shields.io/badge/AI-Powered-8A2BE2?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgMmEyIDIgMCAwIDAgLTIgMnY3YTIgMiAwIDAgMCA0IDB2LTdhMiAyIDAgMCAwIC0yIC0yeiI+PC9wYXRoPjxwYXRoIGQ9Ik0yIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTIyIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTEyIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTYgNmEyIDIgMCAwIDAgLTIgMnYyYTIgMiAwIDAgMCA0IDB2LTJhMiAyIDAgMCAwIC0yIC0yeiI+PC9wYXRoPjxwYXRoIGQ9Ik0xOCA2YTIgMiAwIDAgMCAtMiAydjJhMiAyIDAgMCAwIDQgMHYtMmEyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PC9zdmc+)](https://github.com/AnalyticAce/MyResumo)
+[![AI Powered](https://img.shields.io/badge/AI-Powered-8A2BE2?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgMmEyIDIgMCAwIDAgLTIgMnY3YTIgMiAwIDAgMCA0IDB2LTdhMiAyIDAgMCAwIC0yIC0yeiI+PC9wYXRoPjxwYXRoIGQ9Ik0yIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTIyIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTEyIDEyYTIgMiAwIDAgMCAtMiAydjdhMiAyIDAgMCAwIDQgMHYtN2EyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PHBhdGggZD0iTTYgNmEyIDIgMCAwIDAgLTIgMnYyYTIgMiAwIDAgMCA0IDB2LTJhMiAyIDAgMCAwIC0yIC0yeiI+PC9wYXRoPjxwYXRoIGQ9Ik0xOCA2YTIgMiAwIDAgMCAtMiAydjJhMiAyIDAgMCAwIDQgMHYtMmEyIDIgMCAwIDAgLTIgLTJ6Ij48L3BhdGg+PC9zdmc+)](https://github.com/AnalyticAce/PowerCV)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
 
 </div>
 
 ## 📋 Overview
 
-**MyResumo** is an AI-powered resume customization platform that tailors your professional profile to match specific job descriptions. By leveraging advanced natural language processing, it analyzes job requirements and adapts your resume to highlight relevant skills and experiences, significantly improving your chances of passing through Applicant Tracking Systems (ATS) and catching recruiters' attention.
+**PowerCV** is an AI-powered resume customization platform that tailors your professional profile to match specific job descriptions. By leveraging advanced natural language processing, it analyzes job requirements and adapts your resume to highlight relevant skills and experiences, significantly improving your chances of passing through Applicant Tracking Systems (ATS) and catching recruiters' attention.
 
 <!-- <div align="center">
-  <img src="https://github.com/AnalyticAce/MyResumo/blob/develop/.github/assets/demo-screenshot.png" alt="MyResumo Screenshot" width="800"/>
+  <img src="https://github.com/AnalyticAce/PowerCV/blob/develop/.github/assets/demo-screenshot.png" alt="PowerCV Screenshot" width="800"/>
 </div> -->
 
 ## ✨ Key Features
@@ -30,39 +30,39 @@
 
 ## 🖼️ Showcase
 
-Below are screenshots showcasing the main features of MyResumo:
+Below are screenshots showcasing the main features of PowerCV:
 <div align="center">
 
 ### Landing Page
-The landing page introduces users to the AI-powered resume optimization service, highlighting the key benefits of using MyResumo to tailor resumes for specific job applications.
+The landing page introduces users to the AI-powered resume optimization service, highlighting the key benefits of using PowerCV to tailor resumes for specific job applications.
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/landing-page.png" alt="MyResumo Landing Page"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/landing-page.png" alt="PowerCV Landing Page"/>
 
 ### Dashboard
 The user dashboard provides an overview of all your resumes, including ATS scores, last update dates, and quick access to actions like viewing, editing, downloading, or deleting each resume.
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/dashboard.png" alt="MyResumo Dashboard"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/dashboard.png" alt="PowerCV Dashboard"/>
 
 ### Resume Optimization
 The resume optimization page analyzes your resume against job descriptions, providing detailed feedback on missing keywords, skills, and suggestions for improvement.
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/optimized1.png" alt="Resume Optimization"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/optimized1.png" alt="Resume Optimization"/>
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/optimized2.png" alt="Resume Optimization"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/optimized2.png" alt="Resume Optimization"/>
 
 ### Resume Creation
 The intuitive resume creation interface allows you to build professional resumes with AI assistance, ensuring they're optimized for both ATS systems and human reviewers.
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/creation.png" alt="Resume Creation"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/creation.png" alt="Resume Creation"/>
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/result.png" alt="Resume Result"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/result.png" alt="Resume Result"/>
 
 ### Resume View
 The resume view page displays the generated resume in a clean, professional format, ready for download.
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/resume_view.png" alt="Resume View"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/resume_view.png" alt="Resume View"/>
 
-<img src="https://github.com/AnalyticAce/MyResumo/blob/main/.github/assets/resume_view2.png" alt="Resume View"/>
+<img src="https://github.com/AnalyticAce/PowerCV/blob/main/.github/assets/resume_view2.png" alt="Resume View"/>
 
 </div>
 
@@ -157,7 +157,7 @@ docker run -d --name myresumo \
 
 ## Alternative AI Models
 
-MyResumo supports multiple AI backends to power its resume customization features:
+PowerCV supports multiple AI backends to power its resume customization features:
 
 ### Environment Variable Configuration
 
@@ -175,6 +175,35 @@ API_BASE=https://api.openai.com/v1
 MODEL_NAME=gpt-4
 
 # For other providers, configure accordingly
+```
+
+### 🆕 Cerebras AI Integration
+
+PowerCV now uses Cerebras AI for ultra-fast CV optimization (v2 endpoints):
+
+#### Setup
+
+1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
+2. Add to `.env`:
+   ```env
+   CEREBRAS_API_KEY=your_key_here
+   CEREBRAS_MODEL=gpt-oss-120b
+   ```
+
+#### New API Endpoints (v2)
+
+- `POST /api/v2/optimize` - Full CV optimization workflow (Modular prompts)
+- `POST /api/v2/analyze` - CV analysis only (Structured JSON)
+- `POST /api/v2/cover-letter` - Cover letter generation (Tailored content)
+
+#### Testing
+
+```bash
+# Run integration tests
+pytest app/tests/test_integration.py -v
+
+# Run specific test
+python app/tests/test_integration.py
 ```
 
 When running the Docker container, simply pass these environment variables:
@@ -196,8 +225,8 @@ Access the application at `http://localhost:8080`
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/AnalyticAce/MyResumo.git
-cd MyResumo
+git clone https://github.com/AnalyticAce/PowerCV.git
+cd PowerCV
 ```
 
 2. Create and activate a virtual environment:
@@ -315,4 +344,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **DOSSEH Shalom** - [LinkedIn](https://www.linkedin.com/in/shalom-dosseh-4a484a262) - [GitHub](https://github.com/AnalyticAce)
 
-Project Link: [https://github.com/AnalyticAce/MyResumo](https://github.com/AnalyticAce/MyResumo)
+Project Link: [https://github.com/AnalyticAce/PowerCV](https://github.com/AnalyticAce/PowerCV)

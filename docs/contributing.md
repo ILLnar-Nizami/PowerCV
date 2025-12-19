@@ -1,6 +1,6 @@
-# Contributing to MyResumo
+# Contributing to PowerCV
 
-Thank you for considering contributing to MyResumo! This document outlines the guidelines for contributing to the project.
+Thank you for considering contributing to PowerCV! This document outlines the guidelines for contributing to the project.
 
 ## How to Contribute
 1. Fork the repository and create a new branch for your feature or bugfix.

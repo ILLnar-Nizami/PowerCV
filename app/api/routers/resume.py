@@ -101,9 +101,9 @@ class OptimizationResponse(BaseModel):
         ..., description="Unique identifier for the optimized resume"
     )
     original_matching_score: int = Field(...,
-                                    description="Matching score before optimization")
+                                         description="Matching score before optimization")
     optimized_matching_score: int = Field(...,
-                                     description="Matching score after optimization")
+                                          description="Matching score after optimization")
     score_improvement: int = Field(
         ..., description="Score improvement after optimization"
     )
@@ -218,35 +218,36 @@ async def create_resume(
         # Validate file format
         supported_formats = ['.pdf', '.docx', '.md', '.markdown', '.txt']
         file_extension = Path(file.filename).suffix.lower()
-        
+
         if file_extension not in supported_formats:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unsupported file format: {file_extension}. Supported formats: {', '.join(supported_formats)}"
             )
-        
+
         # Read file content
         file_content = await file.read()
-        
+
         # Reset file position for potential reuse
         await file.seek(0)
-        
+
         # Create temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
             temp_file.write(file_content)
             temp_file_path = temp_file.name
-        
+
         try:
             # Extract text based on file type
-            resume_text = extract_text_from_file(temp_file_path, file_extension)
-            
+            resume_text = extract_text_from_file(
+                temp_file_path, file_extension)
+
             # Check if extraction failed
             if resume_text.startswith("Error:") or resume_text.startswith("Unsupported file format:"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=resume_text
                 )
-                
+
         finally:
             os.unlink(temp_file_path)
 
@@ -312,13 +313,13 @@ async def replace_master_cv(
         # Validate file format
         supported_formats = ['.pdf', '.docx', '.md', '.markdown', '.txt']
         file_extension = Path(file.filename).suffix.lower()
-        
+
         if file_extension not in supported_formats:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unsupported file format: {file_extension}. Supported formats: {', '.join(supported_formats)}"
             )
-        
+
         # Get existing resume
         resume = await repo.get_resume_by_id(resume_id)
         if not resume:
@@ -326,30 +327,31 @@ async def replace_master_cv(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Resume not found"
             )
-        
+
         # Extract text from new file
         file_content = await file.read()
-        
+
         # Reset file position for potential reuse
         await file.seek(0)
-        
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
             temp_file.write(file_content)
             temp_file_path = temp_file.name
-        
+
         try:
-            new_master_content = extract_text_from_file(temp_file_path, file_extension)
-            
+            new_master_content = extract_text_from_file(
+                temp_file_path, file_extension)
+
             # Check if extraction failed
             if new_master_content.startswith("Error:") or new_master_content.startswith("Unsupported file format:"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=new_master_content
                 )
-                
+
         finally:
             os.unlink(temp_file_path)
-        
+
         # Update resume with new master CV
         update_data = {
             "master_content": new_master_content,
@@ -358,16 +360,16 @@ async def replace_master_cv(
             "master_updated_at": datetime.now(),
             "original_content": new_master_content,  # Also update current content
         }
-        
+
         success = await repo.update_resume(resume_id, update_data)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update master CV"
             )
-        
+
         return {"message": "Master CV replaced successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -413,36 +415,37 @@ async def upload_master_cv(
         # Validate file format
         supported_formats = ['.pdf', '.docx', '.md', '.markdown', '.txt']
         file_extension = Path(file.filename).suffix.lower()
-        
+
         if file_extension not in supported_formats:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unsupported file format: {file_extension}. Supported formats: {', '.join(supported_formats)}"
             )
-        
+
         # Extract text from file
         file_content = await file.read()
-        
+
         # Reset file position for potential reuse
         await file.seek(0)
-        
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
             temp_file.write(file_content)
             temp_file_path = temp_file.name
-        
+
         try:
-            master_content = extract_text_from_file(temp_file_path, file_extension)
-            
+            master_content = extract_text_from_file(
+                temp_file_path, file_extension)
+
             # Check if extraction failed
             if master_content.startswith("Error:") or master_content.startswith("Unsupported file format:"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=master_content
                 )
-                
+
         finally:
             os.unlink(temp_file_path)
-        
+
         # Create master CV entry
         master_cv = Resume(
             user_id=user_id,
@@ -454,16 +457,16 @@ async def upload_master_cv(
             master_file_type=file.content_type,
             master_updated_at=datetime.now(),
         )
-        
+
         master_cv_id = await repo.create_resume(master_cv)
         if not master_cv_id:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to create master CV",
             )
-        
+
         return {"message": "Master CV uploaded successfully", "id": master_cv_id}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -513,9 +516,9 @@ async def get_master_cvs(
             for resume in all_resumes
             if resume.get("master_content")
         ]
-        
+
         return master_cvs
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -572,7 +575,7 @@ async def delete_master_cv(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Master CV not found"
             )
-        
+
         # Delete the master CV
         success = await repo.delete_resume(master_cv_id)
         if not success:
@@ -580,9 +583,9 @@ async def delete_master_cv(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete master CV"
             )
-        
+
         return {"message": "Master CV deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -621,7 +624,7 @@ async def get_templates(
         import os
         template_dir = "data/sample_latex_templates"
         templates = []
-        
+
         template_info = {
             "resume_template.tex": {
                 "name": "Standard Template",
@@ -630,7 +633,7 @@ async def get_templates(
                 "margins": "1 inch"
             },
             "compact_resume_template.tex": {
-                "name": "Compact Template", 
+                "name": "Compact Template",
                 "description": "Space-efficient template with A4 format and 1-inch margins",
                 "style": "Professional",
                 "margins": "1 inch"
@@ -644,7 +647,7 @@ async def get_templates(
             "minimalist_template.tex": {
                 "name": "Minimalist Template",
                 "description": "Clean, simple design with A4 format and 1-inch margins",
-                "style": "Minimalist", 
+                "style": "Minimalist",
                 "margins": "1 inch"
             },
             "creative_template.tex": {
@@ -660,7 +663,7 @@ async def get_templates(
                 "margins": "1 inch"
             }
         }
-        
+
         if os.path.exists(template_dir):
             for filename in os.listdir(template_dir):
                 if filename.endswith('.tex') and filename in template_info:
@@ -668,9 +671,9 @@ async def get_templates(
                         "filename": filename,
                         **template_info[filename]
                     })
-        
+
         return templates
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -724,12 +727,18 @@ async def get_user_resumes(
     user_id: str,
     request: Request,
     repo: ResumeRepository = Depends(get_resume_repository),
-    sort_by: Optional[str] = Query(None, description="Sort by: date, company, title"),
-    sort_order: Optional[str] = Query("desc", description="Sort order: asc, desc"),
-    filter_company: Optional[str] = Query(None, description="Filter by company"),
-    filter_position: Optional[str] = Query(None, description="Filter by position/role"),
-    filter_date_from: Optional[str] = Query(None, description="Filter by date from (YYYY-MM-DD)"),
-    filter_date_to: Optional[str] = Query(None, description="Filter by date to (YYYY-MM-DD)"),
+    sort_by: Optional[str] = Query(
+        None, description="Sort by: date, company, title"),
+    sort_order: Optional[str] = Query(
+        "desc", description="Sort order: asc, desc"),
+    filter_company: Optional[str] = Query(
+        None, description="Filter by company"),
+    filter_position: Optional[str] = Query(
+        None, description="Filter by position/role"),
+    filter_date_from: Optional[str] = Query(
+        None, description="Filter by date from (YYYY-MM-DD)"),
+    filter_date_to: Optional[str] = Query(
+        None, description="Filter by date to (YYYY-MM-DD)"),
 ):
     """Get all resumes for a specific user with sorting and filtering.
 
@@ -750,7 +759,7 @@ async def get_user_resumes(
     """
     resumes = await repo.get_resumes_by_user_id(user_id)
     formatted_resumes = []
-    
+
     for resume in resumes:
         optimized_data = resume.get(
             "optimized_data") if isinstance(resume, dict) else None
@@ -794,21 +803,22 @@ async def get_user_resumes(
                 "updated_at": resume.get("updated_at"),
             }
         )
-    
+
     # Apply filters
     if filter_company:
         formatted_resumes = [
-            r for r in formatted_resumes 
+            r for r in formatted_resumes
             if r.get("target_company") and filter_company.lower() in r["target_company"].lower()
         ]
-    
+
     if filter_position:
         formatted_resumes = [
-            r for r in formatted_resumes 
+            r for r in formatted_resumes
             if (r.get("target_role") and filter_position.lower() in r["target_role"].lower()) or
-               (r.get("main_job_title") and filter_position.lower() in r["main_job_title"].lower())
+               (r.get("main_job_title") and filter_position.lower()
+                in r["main_job_title"].lower())
         ]
-    
+
     if filter_date_from or filter_date_to:
         filtered_resumes = []
         for r in formatted_resumes:
@@ -816,29 +826,31 @@ async def get_user_resumes(
             if date_field:
                 try:
                     if isinstance(date_field, str):
-                        date_obj = datetime.fromisoformat(date_field.replace("Z", "+00:00"))
+                        date_obj = datetime.fromisoformat(
+                            date_field.replace("Z", "+00:00"))
                     else:
                         date_obj = date_field
-                    
+
                     date_str = date_obj.date().isoformat()
-                    
+
                     if filter_date_from and date_str < filter_date_from:
                         continue
                     if filter_date_to and date_str > filter_date_to:
                         continue
-                    
+
                     filtered_resumes.append(r)
                 except:
                     pass
         formatted_resumes = filtered_resumes
-    
+
     # Apply sorting
     if sort_by:
         reverse_order = sort_order.lower() == "desc"
-        
+
         if sort_by == "date":
             formatted_resumes.sort(
-                key=lambda x: (x.get("updated_at") or x.get("created_at") or datetime.min),
+                key=lambda x: (x.get("updated_at") or x.get(
+                    "created_at") or datetime.min),
                 reverse=reverse_order
             )
         elif sort_by == "company":
@@ -851,7 +863,7 @@ async def get_user_resumes(
                 key=lambda x: x.get("title", "").lower(),
                 reverse=reverse_order
             )
-    
+
     return formatted_resumes
 
 
@@ -883,15 +895,16 @@ async def update_resume_status(
     """
     try:
         # Validate status value
-        valid_statuses = ["not_applied", "applied", "answered", "rejected", "interview"]
+        valid_statuses = ["not_applied", "applied",
+                          "answered", "rejected", "interview"]
         new_status = status_data.get("application_status")
-        
+
         if new_status not in valid_statuses:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
             )
-        
+
         # Update the resume status
         update_data = {
             "application_status": new_status,
@@ -899,23 +912,23 @@ async def update_resume_status(
             "is_applied": new_status in ["applied", "answered", "rejected", "interview"],
             "is_answered": new_status in ["answered", "rejected", "interview"]
         }
-        
+
         # Add timestamp for applied date
         if new_status == "applied":
             update_data["applied_date"] = datetime.now()
         elif new_status == "answered":
             update_data["answered_date"] = datetime.now()
-        
+
         success = await repo.update_resume(resume_id, update_data)
-        
+
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Resume with ID {resume_id} not found"
             )
-        
+
         return {"success": True}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -1137,7 +1150,8 @@ async def optimize_resume(
     logger.info(f"API Key present: {bool(api_key)}")
 
     # 3. Initialize universal scorer
-    logger.info("Initializing UniversalResumeScorer for pre-optimization scoring")
+    logger.info(
+        "Initializing UniversalResumeScorer for pre-optimization scoring")
     scorer = UniversalResumeScorer()
 
     # 4. Get job description
@@ -1168,157 +1182,43 @@ async def optimize_resume(
         # 5. Score original resume against job description (Optional)
         skip_scoring = os.getenv("SKIP_ATS_SCORING", "false").lower() == "true"
 
-        if skip_scoring:
-            logger.info("Skipping initial ATS scoring as per configuration")
-            original_ats_score = 0
-            original_score_result = {"missing_skills": [
-            ], "matching_skills": [], "recommendation": "Scoring skipped"}
-        else:
-            logger.info("Scoring original resume against job description")
-            try:
-                original_score_result = await scorer.calculate_match_score(
-                    resume["original_content"], job_description, user_id="local-user"
-                )
-            except Exception as e:
-                if (not is_local_llm) and _should_fallback_to_local(e):
-                    local_cfg = _get_local_llm_config()
-                    logger.warning(
-                        f"Primary LLM scoring failed, retrying with local Ollama. Error: {e}"
-                    )
-                    scorer = SimpleMatchScorer()
-                    original_score_result = await scorer.calculate_match_score(
-                        resume["original_content"], job_description, user_id="local-user"
-                    )
-                    is_local_llm = True
-                else:
-                    raise
-            original_ats_score = int(original_score_result["score"])
-            logger.info(f"Original resume ATS score: {original_ats_score}")
+        # We always want one analysis for the original CV
+        from app.services.cv_analyzer import CVAnalyzer
+        analyzer = CVAnalyzer()
 
-        # Extract missing skills to be addressed in optimization
-        missing_skills = original_score_result.get("missing_skills", [])
-        logger.info(f"Identified missing skills: {missing_skills}")
+        logger.info("Analyzing original resume against job description")
+        original_analysis = analyzer.analyze(
+            resume["original_content"], job_description)
+        original_ats_score = original_analysis.get("ats_score", 0)
+        missing_skills = original_analysis.get("missing_skills", [])
 
-        # 6. Initialize optimizer and generate optimized resume
-        # 6. Initialize and run optimizer
-        logger.info("Initializing Resume Optimizer")
+        # 6. Initialize and run new Cerebras Orchestrator
+        logger.info(
+            "Using CVWorkflowOrchestrator for high-quality optimization")
+        from app.services.workflow_orchestrator import CVWorkflowOrchestrator
+        orchestrator = CVWorkflowOrchestrator()
 
-        # Check if fast optimization is enabled (defaulting to True for now given user complaints)
-        use_fast_optimizer = os.getenv(
-            "USE_FAST_OPTIMIZER", "true").lower() == "true"
+        # Run optimization
+        optimization_result = orchestrator.optimize_cv_for_job(
+            cv_text=resume.get("master_content") or resume.get(
+                "original_content", ""),
+            jd_text=job_description,
+            generate_cover_letter=False  # Dashboard has separate cover letter generation
+        )
 
-        if use_fast_optimizer:
-            from app.services.ai.multi_model_optimizer import MultiModelResumeOptimizer
-            logger.info(
-                "Using MultiModelResumeOptimizer (Tiered Architecture)")
+        if "error" in optimization_result:
+            logger.error(
+                f"Orchestrator returned error: {optimization_result['error']}")
+            raise HTTPException(
+                status_code=500, detail=optimization_result["error"])
 
-            # Initialize with default max_workers=5
-            multi_optimizer = MultiModelResumeOptimizer()
+        result = optimization_result.get("optimized_cv", {})
+        optimized_analysis = optimization_result.get("analysis", {})
+        optimized_ats_score = optimized_analysis.get(
+            "ats_score", original_ats_score + 10)  # Fallback improvement
 
-            # Prepare input data
-            try:
-                import json
-                resume_content_source = resume.get("master_content") or resume.get("original_content", "")
-                if isinstance(resume_content_source, str) and resume_content_source.strip().startswith('{'):
-                    resume_data_dict = json.loads(resume_content_source)
-                elif isinstance(resume_content_source, dict):
-                    resume_data_dict = resume_content_source
-                else:
-                    # Fallback for other types
-                    raise ValueError(
-                        f"Unexpected type for resume content: {type(resume_content_source)}")
-            except Exception as e:
-                logger.warning(
-                    f"Failed to load resume content as JSON/Dict: {e}. Using robust fallback with extraction.")
-                content_str = str(resume.get("master_content") or resume.get("original_content", ""))
-
-                # Heuristic Extraction
-                import re
-
-                # 1. Email Extraction
-                email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', content_str)
-                email = email_match.group(
-                    0) if email_match else "placeholder@example.com"
-
-                # 2. Phone Extraction (simple pattern)
-                phone_match = re.search(
-                    r'[\+\(]?[0-9][0-9 .\-\(\)]{8,}[0-9]', content_str)
-                phone = phone_match.group(0) if phone_match else ""
-
-                # 3. Name Extraction (Heuristic: First non-empty line, max 3 words)
-                name = "Candidate"
-                lines = [line.strip()
-                         for line in content_str.split('\n') if line.strip()]
-                if lines:
-                    first_line = lines[0]
-                    # Check if first line looks like a name (e.g. 2-3 words, no numbers)
-                    if 0 < len(first_line.split()) <= 4 and not any(char.isdigit() for char in first_line):
-                        name = first_line
-
-                resume_data_dict = {
-                    "user_information": {
-                        "name": name,
-                        "main_job_title": "Professional",  # Could try to extract this too, but harder
-                        "email": email,
-                        "phone": phone,
-                        "location": "",
-                        "profile_description": content_str,
-                        "experiences": [],
-                        "education": [],
-                        "skills": []
-                    },
-                    "projects": []
-                }
-
-            optimized_data_dict = None
-            try:
-                optimized_data_dict = await multi_optimizer.optimize_resume(
-                    resume_data_dict,
-                    job_description,
-                    job_title="AI Software Engineer",
-                    company="BCG X"
-                )
-            except Exception as e:
-                if _should_fallback_to_local(e):
-                    logger.warning(
-                        f"Multi-model optimizer failed, falling back to legacy optimizer. Error: {e}"
-                    )
-                    use_fast_optimizer = False
-                else:
-                    raise
-
-            if use_fast_optimizer:
-                result = optimized_data_dict
-
-        if not use_fast_optimizer:
-            logger.info(
-                "Using Legacy AtsResumeOptimizer (Sequential Processing)")
-            try:
-                optimizer = AtsResumeOptimizer(
-                    model_name=model_name,
-                    resume=resume["original_content"],
-                    api_key=api_key,
-                    api_base=api_base_url,
-                )
-                result = optimizer.generate_ats_optimized_resume_json(
-                    job_description)
-            except Exception as e:
-                if (not is_local_llm) and _should_fallback_to_local(e):
-                    local_cfg = _get_local_llm_config()
-                    logger.warning(
-                        f"Primary LLM optimization failed, retrying with local Ollama. Error: {e}"
-                    )
-                    optimizer = AtsResumeOptimizer(
-                        model_name=local_cfg["model_name"],
-                        resume=resume["original_content"],
-                        api_key=local_cfg["api_key"],
-                        api_base=local_cfg["api_base"],
-                    )
-                    result = optimizer.generate_ats_optimized_resume_json(
-                        job_description)
-                    is_local_llm = True
-                else:
-                    raise
+        # Log success
+        logger.info("Optimization completed successfully via Orchestrator")
 
         # 7. Check for errors in result (Unified)
         if "error" in result:
@@ -1368,208 +1268,16 @@ async def optimize_resume(
                 detail=f"Error parsing AI response: {str(validation_error)}",
             )
 
-        # 10. Score the optimized resume
-        logger.info(
-            "Generating JSON text representation of the optimized resume")
-        optimized_resume_text = json.dumps(result)
-
-        logger.info("Scoring optimized resume against job description")
-        try:
-            optimized_score_result = await scorer.calculate_match_score(
-                optimized_resume_text, job_description, user_id="local-user"
-            )
-        except Exception as e:
-            if (not is_local_llm) and _should_fallback_to_local(e):
-                local_cfg = _get_local_llm_config()
-                logger.warning(
-                    f"Primary LLM optimized scoring failed, retrying with local Ollama. Error: {e}"
-                )
-                scorer = SimpleMatchScorer()
-                optimized_score_result = await scorer.calculate_match_score(
-                    optimized_resume_text, job_description, user_id="local-user"
-                )
-                is_local_llm = True
-            else:
-                raise
-        optimized_ats_score = int(optimized_score_result["score"])
-        logger.info(f"Optimized resume ATS score: {optimized_ats_score}")
-
-        def _norm(s: str) -> str:
-            import re
-            s = (s or "").strip().lower()
-            return re.sub(r"\s+", " ", s)
-
-        def _is_soft_skill(s: str) -> bool:
-            t = _norm(s)
-            # Strict whitelist only. Everything else is considered a hard skill/tool/method.
-            soft = {
-                "communication",
-                "teamwork",
-                "collaboration",
-                "cross-functional collaboration",
-                "adaptability",
-                "problem solving",
-                "problem-solving",
-                "time management",
-                "attention to detail",
-                "detail oriented",
-            }
-            if t in soft:
-                return True
-            if t.startswith("communication"):
-                return True
-            if t.startswith("teamwork"):
-                return True
-            if "attention to detail" in t:
-                return True
-            return False
-
-        def _dedupe_keep_order(items: list) -> list:
-            seen = set()
-            out = []
-            for it in items if isinstance(items, list) else []:
-                if not isinstance(it, str):
-                    continue
-                v = it.strip()
-                if not v:
-                    continue
-                key = _norm(v)
-                if key in seen:
-                    continue
-                seen.add(key)
-                out.append(v)
-            return out
-
-        def _extract_skills_from_text(text: str) -> dict:
-            import re
-            if not isinstance(text, str) or not text.strip():
-                return {"hard_skills": [], "soft_skills": []}
-
-            t = text
-            # Try to isolate the Skills block
-            m = re.search(
-                r"\n\s*Skills\s*\n(?P<body>.*?)(\n\s*(Hobbies|Education|Work Experience|Projects|Certifications)\s*\n|\Z)", t, re.IGNORECASE | re.DOTALL)
-            body = m.group("body") if m else ""
-            if not body:
-                body = t
-
-            # Extract labeled lines when present
-            hard = []
-            soft = []
-
-            # soft skills line
-            for mm in re.finditer(r"Soft\s*Skills\s*:\s*(.+)", body, re.IGNORECASE):
-                soft.extend([x.strip() for x in re.split(
-                    r"[,;]", mm.group(1)) if x.strip()])
-
-            # tools / programming / technical skills
-            for mm in re.finditer(r"(Tools|Programming|Technical\s*Skills|Hard\s*Skills)\s*:\s*(.+)", body, re.IGNORECASE):
-                hard.extend([x.strip() for x in re.split(
-                    r"[,;]", mm.group(2)) if x.strip()])
-
-            # If nothing labeled, fallback to comma-separated chunk
-            if not hard and not soft and body:
-                candidates = [x.strip()
-                              for x in re.split(r"[,;\n]", body) if x.strip()]
-                for c in candidates:
-                    (soft if _is_soft_skill(c) else hard).append(c)
-
-            # Final strict re-split to prevent mixing
-            fixed_hard, fixed_soft = [], []
-            for x in hard:
-                (fixed_soft if _is_soft_skill(x) else fixed_hard).append(x)
-            for x in soft:
-                (fixed_soft if _is_soft_skill(x) else fixed_hard).append(x)
-
-            return {
-                "hard_skills": _dedupe_keep_order(fixed_hard),
-                "soft_skills": _dedupe_keep_order(fixed_soft),
-            }
-
-        # Conservative skills handling: preserve optimized structure, only append missing skills
-        try:
-            # Get the optimized skills from AI processing
-            optimized_skills = optimized_data.user_information.skills
-            optimized_hard = list(optimized_skills.hard_skills or [])
-            optimized_soft = list(optimized_skills.soft_skills or [])
-            
-            # Get missing skills from job description
-            missing_skills = optimized_score_result.get("missing_skills", []) or []
-            missing_skills = [m for m in missing_skills if isinstance(m, str) and m.strip()]
-            
-            # Create normalized sets for comparison
-            optimized_hard_norm = {_norm(s) for s in optimized_hard if isinstance(s, str)}
-            optimized_soft_norm = {_norm(s) for s in optimized_soft if isinstance(s, str)}
-            
-            # Only add missing skills that aren't already present
-            for missing in missing_skills:
-                missing_norm = _norm(missing)
-                if missing_norm in optimized_hard_norm or missing_norm in optimized_soft_norm:
-                    continue  # Skip if already present
-                    
-                if _is_soft_skill(missing):
-                    optimized_soft.append(missing)
-                    optimized_soft_norm.add(missing_norm)
-                else:
-                    optimized_hard.append(missing)
-                    optimized_hard_norm.add(missing_norm)
-            
-            # Update with final lists (preserve AI-optimized structure)
-            optimized_data.user_information.skills.hard_skills = _dedupe_keep_order(optimized_hard)
-            optimized_data.user_information.skills.soft_skills = _dedupe_keep_order(optimized_soft)
-            
-            # Update result dict if it exists
-            if isinstance(result, dict):
-                ui = result.get("user_information") if isinstance(result.get("user_information"), dict) else None
-                if ui is not None:
-                    skills = ui.get("skills") if isinstance(ui.get("skills"), dict) else None
-                    if skills is not None:
-                        skills["hard_skills"] = optimized_data.user_information.skills.hard_skills
-                        skills["soft_skills"] = optimized_data.user_information.skills.soft_skills
-                        
-        except Exception as e:
-            logger.warning(f"Failed to preserve skills structure: {e}")
-
-        # Education location fallback (conservative): infer Moscow-based education when institution includes Moscow.
-        try:
-            edu_list = optimized_data.user_information.education or []
-            for edu in edu_list:
-                if getattr(edu, "location", None):
-                    continue
-                inst = getattr(edu, "institution", "") or ""
-                if "moscow" in inst.lower():
-                    edu.location = "Moscow, RU"
-
-            if isinstance(result, dict):
-                ui = result.get("user_information") if isinstance(
-                    result.get("user_information"), dict) else None
-                if ui is not None and isinstance(ui.get("education"), list):
-                    for edu in ui.get("education"):
-                        if not isinstance(edu, dict):
-                            continue
-                        if edu.get("location"):
-                            continue
-                        inst = (edu.get("institution") or "")
-                        if "moscow" in inst.lower():
-                            edu["location"] = "Moscow, RU"
-        except Exception as e:
-            logger.warning(f"Failed to apply education location fallback: {e}")
-
-        score_improvement = optimized_ats_score - original_ats_score
-        logger.info(f"Score improvement: {score_improvement}")
-
-        # 11. Update database
+        # 10. Update database
         logger.info(f"Updating resume {resume_id} with optimized data")
         try:
             await repo.update_optimized_data(
                 resume_id, optimized_data, optimized_ats_score,
                 original_ats_score=original_ats_score,
-                matching_skills=optimized_score_result.get(
-                    "matching_skills", []),
-                missing_skills=optimized_score_result.get(
-                    "missing_skills", []),
-                score_improvement=score_improvement,
-                recommendation=optimized_score_result.get("recommendation", "")
+                matching_skills=optimized_analysis.get("matching_skills", []),
+                missing_skills=optimized_analysis.get("missing_skills", []),
+                score_improvement=optimized_ats_score - original_ats_score,
+                recommendation=optimized_analysis.get("recommendation", "")
             )
             logger.info("Successfully updated resume with optimized data")
         except Exception as db_error:
@@ -1580,7 +1288,7 @@ async def optimize_resume(
                 detail=f"Database error during update: {str(db_error)}",
             )
 
-        # 12. Return success response with both scores and skill analysis
+        # 11. Return success response with both scores and skill analysis
         logger.info(
             f"Resume optimization completed successfully for resume_id: {resume_id}"
         )
@@ -1588,10 +1296,10 @@ async def optimize_resume(
             "resume_id": resume_id,
             "original_matching_score": original_ats_score,
             "optimized_matching_score": optimized_ats_score,
-            "score_improvement": score_improvement,
-            "matching_skills": optimized_score_result.get("matching_skills", []),
-            "missing_skills": optimized_score_result.get("missing_skills", []),
-            "recommendation": optimized_score_result.get("recommendation", ""),
+            "score_improvement": optimized_ats_score - original_ats_score,
+            "matching_skills": optimized_analysis.get("matching_skills", []),
+            "missing_skills": optimized_analysis.get("missing_skills", []),
+            "recommendation": optimized_analysis.get("recommendation", ""),
             "optimized_data": result,
         }
 
@@ -1670,7 +1378,7 @@ async def score_resume(
     api_key = os.getenv("CEREBRASAI_API_KEY")
     model_name = os.getenv("API_MODEL_NAME", "gpt-oss-120b")
     api_base_url = os.getenv("API_BASE", "https://api.cerebras.ai/v1")
-    
+
     logger.info("Retrieving API configuration")
     logger.info(f"Using Cerebras API: {model_name}")
     logger.info(f"API configuration - model_name: {model_name}")
@@ -1687,9 +1395,10 @@ async def score_resume(
             logger.warning("API key not found in environment variables")
             api_key = "dummy"  # Fallback to prevent crash, rely on error handling downstream
 
-    # Initialize universal scorer
+    # Initialize CV Analyzer
     try:
-        scorer = UniversalResumeScorer()
+        from app.services.cv_analyzer import CVAnalyzer
+        analyzer = CVAnalyzer()
 
         # Get job description
         job_description = scoring_request.job_description
@@ -1699,41 +1408,29 @@ async def score_resume(
                 detail="Job description is required for scoring",
             )
 
-        # Get resume content - first check if optimized data exists, use that for comparison
+        # Get resume content
         resume_content = resume["original_content"]
 
-        # Optionally also score the optimized version if it exists
-        optimized_data = resume.get("optimized_data")
-        optimized_score = None
-
         # Score the original resume
-        logger.info("Scoring original resume against job description")
-        score_result = await scorer.calculate_match_score(
-            resume_content, job_description, user_id="local-user"
-        )
-        ats_score = int(score_result["score"])
+        logger.info("Scoring resume against job description using CVAnalyzer")
+        score_result = analyzer.analyze(resume_content, job_description)
+        ats_score = score_result.get("ats_score", 0)
 
-        # If optimized data exists, score it too for comparison
+        # Handle optimized version comparison if it exists
+        optimized_data = resume.get("optimized_data")
+        recommendation = score_result.get("recommendation", "")
+
         if optimized_data:
             logger.info("Scoring optimized resume for comparison")
-            if isinstance(optimized_data, str):
-                optimized_content = optimized_data
-            else:
-                optimized_content = json.dumps(optimized_data)
+            optimized_content = json.dumps(optimized_data) if isinstance(
+                optimized_data, dict) else str(optimized_data)
+            optimized_score_result = analyzer.analyze(
+                optimized_content, job_description)
+            optimized_score = optimized_score_result.get("ats_score", 0)
 
-            optimized_score_result = await scorer.calculate_match_score(
-                optimized_content, job_description, user_id="local-user"
-            )
-            optimized_score = int(optimized_score_result["score"])
-            logger.info(
-                f"Original score: {ats_score}, Optimized score: {optimized_score}")
-
-        # Prepare enhanced recommendation if we have both scores
-        recommendation = score_result.get("recommendation", "")
-        if optimized_score:
             improvement = optimized_score - ats_score
             if improvement > 0:
-                recommendation += f"\n\nYour optimized resume scores {improvement} points higher ({optimized_score}%). Consider using the optimized version for better results."
+                recommendation += f"\n\nYour optimized resume scores {improvement} points higher ({optimized_score}%). Use the optimized version for better ATS results."
 
         return {
             "resume_id": resume_id,
@@ -1741,6 +1438,7 @@ async def score_resume(
             "matching_skills": score_result.get("matching_skills", []),
             "missing_skills": score_result.get("missing_skills", []),
             "recommendation": recommendation,
+            # Note: CVAnalyzer might name these differently
             "resume_skills": score_result.get("resume_skills", []),
             "job_requirements": score_result.get("job_requirements", []),
         }
@@ -1962,26 +1660,26 @@ async def mark_resume_as_applied(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Resume with ID {resume_id} not found",
             )
-        
+
         # Update the resume status - create update dict without _id
         update_data = {
             "is_applied": True,
             "applied_date": datetime.now()
         }
-        
+
         success = await repo.update_resume(resume_id, update_data)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update resume status",
             )
-        
+
         return {
             "success": True,
             "message": "Resume marked as applied",
             "applied_date": update_data["applied_date"].isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -2024,26 +1722,26 @@ async def mark_resume_as_answered(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Resume with ID {resume_id} not found",
             )
-        
+
         # Update the resume status - create update dict without _id
         update_data = {
             "is_answered": True,
             "answered_date": datetime.now()
         }
-        
+
         success = await repo.update_resume(resume_id, update_data)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update resume status",
             )
-        
+
         return {
             "success": True,
             "message": "Resume marked as answered",
             "answered_date": update_data["answered_date"].isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -2086,7 +1784,7 @@ async def reset_resume_status(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Resume with ID {resume_id} not found",
             )
-        
+
         # Reset the resume status - create update dict without _id
         update_data = {
             "is_applied": False,
@@ -2094,19 +1792,19 @@ async def reset_resume_status(
             "is_answered": False,
             "answered_date": None
         }
-        
+
         success = await repo.update_resume(resume_id, update_data)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to reset resume status",
             )
-        
+
         return {
             "success": True,
             "message": "Resume status reset successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
