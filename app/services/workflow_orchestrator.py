@@ -1,6 +1,8 @@
 """Orchestrate complete CV optimization workflow."""
 from typing import Dict, List, Optional
 import logging
+import re
+import json
 from .cv_analyzer import CVAnalyzer
 from .cv_optimizer import CVOptimizer
 from .cover_letter_gen import CoverLetterGenerator
@@ -40,9 +42,11 @@ class CVWorkflowOrchestrator:
         logger.info("Step 1/3: Analyzing CV against job description...")
         analysis = self.analyzer.analyze(cv_text, jd_text)
 
-        # Step 2: Optimize
-        logger.info("Step 2/3: Optimizing CV sections...")
-        optimized_cv = self._optimize_cv_sections(cv_text, jd_text, analysis)
+        # Step 2: Comprehensive Optimization (One-shot)
+        logger.info("Step 2/3: Performing comprehensive optimization...")
+        optimized_data = self.optimizer.optimize_comprehensive(
+            cv_text, jd_text, analysis
+        )
 
         # Step 3: Cover letter (optional)
         cover_letter = None
@@ -50,11 +54,20 @@ class CVWorkflowOrchestrator:
             logger.info("Step 3/3: Generating cover letter...")
             cover_letter = self._generate_cover_letter(analysis, jd_text)
 
+        # Extract skills for the dashboard/API
+        matching_skills = analysis.get('keyword_analysis', {}).get(
+            'matched_keywords', [])
+        missing_skills = analysis.get('keyword_analysis', {}).get(
+            'missing_critical', [])
+
         result = {
             'analysis': analysis,
-            'optimized_cv': optimized_cv,
+            'optimized_cv': optimized_data,  # Now returns the full dict structure
             'cover_letter': cover_letter,
-            'ats_score': analysis.get('ats_score', 0)
+            'ats_score': analysis.get('ats_score', 0),
+            'matching_skills': [k.get('keyword') for k in matching_skills if k.get('keyword')],
+            'missing_skills': [k.get('keyword') for k in missing_skills if k.get('keyword')],
+            'recommendation': analysis.get('summary', '')
         }
 
         logger.info(f"Workflow completed. ATS Score: {result['ats_score']}")

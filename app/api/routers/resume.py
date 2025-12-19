@@ -1214,8 +1214,11 @@ async def optimize_resume(
 
         result = optimization_result.get("optimized_cv", {})
         optimized_analysis = optimization_result.get("analysis", {})
-        optimized_ats_score = optimized_analysis.get(
-            "ats_score", original_ats_score + 10)  # Fallback improvement
+        optimized_ats_score = optimization_result.get(
+            "ats_score", original_ats_score + 10)
+        matching_skills = optimization_result.get("matching_skills", [])
+        missing_skills = optimization_result.get("missing_skills", [])
+        recommendation = optimization_result.get("recommendation", "")
 
         # Log success
         logger.info("Optimization completed successfully via Orchestrator")
@@ -1336,10 +1339,10 @@ async def optimize_resume(
             await repo.update_optimized_data(
                 resume_id, optimized_data, optimized_ats_score,
                 original_ats_score=original_ats_score,
-                matching_skills=optimized_analysis.get("matching_skills", []),
-                missing_skills=optimized_analysis.get("missing_skills", []),
+                matching_skills=matching_skills,
+                missing_skills=missing_skills,
                 score_improvement=optimized_ats_score - original_ats_score,
-                recommendation=optimized_analysis.get("recommendation", "")
+                recommendation=recommendation
             )
             logger.info("Successfully updated resume with optimized data")
         except Exception as db_error:
@@ -1359,10 +1362,10 @@ async def optimize_resume(
             "original_matching_score": original_ats_score,
             "optimized_matching_score": optimized_ats_score,
             "score_improvement": optimized_ats_score - original_ats_score,
-            "matching_skills": optimized_analysis.get("matching_skills", []),
-            "missing_skills": optimized_analysis.get("missing_skills", []),
-            "recommendation": optimized_analysis.get("recommendation", ""),
-            "optimized_data": result,
+            "matching_skills": matching_skills,
+            "missing_skills": missing_skills,
+            "recommendation": recommendation,
+            "optimized_data": sanitized_result,
         }
 
     except HTTPException:

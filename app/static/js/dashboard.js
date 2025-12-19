@@ -78,6 +78,15 @@ document.addEventListener('alpine:init', () => {
         
         // Update resume statistics
         updateResumeStats() {
+            // Ensure resumeStats exists
+            if (!this.resumeStats) {
+                this.resumeStats = {
+                    total_resumes: 0,
+                    average_score: 0,
+                    last_updated: null
+                };
+            }
+            
             // Update total resumes count
             this.resumeStats.total_resumes = this.resumes.length;
             
