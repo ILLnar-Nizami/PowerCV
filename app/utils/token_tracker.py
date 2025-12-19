@@ -14,7 +14,12 @@ from typing import Dict, List, Optional, Union
 
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+try:
+    from langchain_ollama import ChatOllama
+    HAS_OLLAMA = True
+except ImportError:
+    HAS_OLLAMA = False
 import os
 
 from app.database.models.token_usage import TokenUsage, TokenUsageSummary
@@ -28,7 +33,7 @@ MODEL_PRICING = {
     # CerebrasAI GPT-OSS models
     "gpt-oss-120b": {"input": 0.70, "output": 0.80},
     "gpt-oss-20b": {"input": 0.35, "output": 0.45},
-    
+
     # Default model (gpt-oss-120b)
     "default": {"input": 0.70, "output": 0.80}
 }
@@ -208,14 +213,16 @@ class TokenTracker:
             metadata=metadata
         )
 
-        provider = (os.getenv("API_TYPE") or os.getenv("LLM_PROVIDER") or "").lower()
+        provider = (os.getenv("API_TYPE") or os.getenv(
+            "LLM_PROVIDER") or "").lower()
         cerebras_key = os.getenv("CEREBRAS_API_KEY")
         forced_provider = (os.getenv("FORCE_LLM_PROVIDER") or "").lower()
 
         # Prefer Cerebras whenever it is configured, to avoid accidentally routing to a leftover
         # local Ollama base URL (e.g. API_BASE=http://localhost:11434). You can force local
         # behavior explicitly via FORCE_LLM_PROVIDER=ollama (or local).
-        force_local = forced_provider in {"ollama", "local"} or provider in {"ollama", "local"}
+        force_local = forced_provider in {
+            "ollama", "local"} or provider in {"ollama", "local"}
         if cerebras_key and not force_local:
             if not api_key:
                 api_key = cerebras_key
@@ -247,14 +254,23 @@ class TokenTracker:
             effective_api_base = effective_api_base[:-3].rstrip("/")
 
         if is_ollama:
+            if not HAS_OLLAMA:
+                logger.warning(
+                    "langchain-ollama not installed, falling back to ChatOpenAI")
+                return ChatOpenAI(
+                    model_name=model_name,
+                    temperature=temperature,
+                    openai_api_key=api_key,
+                    openai_api_base=effective_api_base,
+                    callbacks=[callback],
+                    **kwargs
+                )
+
             # Use ChatOllama for local models
             # Use Ollama model and base URL from config
             ollama_model_name = model_name or os.getenv("MODEL_NAME")
             ollama_base_url = effective_api_base
 
-            # The original instruction had a malformed line here.
-            # Assuming the intent was to use the new ollama_model_name and ollama_base_url
-            # in the ChatOllama constructor.
             return ChatOllama(
                 model=ollama_model_name,
                 base_url=ollama_base_url,
