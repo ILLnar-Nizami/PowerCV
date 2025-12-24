@@ -25,7 +25,7 @@ expanding expertise within the evolving Dutch tech landscape.
 
 EMPLOYMENT HISTORY
 
-PYTHON BACKEND DEVELOPER — Jan 2023 - Present
+PYTHON BACKEND DEVELOPER - Jan 2023 - Present
 Freelance Remote
 • Develop REST APIs with Flask, boosting backend efficiency and response times.
 • Design Dockerized microservices for scalable deployments, enhancing system reliability.
@@ -91,33 +91,33 @@ def example_1_analyze_cv():
     try:
         result = analyzer.analyze(SAMPLE_CV, SAMPLE_JD)
         
-        print(f"\n✓ Analysis completed successfully!")
-        print(f"\n📊 ATS Score: {result['ats_score']}/100")
-        print(f"\n📝 Summary: {result['summary']}")
+        print(f"\n Analysis completed successfully!")
+        print(f"\n ATS Score: {result['ats_score']}/100")
+        print(f"\n Summary: {result['summary']}")
         
-        print("\n🎯 Matched Keywords:")
+        print("\n Matched Keywords:")
         for kw in result['keyword_analysis']['matched_keywords'][:5]:
             print(f"  • {kw['keyword']} (JD: {kw['jd_mentions']}x, CV: {kw['cv_mentions']}x)")
         
-        print("\n⚠️  Missing Critical Keywords:")
+        print("\n  Missing Critical Keywords:")
         for kw in result['keyword_analysis']['missing_critical'][:5]:
             print(f"  • {kw['keyword']} ({kw['category']}) - Priority: {kw['priority']}")
         
-        print("\n💪 Strengths:")
+        print("\n Strengths:")
         for strength in result['strengths'][:3]:
             print(f"  • {strength}")
         
-        print("\n🔧 Top Recommendations:")
+        print("\n Top Recommendations:")
         for rec in result['recommendations'][:3]:
             print(f"  • {rec}")
         
         # Save full report
         with open('analysis_report.json', 'w') as f:
             json.dump(result, f, indent=2)
-        print("\n✓ Full report saved to: analysis_report.json")
+        print("\n Full report saved to: analysis_report.json")
         
     except Exception as e:
-        print(f"\n✗ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
 
 
 def example_2_optimize_summary():
@@ -149,17 +149,17 @@ and dynamic team environment.
             optimization_focus="Target: Senior Backend Developer role, Emphasize: Python expertise, microservices, cloud, 2+ years specific backend experience"
         )
         
-        print("\n📝 ORIGINAL SUMMARY:")
+        print("\n ORIGINAL SUMMARY:")
         print(current_summary)
         
-        print("\n✨ OPTIMIZED SUMMARY:")
+        print("\n OPTIMIZED SUMMARY:")
         print(result['optimized_content'])
         
-        print("\n🔄 Key Changes Made:")
+        print("\n Key Changes Made:")
         print(result['changes_made'])
         
     except Exception as e:
-        print(f"\n✗ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
 
 
 def example_3_optimize_experience():
@@ -176,7 +176,7 @@ def example_3_optimize_experience():
     ]
     
     original_bullets = """
-PYTHON BACKEND DEVELOPER — Jan 2023 - Present
+PYTHON BACKEND DEVELOPER - Jan 2023 - Present
 Freelance Remote
 
 • Develop REST APIs with Flask, boosting backend efficiency and response times.
@@ -195,17 +195,17 @@ Freelance Remote
             optimization_focus="Add specific metrics, emphasize testing, highlight CI/CD, quantify impact"
         )
         
-        print("\n📝 ORIGINAL BULLETS:")
+        print("\n ORIGINAL BULLETS:")
         print(original_bullets)
         
-        print("\n✨ OPTIMIZED BULLETS:")
+        print("\n OPTIMIZED BULLETS:")
         print(result['optimized_content'])
         
-        print("\n📊 Keywords Incorporated:")
+        print("\n Keywords Incorporated:")
         print(result['keywords_used'])
         
     except Exception as e:
-        print(f"\n✗ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
 
 
 def example_4_generate_cover_letter():
@@ -251,20 +251,20 @@ def example_4_generate_cover_letter():
     try:
         result = generator.generate(candidate_data, job_data, tone="Professional")
         
-        print("\n📧 GENERATED COVER LETTER:")
+        print("\n GENERATED COVER LETTER:")
         print(result['cover_letter'])
         
-        print(f"\n📊 Statistics:")
+        print(f"\n Statistics:")
         print(f"  • Word count: {result['word_count']}")
         print(f"  • Keywords used: {len(result.get('keywords', []))}")
         
         # Save to file
         with open('cover_letter.txt', 'w') as f:
             f.write(result['cover_letter'])
-        print("\n✓ Cover letter saved to: cover_letter.txt")
+        print("\n Cover letter saved to: cover_letter.txt")
         
     except Exception as e:
-        print(f"\n✗ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
 
 
 def example_5_full_workflow():
@@ -276,7 +276,7 @@ def example_5_full_workflow():
     orchestrator = CVWorkflowOrchestrator()
     
     try:
-        print("\n🚀 Starting full optimization workflow...")
+        print("\n Starting full optimization workflow...")
         
         result = orchestrator.optimize_cv_for_job(
             cv_text=SAMPLE_CV,
@@ -284,25 +284,25 @@ def example_5_full_workflow():
             generate_cover_letter=True
         )
         
-        print(f"\n✓ Workflow completed!")
-        print(f"\n📊 Final ATS Score: {result['ats_score']}/100")
+        print(f"\n Workflow completed!")
+        print(f"\n Final ATS Score: {result['ats_score']}/100")
         
         # Save all outputs
         with open('full_optimization_result.json', 'w') as f:
             json.dump(result, f, indent=2)
         
-        print("\n✓ Complete results saved to: full_optimization_result.json")
+        print("\n Complete results saved to: full_optimization_result.json")
         
         print("\n" + "=" * 70)
         print("WORKFLOW SUMMARY")
         print("=" * 70)
-        print(f"Analysis: ✓ Completed")
-        print(f"CV Optimization: ✓ Completed")
-        print(f"Cover Letter: ✓ Completed")
+        print(f"Analysis:  Completed")
+        print(f"CV Optimization:  Completed")
+        print(f"Cover Letter:  Completed")
         print(f"ATS Score: {result['ats_score']}/100")
         
     except Exception as e:
-        print(f"\n✗ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
 
 
 def example_6_batch_testing():
@@ -356,7 +356,7 @@ def example_6_batch_testing():
     
     results = {}
     
-    print("\n🔍 Analyzing CV against multiple roles...")
+    print("\n Analyzing CV against multiple roles...")
     
     for role, jd in job_descriptions.items():
         try:
@@ -366,10 +366,10 @@ def example_6_batch_testing():
                 'matched_keywords': len(analysis['keyword_analysis']['matched_keywords']),
                 'missing_keywords': len(analysis['keyword_analysis']['missing_critical'])
             }
-            print(f"\n✓ {role}: {analysis['ats_score']}/100")
+            print(f"\n {role}: {analysis['ats_score']}/100")
             
         except Exception as e:
-            print(f"\n✗ {role}: Error - {str(e)}")
+            print(f"\n {role}: Error - {str(e)}")
     
     # Show best matches
     print("\n" + "=" * 70)
@@ -387,16 +387,16 @@ def example_6_batch_testing():
     # Save comparison
     with open('role_comparison.json', 'w') as f:
         json.dump(results, f, indent=2)
-    print("\n✓ Comparison saved to: role_comparison.json")
+    print("\n Comparison saved to: role_comparison.json")
 
 
 # Main execution
 if __name__ == "__main__":
     print("""
-╔═══════════════════════════════════════════════════════════════════╗
-║                    POWERCV EXAMPLE                                ║
-║          Optimizing CV for Backend Developer Roles                ║
-╚═══════════════════════════════════════════════════════════════════╝
+
+                    POWERCV EXAMPLE                                
+          Optimizing CV for Backend Developer Roles                
+
 """)
     
     # Choose which example to run
@@ -431,10 +431,10 @@ if __name__ == "__main__":
         examples[choice][1]()
     
     else:
-        print(f"\n✗ Invalid choice: {choice}")
+        print(f"\n Invalid choice: {choice}")
         sys.exit(1)
     
-    print("\n\n✓ Examples completed!")
+    print("\n\n Examples completed!")
     print("\nNext steps:")
     print("  1. Review generated files (*.json, *.txt)")
     print("  2. Adjust prompts if needed (app/prompts/*.md)")

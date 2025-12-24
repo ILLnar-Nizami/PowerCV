@@ -38,6 +38,11 @@ class CVOptimizationRequest(BaseModel):
     callback_url: Optional[str] = None
 
 
+class ProviderSwitchRequest(BaseModel):
+    provider: str = Field(..., description="AI provider to switch to (deepseek/cerebras/openai)")
+    test_connection: bool = Field(False, description="Whether to test the provider connection")
+
+
 # Endpoints
 @router.get("/health")
 async def health_check():
@@ -139,23 +144,46 @@ async def switch_ai_provider(
                 status_code=400,
                 detail=f"Invalid provider. Choose: deepseek, cerebras, openai"
             )
-        
+
         # Set environment variable
         os.environ['AI_PROVIDER'] = request.provider
-        
-        # Test new provider
+
+        # Test new provider if requested
+        if request.test_connection:
+            try:
+                client = get_ai_client()
+                # Quick test with minimal request
+                test_response = client.chat_completion(
+                    system_prompt="Test",
+                    user_message="Hello",
+                    max_tokens=10,
+                    timeout=10
+                )
+                connection_tested = True
+            except Exception as test_error:
+                logger.warning(f"Provider connection test failed: {test_error}")
+                connection_tested = False
+        else:
+            connection_tested = None
+
+        # Get provider info
         client = get_ai_client()
         info = client.get_provider_info()
-        
+
         logger.info(f"Switched to provider: {request.provider}")
-        
-        return {
+
+        response = {
             "success": True,
             "provider": info['provider'],
             "model": info['model'],
             "message": f"Switched to {request.provider}"
         }
-        
+
+        if request.test_connection:
+            response["connection_tested"] = connection_tested
+
+        return response
+
     except Exception as e:
         logger.error(f"Provider switch error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -164,25 +192,34 @@ async def switch_ai_provider(
 @router.get("/providers")
 async def list_providers(api_key: str = Depends(verify_api_key)):
     """
-    Get current AI provider information.
-    Only Cerebras is supported.
+    Get current AI provider information and available providers.
     """
     try:
         client = get_ai_client()
         info = client.get_provider_info()
-        
+
+        # Check which providers are configured
+        available_providers = []
+        provider_configs = {
+            'deepseek': {'model': 'deepseek-chat', 'key': 'API_KEY'},
+            'cerebras': {'model': 'gpt-oss-120b', 'key': 'CEREBRAS_API_KEY'},
+            'openai': {'model': 'gpt-4', 'key': 'OPENAI_API_KEY'}
+        }
+
+        for provider_name, config in provider_configs.items():
+            configured = bool(os.getenv(config['key']))
+            available_providers.append({
+                "name": provider_name,
+                "model": config['model'],
+                "configured": configured
+            })
+
         return {
             "current_provider": info['provider'],
             "current_model": info['model'],
-            "available_providers": [
-                {
-                    "name": "cerebras",
-                    "model": "gpt-oss-120b",
-                    "configured": True
-                }
-            ]
+            "available_providers": available_providers
         }
-        
+
     except Exception as e:
         logger.error(f"Provider info error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

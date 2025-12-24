@@ -492,7 +492,7 @@ Professional
             
             <div class="metric">
                 <span class="metric-label">Status:</span>
-                <span class="metric-value">{'✓ PASS' if result.success else '✗ FAIL'}</span>
+                <span class="metric-value">{' PASS' if result.success else ' FAIL'}</span>
             </div>
             
             <div class="metric">
@@ -514,12 +514,12 @@ Professional
             if result.errors:
                 report += "<h3>Errors:</h3>"
                 for error in result.errors:
-                    report += f'<div class="error">✗ {error}</div>'
+                    report += f'<div class="error"> {error}</div>'
             
             if result.warnings:
                 report += "<h3>Warnings:</h3>"
                 for warning in result.warnings:
-                    report += f'<div class="warning">⚠ {warning}</div>'
+                    report += f'<div class="warning"> {warning}</div>'
             
             report += f"""
             <h3>Output Sample (first 1000 chars):</h3>
@@ -570,7 +570,7 @@ if __name__ == "__main__":
     """
     
     test_section = """
-    PYTHON BACKEND DEVELOPER — Jan 2023 - Present
+    PYTHON BACKEND DEVELOPER - Jan 2023 - Present
     Freelance Remote
     
     • Develop REST APIs with Flask, boosting backend efficiency and response times.
@@ -620,5 +620,5 @@ if __name__ == "__main__":
     
     print("\nTest Summary:")
     for prompt_type, result in results.items():
-        status = "✓ PASS" if result.success else "✗ FAIL"
+        status = " PASS" if result.success else " FAIL"
         print(f"{prompt_type.value.upper()}: {status} (Score: {result.quality_score:.1f}/100)")

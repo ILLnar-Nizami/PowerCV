@@ -11,7 +11,7 @@ Thank you for considering contributing to PowerCV! This document outlines the gu
 ## Coding Standards
 - Follow PEP 8 for Python code.
 - Use type annotations and docstrings.
-- Write meaningful commit messages (see `CONTRIBUTING.md` for examples).
+- Write meaningful commit messages (see CONTRIBUTING.md for examples).
 
 ## Reporting Issues
 If you encounter any issues, please report them by creating a new issue in the GitHub repository. Provide as much detail as possible, including steps to reproduce the issue.

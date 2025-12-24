@@ -1,0 +1,177 @@
+{
+  "name": "PowerCV - Advanced Optimization with Provider Switching",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-optimize",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://powercv-api:8080/api/n8n/switch-provider",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "provider",
+              "value": "={{$json.provider || 'cerebras'}}"
+            },
+            {
+              "name": "test_connection",
+              "value": "={{$json.test_connection || false}}"
+            }
+          ]
+        }
+      },
+      "name": "Switch Provider",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://powercv-api:8080/api/n8n/analyze",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "cv_text",
+              "value": "={{$node['Webhook'].json.body.cv_text}}"
+            },
+            {
+              "name": "jd_text",
+              "value": "={{$node['Webhook'].json.body.jd_text}}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{$node['Webhook'].json.body.user_id || 'n8n_advanced'}}"
+            }
+          ]
+        }
+      },
+      "name": "Analyze CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$node['Analyze CV'].json.success}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://powercv-api:8080/api/n8n/optimize",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "cv_text",
+              "value": "={{$node['Webhook'].json.body.cv_text}}"
+            },
+            {
+              "name": "jd_text",
+              "value": "={{$node['Webhook'].json.body.jd_text}}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{$node['Webhook'].json.body.user_id || 'n8n_advanced'}}"
+            },
+            {
+              "name": "generate_cover_letter",
+              "value": "={{$node['Webhook'].json.body.generate_cover_letter || true}}"
+            }
+          ]
+        }
+      },
+      "name": "Optimize CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1040, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$node['Optimize CV'].json}}"
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1240, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": false,
+          "error": "CV analysis failed",
+          "details": "={{$node['Analyze CV'].json}}"
+        }
+      },
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1040, 400]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Switch Provider", "type": "main", "index": 0}]]
+    },
+    "Switch Provider": {
+      "main": [[{"node": "Analyze CV", "type": "main", "index": 0}]]
+    },
+    "Analyze CV": {
+      "main": [[{"node": "Check Success", "type": "main", "index": 0}]]
+    },
+    "Check Success": {
+      "main": [
+        [{"node": "Optimize CV", "type": "main", "index": 0}],
+        [{"node": "Error Response", "type": "main", "index": 0}]
+      ]
+    },
+    "Optimize CV": {
+      "main": [[{"node": "Success Response", "type": "main", "index": 0}]]
+    }
+  }
+}

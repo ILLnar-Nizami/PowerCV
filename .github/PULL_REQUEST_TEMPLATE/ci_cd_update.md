@@ -1,4 +1,4 @@
-# 🚀 CI/CD Update Pull Request
+# CI/CD Update Pull Request
 
 ## Description
 What CI/CD components are being changed?

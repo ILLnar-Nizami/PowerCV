@@ -1,4 +1,4 @@
-# 🐛 Bug Fix Pull Request
+# Bug Fix Pull Request
 
 ## Description
 What bug is being fixed?
@@ -7,8 +7,8 @@ What bug is being fixed?
 - [ ] Hotfix (urgent critical issue)
 
 ## Related Issue
-Link to the related issue:  
-`Fixes #issue-number`
+Link to the related issue: 
+Fixes #issue-number
 
 ## Root Cause
 Explain the reason behind the bug.

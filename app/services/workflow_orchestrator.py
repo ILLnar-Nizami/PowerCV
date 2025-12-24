@@ -331,7 +331,7 @@ class CVWorkflowOrchestrator:
             relevant_roles = analysis['experience_analysis'].get(
                 'relevant_roles', [])
             if relevant_roles:
-                return relevant_roles[0].get('title', '').split(' — ')[0] or 'Candidate'
+                return relevant_roles[0].get('title', '').split(' - ')[0] or 'Candidate'
         return 'Candidate'
 
     def _extract_current_title_from_analysis(self, analysis: Dict) -> str:

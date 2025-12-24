@@ -26,12 +26,12 @@ def check_files():
             missing.append(filepath)
 
     if missing:
-        print("❌ Missing files:")
+        print(" Missing files:")
         for f in missing:
             print(f"   - {f}")
         return False
 
-    print("✓ All required files present")
+    print(" All required files present")
     return True
 
 
@@ -41,10 +41,10 @@ def check_imports():
         from app.prompts.prompt_loader import PromptLoader
         from app.services.cerebras_client import CerebrasClient
         from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-        print("✓ All imports successful")
+        print(" All imports successful")
         return True
     except ImportError as e:
-        print(f"❌ Import error: {e}")
+        print(f" Import error: {e}")
         return False
 
 
@@ -54,10 +54,10 @@ def check_prompts():
         from app.prompts.prompt_loader import PromptLoader
         loader = PromptLoader()
         prompts = loader.load_all_prompts()
-        print(f"✓ Loaded {len(prompts)} prompts")
+        print(f" Loaded {len(prompts)} prompts")
         return True
     except Exception as e:
-        print(f"❌ Prompt loading error: {e}")
+        print(f" Prompt loading error: {e}")
         return False
 
 
@@ -67,10 +67,10 @@ def check_env():
 
     api_key = os.getenv("CEREBRAS_API_KEY")
     if not api_key or api_key == "your_api_key_here_REPLACE_THIS":
-        print("⚠️  Warning: CEREBRAS_API_KEY not set in .env")
+        print("  Warning: CEREBRAS_API_KEY not set in .env")
         return False
 
-    print("✓ Environment variables configured")
+    print(" Environment variables configured")
     return True
 
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     ]
 
     if all(results):
-        print("\n✨ Installation looks solid!")
+        print("\n Installation looks solid!")
     else:
-        print("\n⚠️  Some checks failed. Please review the output above.")
+        print("\n  Some checks failed. Please review the output above.")
         sys.exit(1)

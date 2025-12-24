@@ -1,4 +1,4 @@
-# ✨ Enhancement Pull Request
+# Enhancement Pull Request
 
 ## Description
 What enhancement is being implemented?
@@ -8,8 +8,8 @@ What enhancement is being implemented?
 - [ ] UI/UX improvement
 
 ## Related Issue
-Link to the related issue:  
-`Closes #issue-number`
+Link to the related issue: 
+Closes #issue-number
 
 ## Design
 Briefly describe how this enhancement is designed/implemented.

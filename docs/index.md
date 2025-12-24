@@ -5,19 +5,19 @@ Welcome to the PowerCV Documentation! This index serves as a guide to navigate t
 ## Table of Contents
 
 1. [Project Overview](./overview.md)
-   - Learn about the purpose, features, and structure of the project.
+ - Learn about the purpose, features, and structure of the project.
 
 2. [Setup Guide](./setup.md)
-   - Step-by-step instructions to set up the project locally.
+ - Step-by-step instructions to set up the project locally.
 
 3. [Contributing Guide](./contributing.md)
-   - Guidelines for contributing to the project, including coding standards and reporting issues.
+ - Guidelines for contributing to the project, including coding standards and reporting issues.
 
 4. [Core Business Logic](./business_logic.md)
-   - Detailed explanation of the core functionalities and business logic implemented in the project.
+ - Detailed explanation of the core functionalities and business logic implemented in the project.
 
 5. [AI Integration](./ai_integration.md)
-   - Insights into how AI is integrated into the project, including models used and key features.
+ - Insights into how AI is integrated into the project, including models used and key features.
 
 ## How to Use This Documentation
 - Click on the links above to navigate to the respective pages.

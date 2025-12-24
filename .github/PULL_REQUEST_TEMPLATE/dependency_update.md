@@ -1,4 +1,4 @@
-# 📦 Dependency Update Pull Request
+# Dependency Update Pull Request
 
 ## Description
 What dependencies are being updated?

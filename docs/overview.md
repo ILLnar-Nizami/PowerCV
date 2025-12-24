@@ -13,9 +13,9 @@ PowerCV is designed to help users create, optimize, and manage resumes efficient
 
 ## Project Structure
 The project is organized into several key directories:
-- `app/`: Contains the main application code, including APIs, services, and utilities.
-- `data/`: Includes sample data, templates, and responses.
-- `scripts/`: Contains utility scripts for development and setup.
-- `doc/`: Official documentation for contributors.
+- app/: Contains the main application code, including APIs, services, and utilities.
+- data/: Includes sample data, templates, and responses.
+- scripts/: Contains utility scripts for development and setup.
+- doc/: Official documentation for contributors.
 
 For more details, refer to the specific documentation files in this folder.

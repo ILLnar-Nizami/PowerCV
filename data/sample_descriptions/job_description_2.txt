@@ -1,14 +1,14 @@
-Deel is the all-in-one payroll and HR platform for global teams. Our vision is to unlock global opportunity for every person, team, and business. Built for the way the world works today, Deel combines HRIS, payroll, compliance, benefits, performance, and equipment management into one seamless platform. With AI-powered tools and a fully owned payroll infrastructure, Deel supports every worker type in 100+ countries—helping businesses scale smarter, faster, and more compliantly.
+Deel is the all-in-one payroll and HR platform for global teams. Our vision is to unlock global opportunity for every person, team, and business. Built for the way the world works today, Deel combines HRIS, payroll, compliance, benefits, performance, and equipment management into one seamless platform. With AI-powered tools and a fully owned payroll infrastructure, Deel supports every worker type in 100+ countries-helping businesses scale smarter, faster, and more compliantly.
 
 Among the largest globally distributed companies in the world, our team of 5,000 spans more than 100 countries, speaks 74 languages, and brings a connected and dynamic culture that drives continuous learning and innovation for our customers.
 
 Why should you be part of our success story?
 
-As the fastest-growing Software as a Service (SaaS) company in history, Deel is transforming how global talent connects with world-class companies – breaking down borders that have traditionally limited both hiring and career opportunities. We're not just building software; we're creating the infrastructure for the future of work, enabling a more diverse and inclusive global economy. In 2024 alone, we paid $11.2 billion to workers in nearly 100 currencies and provided healthcare and benefits to workers in 109 countries—ensuring people get paid and protected, no matter where they are.
+As the fastest-growing Software as a Service (SaaS) company in history, Deel is transforming how global talent connects with world-class companies – breaking down borders that have traditionally limited both hiring and career opportunities. We're not building software; we're creating the infrastructure for the future of work, enabling a more diverse and inclusive global economy. In 2024 alone, we paid $11.2 billion to workers in nearly 100 currencies and provided healthcare and benefits to workers in 109 countries-ensuring people get paid and protected, no matter where they are.
 
 Our momentum is reflected in our achievements and customer satisfaction: CNBC Disruptor 50, Forbes Cloud 100, Deloitte Fast 500, and repeated recognition on Y Combinator’s top companies list – all while maintaining a 4.83 average rating from 15,000 reviews across G2, Trustpilot, Captera, Apple and Google.
 
-Your experience at Deel will be a career accelerator. At the forefront of the global work revolution, you'll tackle complex challenges that impact millions of people's working lives. With our momentum—backed by a $12 billion valuation and $800 million in Annual Recurring Revenue (ARR) in just over five years—you'll drive meaningful impact while building expertise that makes you a sought-after leader in the transformation of global work.
+Your experience at Deel will be a career accelerator. At the forefront of the global work revolution, you'll tackle complex challenges that impact millions of people's working lives. With our momentum-backed by a $12 billion valuation and $800 million in Annual Recurring Revenue (ARR) in over five years-you'll drive meaningful impact while building expertise that makes you a sought-after leader in the transformation of global work.
 
 Why join our Data team?
 
@@ -16,7 +16,6 @@ Deel is a fast-growing company with a developing Data Science team, which gives 
 The nature of the role will be mostly project focused, so a lot of opportunity to dive deep into a single problem and solve it properly
 This role in particular aims to develop data insights from a large salary grouping. There’s scope to define how the data pipelines will work, and what statistical techniques and ML approaches to use
 Over 90% of the team’s work makes it to production which is rare for Data science/AI teams, we aim to deliver value each quarter
-
 
 Responsibilities
 
@@ -32,7 +31,6 @@ Collaborate with Engineering, Operations, Product Management and other functions
 Apply software engineering practices in our code that implements our research and its infrastructure
 Produce high quality, clean, maintainable reproducible research and code
 
-
 Requirements
 
 High proficiency in Python and its data science stack.
@@ -47,7 +45,6 @@ Must be strong at applying statistical methods to data
 Must be strong with data pipelining
 Must be an independent thinker and have the ability to work independently to solve problems
 
-
 Total Rewards
 
 Our workforce deserves fair and competitive pay that meets them where they are. With scalable benefits, rewards, and perks, our total rewards programs reflect our commitment to inclusivity and access for all.
@@ -57,7 +54,6 @@ Some things you’ll enjoy
 Stock grant opportunities dependent on your role, employment status and location
 Additional perks and benefits based on your employment status and country
 The flexibility of remote work, including optional WeWork access
-
 
 At Deel, we’re an equal-opportunity employer that values diversity and positively encourage applications from suitably qualified and eligible candidates regardless of race, religion, sex, national origin, gender, sexual orientation, age, marital status, veteran status, disability status, pregnancy or maternity or other applicable legally protected characteristics.
 

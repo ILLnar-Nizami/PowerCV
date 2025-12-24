@@ -8,7 +8,7 @@ Backend Developer with 2+ years of experience in Python development,
 API design, and cloud deployment. Skilled in Flask, FastAPI, Docker, 
 and microservices architecture.
 
-PYTHON BACKEND DEVELOPER — Jan 2023 - Present
+PYTHON BACKEND DEVELOPER - Jan 2023 - Present
 Freelance Remote
 - Develop REST APIs with Flask, boosting backend efficiency and response times.
 - Design Dockerized microservices for scalable deployments, enhancing system reliability.

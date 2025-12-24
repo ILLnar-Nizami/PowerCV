@@ -57,141 +57,141 @@ Calculate match percentage based on:
 
 Return ONLY valid JSON (no markdown, no explanations):
 
-```json
+``json
 {
-  "ats_score": 75,
-  "summary": "Brief 2-3 sentence overall assessment",
-  
-  "keyword_analysis": {
-    "matched_keywords": [
-      {"keyword": "Python", "jd_mentions": 3, "cv_mentions": 5},
-      {"keyword": "Docker", "jd_mentions": 2, "cv_mentions": 4}
-    ],
-    "missing_critical": [
-      {"keyword": "Kubernetes", "category": "infrastructure", "priority": "HIGH"},
-      {"keyword": "GraphQL", "category": "api", "priority": "MEDIUM"}
-    ],
-    "missing_nice_to_have": [
-      {"keyword": "TypeScript", "category": "programming", "priority": "LOW"}
-    ]
-  },
-  
-  "experience_analysis": {
-    "relevant_roles": [
-      {
-        "title": "Python Backend Developer",
-        "company": "Freelance Remote",
-        "relevance": "HIGHLY_RELEVANT",
-        "matching_responsibilities": [
-          "REST API development with Flask",
-          "Dockerized microservices design"
-        ],
-        "key_achievements": [
-          "Automated ETL pipelines with 100% deployment success"
-        ]
-      }
-    ],
-    "transferable_roles": [
-      {
-        "title": "Procurement Manager",
-        "company": "Effectech System Integration",
-        "relevance": "SOMEWHAT_RELEVANT",
-        "transferable_skills": [
-          "Process optimization",
-          "Cross-functional collaboration",
-          "Data-driven decision making"
-        ]
-      }
-    ]
-  },
-  
-  "skill_gaps": {
-    "critical": [
-      "Kubernetes orchestration",
-      "CI/CD pipeline experience with GitHub Actions"
-    ],
-    "important": [
-      "GraphQL API design",
-      "Test-driven development practices"
-    ],
-    "nice_to_have": [
-      "Terraform infrastructure as code",
-      "Monitoring with Prometheus/Grafana"
-    ]
-  },
-  
-  "strengths": [
-    "Strong Python expertise with Flask and FastAPI",
-    "Proven DevOps skills with Docker and microservices",
-    "Demonstrated leadership through mentoring junior developers",
-    "Unique combination of technical and procurement domain knowledge"
-  ],
-  
-  "education_relevance": {
-    "relevant_degrees": [
-      {
-        "degree": "Master Degree - Mechanical Engineering",
-        "relevance": "Demonstrates analytical and problem-solving foundation"
-      }
-    ],
-    "relevant_certifications": [
-      "Python Programming",
-      "DevOps Tools (Docker, Kubernetes)",
-      "Web Frameworks (FastAPI)"
-    ]
-  },
-  
-  "optimization_priorities": [
-    {
-      "section": "Professional Summary",
-      "action": "Rewrite to emphasize backend development and match JD terminology",
-      "priority": "HIGH"
-    },
-    {
-      "section": "Python Backend Developer role",
-      "action": "Add specific metrics and align bullet points with JD keywords",
-      "priority": "HIGH"
-    },
-    {
-      "section": "Skills section",
-      "action": "Reorganize to prioritize JD-matching skills, remove irrelevant items",
-      "priority": "MEDIUM"
-    },
-    {
-      "section": "Procurement roles",
-      "action": "Condense to 2-3 bullets each, emphasize transferable skills only",
-      "priority": "MEDIUM"
-    }
-  ],
-  
-  "recommendations": [
-    "Add specific project examples demonstrating microservices architecture",
-    "Include quantified metrics for API performance improvements",
-    "Emphasize collaboration with frontend teams if JD mentions full-stack",
-    "Consider creating a 'Key Projects' section to highlight relevant work",
-    "Remove hobbies section if space is needed for technical content"
-  ]
+ "ats_score": 75,
+ "summary": "Brief 2-3 sentence overall assessment",
+ 
+ "keyword_analysis": {
+ "matched_keywords": [
+ {"keyword": "Python", "jd_mentions": 3, "cv_mentions": 5},
+ {"keyword": "Docker", "jd_mentions": 2, "cv_mentions": 4}
+ ],
+ "missing_critical": [
+ {"keyword": "Kubernetes", "category": "infrastructure", "priority": "HIGH"},
+ {"keyword": "GraphQL", "category": "api", "priority": "MEDIUM"}
+ ],
+ "missing_nice_to_have": [
+ {"keyword": "TypeScript", "category": "programming", "priority": "LOW"}
+ ]
+ },
+ 
+ "experience_analysis": {
+ "relevant_roles": [
+ {
+ "title": "Python Backend Developer",
+ "company": "Freelance Remote",
+ "relevance": "HIGHLY_RELEVANT",
+ "matching_responsibilities": [
+ "REST API development with Flask",
+ "Dockerized microservices design"
+ ],
+ "key_achievements": [
+ "Automated ETL pipelines with 100% deployment success"
+ ]
+ }
+ ],
+ "transferable_roles": [
+ {
+ "title": "Procurement Manager",
+ "company": "Effectech System Integration",
+ "relevance": "SOMEWHAT_RELEVANT",
+ "transferable_skills": [
+ "Process optimization",
+ "Cross-functional collaboration",
+ "Data-driven decision making"
+ ]
+ }
+ ]
+ },
+ 
+ "skill_gaps": {
+ "critical": [
+ "Kubernetes orchestration",
+ "CI/CD pipeline experience with GitHub Actions"
+ ],
+ "important": [
+ "GraphQL API design",
+ "Test-driven development practices"
+ ],
+ "nice_to_have": [
+ "Terraform infrastructure as code",
+ "Monitoring with Prometheus/Grafana"
+ ]
+ },
+ 
+ "strengths": [
+ "Strong Python expertise with Flask and FastAPI",
+ "Proven DevOps skills with Docker and microservices",
+ "Demonstrated leadership through mentoring junior developers",
+ "Unique combination of technical and procurement domain knowledge"
+ ],
+ 
+ "education_relevance": {
+ "relevant_degrees": [
+ {
+ "degree": "Master Degree - Mechanical Engineering",
+ "relevance": "Demonstrates analytical and problem-solving foundation"
+ }
+ ],
+ "relevant_certifications": [
+ "Python Programming",
+ "DevOps Tools (Docker, Kubernetes)",
+ "Web Frameworks (FastAPI)"
+ ]
+ },
+ 
+ "optimization_priorities": [
+ {
+ "section": "Professional Summary",
+ "action": "Rewrite to emphasize backend development and match JD terminology",
+ "priority": "HIGH"
+ },
+ {
+ "section": "Python Backend Developer role",
+ "action": "Add specific metrics and align bullet points with JD keywords",
+ "priority": "HIGH"
+ },
+ {
+ "section": "Skills section",
+ "action": "Reorganize to prioritize JD-matching skills, remove irrelevant items",
+ "priority": "MEDIUM"
+ },
+ {
+ "section": "Procurement roles",
+ "action": "Condense to 2-3 bullets each, emphasize transferable skills only",
+ "priority": "MEDIUM"
+ }
+ ],
+ 
+ "recommendations": [
+ "Add specific project examples demonstrating microservices architecture",
+ "Include quantified metrics for API performance improvements",
+ "Emphasize collaboration with frontend teams if JD mentions full-stack",
+ "Consider creating a 'Key Projects' section to highlight relevant work",
+ "Remove hobbies section if space is needed for technical content"
+ ]
 }
-```
+`
 
 ---
 
 ## Critical Rules
 
 1. **JSON ONLY**: Output must be valid, parseable JSON with no markdown code blocks
-2. **NO FABRICATION**: Only analyze what exists in the CV—never invent experience, skills, or education
+2. **NO FABRICATION**: Only analyze what exists in the CV-never invent experience, skills, or education
 3. **EXTRACTION FOCUS**: Carefully extract and preserve ALL sections from CV:
-   - Contact information (name, email, phone, location) - preserve exactly once
-   - Professional summary - extract complete content
-   - Work experience (all roles with companies, dates, responsibilities) - extract all roles
-   - Skills (technical and soft skills) - extract complete skill lists
-   - Education (degrees, institutions, dates) - extract all education details
-   - Projects (if present) - extract project information
+ - Contact information (name, email, phone, location) - preserve exactly once
+ - Professional summary - extract complete content
+ - Work experience (all roles with companies, dates, responsibilities) - extract all roles
+ - Skills (technical and soft skills) - extract complete skill lists
+ - Education (degrees, institutions, dates) - extract all education details
+ - Projects (if present) - extract project information
 4. **PRESERVE FACTS**: Never suggest changing employer names, dates, or factual details
 5. **DUPLICATE HANDLING**: If contact info appears multiple times, note it but preserve only once in analysis
 6. **SECTION ANALYSIS**: Analyze each CV section separately for relevance to target role
 7. **ATS-FRIENDLY**: Consider formatting and keyword placement for ATS scanning
-8. **COMPLETE PICTURE**: Include all relevant content, not just keywords
+8. **COMPLETE PICTURE**: Include all relevant content, not keywords
 9. **STRUCTURE INTEGRITY**: Maintain the logical flow and organization of the original CV
 10. **CONTENT COMPLETENESS**: Ensure no sections are lost or fragmented during analysis
 11. **BOUNDARY RESPECT**: Identify and respect section boundaries to prevent content mixing
@@ -233,22 +233,22 @@ Before returning JSON, verify:
 ## Example Validation
 
 GOOD output:
-```json
+`json
 {"ats_score": 72, "matched_keywords": [{"keyword": "Python", "jd_mentions": 2, "cv_mentions": 3}]}
-```
+`
 
 BAD output (has markdown):
-```
-Here's the analysis:
-```json
+`
+the analysis:
+`json
 {"ats_score": 72}
-```
-```
+`
+`
 
 BAD output (invented experience):
-```json
+`json
 {"recommendations": ["Add experience with React and Vue.js from previous roles"]}
-```
+``
 (If CV doesn't mention React/Vue, can't recommend adding it)
 
 ---

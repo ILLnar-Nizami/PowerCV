@@ -12,23 +12,23 @@ This guide establishes development standards and best practices for our tech sta
 - For libraries or external dependencies, mention their usage and purpose in comments.
 - If possible use available tools to search libary documentation to write and suggestion updated code.
 - Use consistent naming conventions and follow language-specific best practices.
-- Write concise, efficient, and idiomatic code that is also easily understandable.
+- Write concise, efficient, and idiomatic code that is also understandable.
 
 ## Python Development
 
 ### Code Style & Structure
-- Provide docstrings following PEP 257 conventions and use `ruff`
+- Provide docstrings following PEP 257 conventions and use ruff
 - Structure projects using a clear module hierarchy
 - Use the typing module for type annotations (e.g., List[str], Dict[str, int]).
 - Create meaningful docstrings (Google style recommended)
 - Break down complex functions into smaller, more manageable functions.
 - Maintain proper indentation (use 4 spaces for each level of indentation).
-- Place function and class docstrings immediately after the `def` or `class` keyword.
+- Place function and class docstrings immediately after the def or class keyword.
 - Use blank lines to separate functions, classes, and code blocks where appropriate.
 
 ### Python Best Practices
 - Prefer explicit code over implicit
-- Use virtual environments (`venv`, `poetry`, or `pipenv`)
+- Use virtual environments (venv, poetry, or pipenv)
 - Implement comprehensive error handling with specific exception types
 - Follow SOLID principles for OOP code
 - Leverage dataclasses for data containers
@@ -45,14 +45,13 @@ This guide establishes development standards and best practices for our tech sta
 - Include comments for edge cases and the expected behavior in those cases.
 - Write unit tests for functions and document them with docstrings explaining the test cases.
 
-
 ## FastAPI Development
 
 ### API Design
 - Follow RESTful principles
 - Use Pydantic models for request/response validation
 - Implement proper status codes and error responses
-- Version your APIs (path-based preferred: `/api/v1/...`)
+- Version your APIs (path-based preferred: /api/v1/...)
 - Organize endpoints using APIRouter for logical grouping
 
 ### FastAPI Features
@@ -126,34 +125,34 @@ This guide establishes development standards and best practices for our tech sta
 ## Version Control & Commit Practices
 
 ### Commit Message Structure
-- Use a structured format: `<type>(<scope>): <subject>`
+- Use a structured format: <type>(<scope>): <subject>
 - Keep first line under 72 characters
 - Add detailed description after subject when needed
 - Reference issue numbers where applicable
 
 ### Commit Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code change that neither fixes a bug nor adds a feature
-- `perf`: Performance improvements
-- `test`: Adding or modifying tests
-- `chore`: Build process or tooling changes
-- `ci`: CI configuration changes
-- `revert`: Reverting previous changes
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation changes
+- style: Code style changes (formatting, etc.)
+- refactor: Code change that neither fixes a bug nor adds a feature
+- perf: Performance improvements
+- test: Adding or modifying tests
+- chore: Build process or tooling changes
+- ci: CI configuration changes
+- revert: Reverting previous changes
 
 ### Scope Guidelines
-- Use module/component name when applicable (`auth`, `users`, `ui`, etc.)
-- Use `*` for changes spanning multiple modules
+- Use module/component name when applicable (auth, users, ui, etc.)
+- Use * for changes spanning multiple modules
 - Optional but recommended for clarity
 
 ### Commit Message Examples
-- `feat(auth): implement OAuth2 login flow`
-- `fix(api): correct status code for validation errors`
-- `docs(readme): update deployment instructions`
-- `refactor(models): simplify user schema`
-- `test(endpoints): add tests for profile update`
+- feat(auth): implement OAuth2 login flow
+- fix(api): correct status code for validation errors
+- docs(readme): update deployment instructions
+- refactor(models): simplify user schema
+- test(endpoints): add tests for profile update
 
 ### Commit Content Best Practices
 - Make atomic commits (one logical change per commit)
@@ -164,22 +163,22 @@ This guide establishes development standards and best practices for our tech sta
 
 ### Smart Commit Messages
 - Include details that reflect code modifications:
-  - `feat(database): add migration for user preferences table`
-  - `fix(validation): handle null values in email validator`
-  - `refactor(services): extract authentication logic to dedicated module`
+ - feat(database): add migration for user preferences table
+ - fix(validation): handle null values in email validator
+ - refactor(services): extract authentication logic to dedicated module
 - Reference performance impacts if applicable:
-  - `perf(queries): optimize user search by adding index (50% faster)`
+ - perf(queries): optimize user search by adding index (50% faster)
 
 ### Branch Naming Conventions
 - Use prefixes to indicate branch type:
-  - `feature/` for new features
-  - `bugfix/` for bug fixes
-  - `hotfix/` for urgent production fixes
-  - `release/` for release preparation
-  - `docs/` for documentation updates
+ - feature/ for new features
+ - bugfix/ for bug fixes
+ - hotfix/ for urgent production fixes
+ - release/ for release preparation
+ - docs/ for documentation updates
 - Include issue number when available:
-  - `feature/AUTH-123-oauth-integration`
-  - `bugfix/CORE-456-fix-memory-leak`
+ - feature/AUTH-123-oauth-integration
+ - bugfix/CORE-456-fix-memory-leak
 - Use kebab-case for readability
 
 ### Pre-Push Review Checklist
@@ -190,11 +189,11 @@ This guide establishes development standards and best practices for our tech sta
 - Ensure all TODOs have associated tickets
 
 ### Code Change Analysis for Commits
-- For API changes: `feat(api): add endpoint for user preferences [POST /users/{id}/preferences]`
-- For UI changes: `feat(ui): implement responsive navigation menu`
-- For dependency updates: `chore(deps): update FastAPI to 0.95.0`
-- For schema changes: `feat(models): add email verification fields to User model`
-- For bug fixes: `fix(auth): prevent token refresh after password change [CVE-2023-1234]`
+- For API changes: feat(api): add endpoint for user preferences [POST /users/{id}/preferences]
+- For UI changes: feat(ui): implement responsive navigation menu
+- For dependency updates: chore(deps): update FastAPI to 0.95.0
+- For schema changes: feat(models): add email verification fields to User model
+- For bug fixes: fix(auth): prevent token refresh after password change [CVE-2023-1234]
 
 ## DevOps & Deployment
 

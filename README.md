@@ -12,15 +12,15 @@
 
 </div>
 
-## 📋 Overview
+## Overview
 
 **PowerCV** is an AI-powered resume customization platform that tailors your professional profile to match specific job descriptions. By leveraging advanced natural language processing, it analyzes job requirements and adapts your resume to highlight relevant skills and experiences, significantly improving your chances of passing through Applicant Tracking Systems (ATS) and catching recruiters' attention.
 
 <!-- <div align="center">
-  <img src="https://github.com/AnalyticAce/PowerCV/blob/develop/.github/assets/demo-screenshot.png" alt="PowerCV Screenshot" width="800"/>
+ <img src="https://github.com/AnalyticAce/PowerCV/blob/develop/.github/assets/demo-screenshot.png" alt="PowerCV Screenshot" width="800"/>
 </div> -->
 
-## ✨ Key Features
+## Key Features
 
 - **AI-Powered Resume Customization**: Automatically tailors your resume content to match job requirements
 - **ATS Optimization**: Enhances keyword matching for better visibility in applicant tracking systems
@@ -28,7 +28,7 @@
 - **Resume Generation**: Creates formatted, professional resumes in multiple formats
 - **Version Management**: Track different versions of your resume for various applications
 
-## 🖼️ Showcase
+## Showcase
 
 Below are screenshots showcasing the main features of PowerCV:
 <div align="center">
@@ -66,7 +66,7 @@ The resume view page displays the generated resume in a clean, professional form
 
 </div>
 
-## 🚀 Technologies
+## Technologies
 
 - **Backend**: [FastAPI](https://fastapi.tiangolo.com/), Python 3.8+
 - **Database**: MongoDB
@@ -78,7 +78,7 @@ The resume view page displays the generated resume in a clean, professional form
 > [!CAUTION]
 > This application utilizes LLM models which may generate unpredictable responses. Always review and verify AI-generated content before submitting to potential employers. The application is currently in beta, with ongoing improvements to the prompt engineering and output quality.
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 
@@ -93,13 +93,13 @@ The resume view page displays the generated resume in a clean, professional form
 
 [uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver:
 
-```bash
+``bash
 # Install uv using pip
 pip install uv
 
 # Or using the recommended installer script
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+`
 
 #### Setup MongoDB
 
@@ -107,18 +107,18 @@ Options for MongoDB setup:
 
 1. **Using Docker** (recommended for development):
 
-```bash
+`bash
 docker run -d --name mongodb -p 27017:27017 mongo:latest
-```
+`
 
 2. **Local Installation**:
 
-   - [MongoDB Installation Guide](https://www.mongodb.com/docs/manual/installation/)
+ - [MongoDB Installation Guide](https://www.mongodb.com/docs/manual/installation/)
 3. **MongoDB Atlas** (Cloud Hosted):
 
-   - [Sign up for MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
-   - Create a free tier cluster
-   - Get your connection string from the dashboard
+ - [Sign up for MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
+ - Create a free tier cluster
+ - Get your connection string from the dashboard
 
 #### Get Deepseek API Key
 
@@ -128,32 +128,32 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest
 
 ### Environment Variables
 
-Create a `.env` file in the project root with the following variables:
+Create a.env file in the project root with the following variables:
 
-```
+`
 API_KEY=your_api_key_here
 MONGODB_URI=mongodb://username:password@host:port/
-```
+`
 
 ### Using Official Docker Image (Recommended)
 
 The fastest way to get started is to use our official Docker image:
 
-```bash
+`bash
 docker pull ghcr.io/analyticace/myresumo:latest
-```
+`
 
 Run the container with your environment variables:
 
-```bash
+`bash
 docker run -d --name myresumo \
-  -p 8080:8080 \
-  -e API_KEY=your_api_key_here \
-  -e API_BASE=https://api.deepseek.com/v1 \
-  -e MODEL_NAME=deepseek-chat \
-  -e MONGODB_URI=mongodb://username:password@host:port/ \
-  ghcr.io/analyticace/myresumo:latest
-```
+ -p 8080:8080 \
+ -e API_KEY=your_api_key_here \
+ -e API_BASE=https://api.deepseek.com/v1 \
+ -e MODEL_NAME=deepseek-chat \
+ -e MONGODB_URI=mongodb://username:password@host:port/ \
+ ghcr.io/analyticace/myresumo:latest
+`
 
 ## Alternative AI Models
 
@@ -161,9 +161,9 @@ PowerCV supports multiple AI backends to power its resume customization features
 
 ### Environment Variable Configuration
 
-You can easily switch between different AI providers by configuring these environment variables:
+You can switch between different AI providers by configuring these environment variables:
 
-```bash
+`bash
 # For Deepseek (default)
 API_KEY=your_deepseek_api_key
 API_BASE=https://api.deepseek.com/v1
@@ -175,98 +175,97 @@ API_BASE=https://api.openai.com/v1
 MODEL_NAME=gpt-4
 
 # For other providers, configure accordingly
-```
+`
 
-### 🆕 Cerebras AI Integration
+### Cerebras AI Integration
 
 PowerCV now uses Cerebras AI for ultra-fast CV optimization (v2 endpoints):
 
 #### Setup
 
 1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
-2. Add to `.env`:
-   ```env
-   CEREBRAS_API_KEY=your_key_here
-   CEREBRAS_MODEL=gpt-oss-120b
-   ```
+2. Add to.env:
+ `env
+ CEREBRAS_API_KEY=your_key_here
+ CEREBRAS_MODEL=gpt-oss-120b
+ `
 
 #### New API Endpoints (v2)
 
-- `POST /api/v2/optimize` - Full CV optimization workflow (Modular prompts)
-- `POST /api/v2/analyze` - CV analysis only (Structured JSON)
-- `POST /api/v2/cover-letter` - Cover letter generation (Tailored content)
+- POST /api/v2/optimize - Full CV optimization workflow (Modular prompts)
+- POST /api/v2/analyze - CV analysis only (Structured JSON)
+- POST /api/v2/cover-letter - Cover letter generation (Tailored content)
 
 #### Testing
 
-```bash
+`bash
 # Run integration tests
 pytest app/tests/test_integration.py -v
 
 # Run specific test
 python app/tests/test_integration.py
-```
+`
 
-When running the Docker container, simply pass these environment variables:
+When running the Docker container, pass these environment variables:
 
-```bash
+`bash
 docker run -d --name myresumo \
-   -p 8080:8080 \
-   -e API_KEY=your_api_key_here \
-   -e API_BASE=your_provider_base_url \
-   -e MODEL_NAME=your_preferred_model \
-   -e MONGODB_URI=mongodb://username:password@host:port/ \
-   ghcr.io/analyticace/myresumo:latest
-```
+ -p 8080:8080 \
+ -e API_KEY=your_api_key_here \
+ -e API_BASE=your_provider_base_url \
+ -e MODEL_NAME=your_preferred_model \
+ -e MONGODB_URI=mongodb://username:password@host:port/ \
+ ghcr.io/analyticace/myresumo:latest
+`
 
-Access the application at `http://localhost:8080`
+Access the application at http://localhost:8080
 
 ### Local Development
 
 1. Clone the repository:
 
-```bash
+`bash
 git clone https://github.com/AnalyticAce/PowerCV.git
 cd PowerCV
-```
+`
 
 2. Create and activate a virtual environment:
 
-```bash
+`bash
 uv venv
-source .venv/bin/activate  # On macOS/Linux
-.venv\Scripts\activate     # On Windows
-```
+source.venv/bin/activate # On macOS/Linux.venv\Scripts\activate # On Windows
+`
 
 3. Install dependencies:
 
-```bash
+`bash
 uv pip install -r requirements.txt
-```
+`
 
 4. Run development server:
 
-```bash
+`bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
-```
+`
 
-5. Access the application at `http://localhost:8080`
+5. Access the application at http://localhost:8080
 
-## 📚 API Documentation
+## API Documentation
 
 Once the application is running, access the API documentation at:
 
-- Interactive API docs: `http://localhost:8080/docs`
-- OpenAPI specification: `http://localhost:8080/openapi.json`
+- Interactive API docs: http://localhost:8080/docs
+- OpenAPI specification: http://localhost:8080/openapi.json
 
-## 🧪 Testing
+## Testing
 
 Run the test suite with:
 
-```bash
+`bash
 pytest tests/
-```
+`
 
-## 📖 Usage Guide
+## Usage Guide
 
 1. **Upload Your Resume**: Submit your existing resume in PDF or DOCX format
 2. **Add Job Description**: Paste the job description or upload it as a text file
@@ -292,41 +291,41 @@ Our GitHub Actions workflow automatically runs Ruff on all Python files whenever
 To run the linter locally:
 
 1. Install Ruff:
-   ```bash
-   pip install ruff
-   ```
+ `bash
+ pip install ruff
+ `
 
 2. Run the linter:
-   ```bash
-   ruff check .
-   ```
+ `bash
+ ruff check.
+ `
 
 3. Check formatting:
-   ```bash
-   ruff format --check .
-   ```
+ `bash
+ ruff format --check.
+ `
 
 4. Auto-format code:
-   ```bash
-   ruff format .
-   ```
+ `bash
+ ruff format.
+ `
 
-Our configuration (in `pyproject.toml`) enforces:
+Our configuration (in pyproject.toml) enforces:
 - Google-style docstrings
 - Import sorting
 - Standard Python code style conventions
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please check the [contribution guidelines](CONTRIBUTING.md) for more details.
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
+2. Create a feature branch: git checkout -b feature/effective-feature
+3. Commit your changes: git commit -m 'feat: add effective feature'
+4. Push to the branch: git push origin feature/effective-feature`
 5. Open a pull request
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Multi-language support
 - [ ] Resume analytics dashboard
@@ -336,11 +335,11 @@ Contributions are welcome! Please check the [contribution guidelines](CONTRIBUTI
 - [ ] Integration with job search platforms
 - [ ] Enhanced PDF parsing and extraction
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👤 Contact
+## Contact
 
 **DOSSEH Shalom** - [LinkedIn](https://www.linkedin.com/in/shalom-dosseh-4a484a262) - [GitHub](https://github.com/AnalyticAce)
 

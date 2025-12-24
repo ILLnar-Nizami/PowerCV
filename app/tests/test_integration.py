@@ -37,7 +37,7 @@ def test_cv_analysis(sample_cv, sample_jd):
     assert 'keyword_analysis' in result
     assert 'matched_keywords' in result['keyword_analysis']
     
-    print(f"✓ Analysis test passed. ATS Score: {result['ats_score']}")
+    print(f" Analysis test passed. ATS Score: {result['ats_score']}")
 
 
 def test_full_workflow(sample_cv, sample_jd):
@@ -55,7 +55,7 @@ def test_full_workflow(sample_cv, sample_jd):
     assert 'optimized_cv' in result
     assert result['ats_score'] > 0
     
-    print(f"✓ Workflow test passed. ATS Score: {result['ats_score']}")
+    print(f" Workflow test passed. ATS Score: {result['ats_score']}")
 
 
 if __name__ == "__main__":

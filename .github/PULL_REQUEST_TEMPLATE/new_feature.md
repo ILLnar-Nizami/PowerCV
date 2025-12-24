@@ -1,4 +1,4 @@
-# 🚀 Feature Pull Request
+# Feature Pull Request
 
 ## Description
 Describe the new feature you're adding.

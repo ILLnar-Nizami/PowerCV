@@ -1,0 +1,67 @@
+{
+  "name": "PowerCV - Basic Optimization",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-submit",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://powercv-api:8080/api/n8n/optimize",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "cv_text",
+              "value": "={{$json.cv_text}}"
+            },
+            {
+              "name": "jd_text",
+              "value": "={{$json.jd_text}}"
+            },
+            {
+              "name": "user_email",
+              "value": "={{$json.email}}"
+            }
+          ]
+        }
+      },
+      "name": "Call PowerCV",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [640, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Call PowerCV", "type": "main", "index": 0}]]
+    },
+    "Call PowerCV": {
+      "main": [[{"node": "Respond", "type": "main", "index": 0}]]
+    }
+  }
+}

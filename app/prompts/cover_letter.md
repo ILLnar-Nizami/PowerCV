@@ -37,7 +37,7 @@ You will receive:
 ## Cover Letter Structure
 
 ### **Header Block**
-```
+``
 [Candidate Name]
 [Address]
 [Email] | [Phone]
@@ -48,7 +48,7 @@ You will receive:
 [Hiring Manager Name / Hiring Team]
 [Company Name]
 [Company Address]
-```
+`
 
 ### **Opening Paragraph (2-3 sentences)**
 Hook reader with:
@@ -109,11 +109,11 @@ Call to action:
 ---
 
 ### **Signature Block**
-```
+`
 Sincerely,
 
 [Candidate Name]
-```
+`
 
 ---
 
@@ -124,7 +124,7 @@ Sincerely,
 - **Confident but humble**: Show expertise without arrogance
 - **Specific not generic**: Use company/role details, not template phrases
 - **Active voice**: "I developed" not "I was responsible for developing"
-- **Present-focused**: Emphasize what you can do for them, not just what you've done
+- **Present-focused**: Emphasize what you can do for them, not what you've done
 
 ### LENGTH
 - **Strict maximum**: 300-350 words (excluding header/signature)
@@ -137,23 +137,23 @@ Sincerely,
 - Reference specific technologies/tools from JD
 
 ### WHAT TO AVOID
-- ❌ Repeating CV verbatim
-- ❌ Generic statements ("I'm a hard worker", "fast learner")
-- ❌ Salary discussions or requirements
-- ❌ Negative statements about current/past employers
-- ❌ Desperate or pleading tone
-- ❌ Unexplained employment gaps (address in interview)
-- ❌ Overly casual language ("Hey!", emojis, slang)
-- ❌ More than one exclamation point in entire letter
-- ❌ Buzzwords without substance ("ninja", "rockstar", "guru")
+- Repeating CV verbatim
+- Generic statements ("I'm a hard worker", "fast learner")
+- Salary discussions or requirements
+- Negative statements about current/past employers
+- Desperate or pleading tone
+- Unexplained employment gaps (address in interview)
+- Overly casual language ("Hey!", emojis, slang)
+- More than one exclamation point in entire letter
+- Buzzwords without substance ("ninja", "rockstar", "guru")
 
 ### WHAT TO INCLUDE
-- ✓ Specific company details (recent news, product launches, mission)
-- ✓ At least 2 quantified achievements
-- ✓ Technologies mentioned in JD
-- ✓ Your unique value proposition
-- ✓ Concrete examples, not abstract claims
-- ✓ Forward-looking statements about contribution
+- Specific company details (recent news, product launches, mission)
+- At least 2 quantified achievements
+- Technologies mentioned in JD
+- Your unique value proposition
+- Concrete examples, not abstract claims
+- Forward-looking statements about contribution
 
 ---
 
@@ -202,32 +202,32 @@ Sincerely,
 Provide cover letter in three formats:
 
 ### 1. FINAL COVER LETTER
-```
+`
 [Complete, ready-to-send cover letter with proper formatting]
-```
+`
 
 ### 2. KEYWORD COVERAGE
-```
+`
 JD Keywords Incorporated:
 • [Keyword 1] - appears in paragraph [X]
 • [Keyword 2] - appears in paragraph [Y]
 [List 5-7 keywords]
-```
+`
 
 ### 3. CUSTOMIZATION NOTES
-```
+`
 • Paragraph 1 references [specific company detail]
 • Paragraph 2 connects to [specific JD requirement]
 • Paragraph 3 addresses [cultural value/team structure]
 • Tone: [Professional/Enthusiastic/Technical] as requested
 • Word count: [X] words
-```
+`
 
 ---
 
 ## Example Cover Letter Output
 
-```
+`
 === FINAL COVER LETTER ===
 
 Ilnar Nizametdinov
@@ -243,9 +243,9 @@ Hiring Team
 
 Dear Hiring Manager,
 
-I am writing to express my strong interest in the Backend Developer position at [Company Name]. With over 2 years of specialized experience in Python backend development and a proven track record of building scalable REST APIs and microservices, I am excited about the opportunity to contribute to your team's mission of delivering robust, high-performance software solutions.
+I am writing to express my strong interest in the Backend Developer position at [Company Name]. With over 2 years of specialized experience in Python backend development and a proven track record of building scalable REST APIs and microservices, I am excited about the opportunity to contribute to your team's mission of delivering reliable, high-performance software solutions.
 
-Your job description emphasizes expertise in Python, Flask, and microservices architecture—areas where I have demonstrated substantial impact. As a freelance Backend Developer, I engineered REST APIs using Flask and FastAPI that reduced response times by 60% while handling over 10,000 daily requests. I designed and deployed Dockerized microservices with CI/CD pipelines, achieving 99.8% uptime and enabling seamless scalability across production environments.
+Your job description emphasizes expertise in Python, Flask, and microservices architecture-areas where I have demonstrated substantial impact. As a freelance Backend Developer, I engineered REST APIs using Flask and FastAPI that reduced response times by 60% while handling over 10,000 daily requests. I designed and deployed Dockerized microservices with CI/CD pipelines, achieving 99.8% uptime and enabling seamless scalability across production environments.
 
 I understand [Company Name] is seeking someone who can deliver reliable, well-tested code. I developed automated ETL pipelines processing 2 million records daily with 100% data integrity, and implemented comprehensive testing suites using Pytest that increased code coverage from 45% to 92%. This systematic approach to quality and automation would enable me to contribute immediately to your development goals.
 
@@ -279,7 +279,7 @@ JD Keywords Incorporated:
 • Word count: 294 words
 • Metrics included: 60% response time, 10K requests, 99.8% uptime, 92% coverage, 25% velocity
 • Ready to customize [Company Name] placeholder with actual company (appears 4 times)
-```
+``
 
 ---
 

@@ -1,4 +1,4 @@
-# 📚 Documentation Update Pull Request
+# Documentation Update Pull Request
 
 ## Description
 What parts of the documentation were updated?

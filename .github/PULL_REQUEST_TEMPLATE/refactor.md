@@ -1,4 +1,4 @@
-# 🔧 Refactor Pull Request
+# Refactor Pull Request
 
 ## Description
 What code is being refactored?
