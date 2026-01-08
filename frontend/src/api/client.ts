@@ -1,15 +1,14 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { toast } from 'sonner'
-
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api'
+import { apiConfig } from '@/config/env'
 
 class ApiClient {
   private client: AxiosInstance
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL,
-      timeout: 60000,
+      baseURL: apiConfig.baseURL,
+      timeout: apiConfig.timeout,
       headers: {
         'Content-Type': 'application/json',
       },
