@@ -31,11 +31,6 @@ PowerCV is a platform for resume customization that adapts professional profiles
 - **🔍 Advanced Analytics**: Comprehensive resume performance tracking and insights
 - **🛡️ Enterprise Security**: Production-ready security with environment validation
 
-## Showcase
-
-PowerCV features a comprehensive dashboard for resume management, detailed optimization analysis, and AI-assisted content generation.
-
-
 ## Technologies
 
 ### Frontend
@@ -262,8 +257,6 @@ docker run -d --name myresumo \
 ## AI Models
 
 PowerCV supports multiple AI backends.
-
-### Configuration
 
 ### Configuration
 
