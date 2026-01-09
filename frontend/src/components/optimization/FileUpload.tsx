@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,7 +7,7 @@ import { formatFileSize } from '@/utils/formatters'
 import { FILE_TYPES, MAX_FILE_SIZE } from '@/utils/constants'
 
 interface FileUploadProps {
-  onFileSelect: (file: File) => void
+  onFileSelect: (file: File | null) => void
   selectedFile?: File | null
   accept?: string[]
   maxSize?: number
@@ -21,7 +21,7 @@ export function FileUpload({
   maxSize = MAX_FILE_SIZE,
   className = ''
 }: FileUploadProps) {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[]): void => {
     if (acceptedFiles.length > 0) {
       onFileSelect(acceptedFiles[0])
     }
@@ -30,18 +30,26 @@ export function FileUpload({
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
     accept: accept.reduce((acc, type) => {
-      acc[type] = [type]
+      const extensions = {
+        [FILE_TYPES.PDF]: ['.pdf'],
+        [FILE_TYPES.DOCX]: ['.docx'],
+        [FILE_TYPES.DOC]: ['.doc'],
+        'text/plain': ['.txt', '.text'],
+        'application/json': ['.json'],
+        'text/markdown': ['.md']
+      }[type] || []
+      acc[type] = extensions
       return acc
     }, {} as Record<string, string[]>),
     maxSize,
     multiple: false,
   })
 
-  const handleRemoveFile = () => {
-    onFileSelect(null as any)
+  const handleRemoveFile = (): void => {
+    onFileSelect(null)
   }
 
-  const getErrorMessage = (error: string) => {
+  const getErrorMessage = (error: string): string => {
     if (error.includes('too large')) return 'File size must be less than 10MB'
     if (error.includes('file type')) return 'Only PDF and DOCX files are allowed'
     return error
