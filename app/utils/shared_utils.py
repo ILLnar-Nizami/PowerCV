@@ -6,8 +6,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-# ValidationHelper is imported directly from app.utils.validation
-from app.utils.validation import ValidationHelper
+from .validation import ValidationHelper
 
 logger = logging.getLogger(__name__)
 
