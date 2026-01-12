@@ -124,7 +124,7 @@ export function DashboardPage() {
 
   // Filter and sort resumes
   const filteredAndSortedResumes = useMemo(() => {
-    let result = resumes.filter(resume =>
+    const result = resumes.filter(resume =>
       (resume.company ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (resume.position ?? '').toLowerCase().includes(search.toLowerCase())
     )

@@ -18,20 +18,19 @@ interface BackendAnalysisResponse {
   summary?: string
 }
 
-// Helper to get CV text from either uploaded file or Master CV
-async function getCvText(request: OptimizationRequest): Promise<string> {
-  // If user uploaded a file directly
-  if (request.uploadedFile) {
-    return await request.uploadedFile.text()
-  }
-
-  // If user selected a Master CV, fetch its content
-  if (request.sourceType === 'master_cv' && request.sourceId) {
-    const { data } = await apiClient.get<{ master_content?: string }>(`/resume/master-cv/${request.sourceId}`)
-    return data.master_content || ''
-  }
-
-  return ''
+interface BackendOptimizationResponse {
+  resume_id?: string
+  resumeId?: string
+  improvements?: string[]
+  optimizedResumeUrl?: string
+  coverLetterUrl?: string
+  cover_letter?: string
+  coverLetter?: string
+  ats_score?: number
+  matching_skills?: string[]
+  missing_skills?: string[]
+  analysisResult?: AnalysisResult
+  analysis?: Record<string, unknown>
 }
 
 // Helper to extract keyword string from various formats
@@ -70,13 +69,13 @@ function transformAnalysisResponse(data: BackendAnalysisResponse): AnalysisResul
 }
 
 // Transform backend optimization response to frontend format
-function transformOptimizationResponse(data: any): OptimizationResult {
+function transformOptimizationResponse(data: BackendOptimizationResponse): OptimizationResult {
   return {
     resumeId: data.resume_id || data.resumeId,
     improvements: data.improvements,
     optimizedResumeUrl: data.optimizedResumeUrl,
     coverLetterUrl: data.coverLetterUrl,
-    coverLetter: data.cover_letter || data.coverLetter,
+    coverLetter: data.cover_letter || data.coverLetter || '',
     ats_score: data.ats_score,
     matching_skills: data.matching_skills,
     missing_skills: data.missing_skills,
