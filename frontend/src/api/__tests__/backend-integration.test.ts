@@ -32,7 +32,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.getResumes(mockFilters, 1, 20)
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/user/demo-user', {
+      expect(apiClient.get).toHaveBeenCalledWith('/resume/user/local-user', {
         params: { page: 1, pageSize: 20 },
       })
       expect(result).toEqual(mockData)

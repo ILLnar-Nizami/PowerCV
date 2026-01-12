@@ -26,18 +26,21 @@ import { RecommendationsList } from '@/components/analysis/RecommendationsList'
 
 // Mock data
 const mockResume: Resume = {
-  id: '1',
-  userId: 'demo-user',
-  title: 'Senior Software Engineer Resume',
-  status: ResumeStatus.NOT_APPLIED,
-  createdAt: '2024-01-15T10:00:00Z',
-  updatedAt: '2024-01-15T10:00:00Z',
-  atsScore: 85,
-  downloadUrl: '/resumes/senior-software-engineer.pdf',
-  company: 'TechCorp',
-  position: 'Senior Software Engineer',
-  format: ResumeFormat.PDF
-}
+   id: '1',
+   userId: 'demo-user',
+   title: 'Senior Software Engineer Resume',
+   status: ResumeStatus.NOT_APPLIED,
+   createdAt: '2024-01-15T10:00:00Z',
+   updatedAt: '2024-01-15T10:00:00Z',
+   atsScore: 85,
+   downloadUrl: '/resumes/senior-software-engineer.pdf',
+   company: 'TechCorp',
+   position: 'Senior Software Engineer',
+   format: ResumeFormat.PDF,
+   isOptimized: true,
+   hasCoverLetter: true,
+   sourceName: 'Uploaded'
+ }
 
 const mockAnalysis: AnalysisResult = {
   atsScore: 85,
@@ -98,7 +101,7 @@ describe('Component Tests', () => {
         </QueryClientProvider>
       )
 
-      const downloadButton = screen.getByRole('button', { name: 'Resume' }) // Exact match
+      const downloadButton = screen.getByRole('button', { name: 'Optimized' }) // Exact match
       fireEvent.click(downloadButton)
 
       expect(mockMutate).toHaveBeenCalledWith(mockResume.id)
