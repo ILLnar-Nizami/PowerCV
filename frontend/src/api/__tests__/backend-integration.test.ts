@@ -9,6 +9,7 @@ vi.mock('../client', () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   },
 }))
@@ -49,11 +50,13 @@ describe('Backend Integration Tests', () => {
 
     it('should update resume status with correct endpoint', async () => {
       const mockResponse = { success: true }
-      vi.mocked(apiClient.put).mockResolvedValue({ data: mockResponse })
+      vi.mocked(apiClient.patch).mockResolvedValue({ data: mockResponse })
 
       const result = await resumesAPI.updateStatus('123', 'applied')
 
-      expect(apiClient.put).toHaveBeenCalledWith('/resume/123/status/applied')
+      expect(apiClient.patch).toHaveBeenCalledWith('/resume/123/status', {
+  application_status: 'applied'
+})
       expect(result).toEqual(mockResponse)
     })
 
