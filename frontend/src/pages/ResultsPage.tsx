@@ -40,8 +40,8 @@ export function ResultsPage() {
   }
 
   // Normalize the data structure for consistent access
-  const atsScore = Number(resultData.ats_score || (resultData.analysis as any)?.ats_score || 0)
-  const matchedSkills = (resultData.matching_skills || (resultData.analysis as any)?.matchedSkills || []) as string[]
+  const atsScore = Number(resultData.ats_score || (resultData.analysis as { ats_score?: number })?.ats_score || 0)
+  const matchedSkills = (resultData.matching_skills || (resultData.analysis as { matchedSkills?: string[] })?.matchedSkills || []) as string[]
   const improvements = (resultData.improvements || []) as string[]
 
   const handleDownloadResume = async () => {
