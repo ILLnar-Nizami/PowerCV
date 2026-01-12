@@ -33,10 +33,6 @@ PowerCV is a platform for resume customization that adapts professional profiles
 - ** Advanced Analytics**: Comprehensive resume performance tracking and insights
 - ** Enterprise Security**: Production-ready security with environment validation
 
-## Showcase
-
-PowerCV features a comprehensive dashboard for resume management, detailed optimization analysis, and AI-assisted content generation.
-
 ## Technologies
 
 ### Frontend
@@ -259,9 +255,7 @@ PowerCV supports multiple AI backends.
 
 ### Configuration
 
-### Configuration
-
-PowerCV uses **Cerebras** for high-performance inference. Ensure CEREBRAS_API_KEY is set. Other providers (Deepseek, OpenAI) are supported, but Cerebras is the recommended default for speed.
+PowerCV uses **Cerebras** for high-performance inference. Ensure `CEREBRAS_API_KEY` is set. Other providers (Deepseek, OpenAI) are supported, but Cerebras is the recommended default for speed.
 
 ### Cerebras AI Integration
 
