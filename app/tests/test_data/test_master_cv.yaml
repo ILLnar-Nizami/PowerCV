@@ -1,0 +1,92 @@
+meta:
+  version: "1.0.0"
+  last_updated: "2024-01-12T10:00:00"
+  author: "Jane Smith"
+profile:
+  name: "Jane Smith"
+  title: "Senior Software Engineer"
+  email: "jane.smith@example.com"
+  phone: "+31 6 12345678"
+  location: "Amsterdam, Netherlands"
+  linkedin: "https://linkedin.com/in/janesmith"
+  github: "https://github.com/janesmith"
+  website: "https://janesmith.dev"
+  summary: "Experienced software engineer with 5+ years in full-stack development, specializing in Python, React, and cloud technologies. Passionate about building scalable applications and mentoring teams."
+experience:
+  - company: "TechCorp"
+    role: "Senior Software Engineer"
+    period: "2022 - Present"
+    location: "Amsterdam"
+    current: true
+    achievements:
+      - "Led a team of 5 developers in migrating legacy systems to microservices architecture, reducing deployment time by 60%"
+      - "Implemented CI/CD pipelines using GitHub Actions, improving code quality and release frequency"
+      - "Developed RESTful APIs serving 1M+ requests daily with 99.9% uptime"
+      - "Mentored junior developers and established coding standards"
+    technologies: ["Python", "FastAPI", "React", "PostgreSQL", "Docker", "AWS"]
+    highlights: []
+  - company: "StartupXYZ"
+    role: "Software Engineer"
+    period: "2020 - 2022"
+    location: "Rotterdam"
+    current: false
+    achievements:
+      - "Built full-stack web applications using Django and React"
+      - "Integrated payment systems (Stripe) handling €500k+ monthly transactions"
+      - "Optimized database queries reducing response time by 40%"
+    technologies: ["Python", "Django", "React", "MongoDB", "Redis"]
+    highlights: []
+  - company: "Consulting Inc"
+    role: "Junior Developer"
+    period: "2019 - 2020"
+    location: "Utrecht"
+    current: false
+    achievements:
+      - "Developed internal tools and automation scripts"
+      - "Participated in agile development processes"
+    technologies: ["Python", "Flask", "MySQL"]
+    highlights: []
+skills:
+  technical: ["System Design", "API Development", "Database Design", "Microservices"]
+  programming: ["Python", "JavaScript", "TypeScript", "SQL", "Bash"]
+  frameworks: ["FastAPI", "Django", "Flask", "React", "Vue.js"]
+  databases: ["PostgreSQL", "MongoDB", "Redis", "MySQL"]
+  devops: ["Docker", "Kubernetes", "AWS", "GitHub Actions", "Terraform"]
+  soft: ["Team Leadership", "Problem Solving", "Communication", "Mentoring"]
+  languages: ["English (Native)", "Dutch (Fluent)", "German (Intermediate)"]
+  certifications: ["AWS Solutions Architect", "Certified Kubernetes Administrator"]
+education:
+  - institution: "University of Amsterdam"
+    degree: "Master of Science"
+    field: "Computer Science"
+    period: "2017 - 2019"
+    location: "Amsterdam"
+    thesis: "Scalable Microservices Architecture"
+    relevant_courses: ["Distributed Systems", "Machine Learning", "Software Engineering"]
+  - institution: "Hogeschool van Amsterdam"
+    degree: "Bachelor of Science"
+    field: "Information Technology"
+    period: "2014 - 2017"
+    location: "Amsterdam"
+    relevant_courses: ["Programming", "Databases", "Web Development"]
+projects:
+  - name: "Open Source API Framework"
+    description: "Contributed to popular Python API framework used by 10k+ developers"
+    technologies: ["Python", "FastAPI", "OpenAPI"]
+    url: "https://github.com/janesmith/api-framework"
+    achievements: ["1000+ GitHub stars", "Featured in Python Weekly"]
+  - name: "Personal Finance App"
+    description: "Built a personal finance tracking app with budgeting features"
+    technologies: ["React", "Node.js", "MongoDB"]
+    url: "https://github.com/janesmith/finance-app"
+    achievements: ["500+ users", "Positive user feedback"]
+awards:
+  - title: "Best Innovation Award"
+    issuer: "TechCorp"
+    year: "2023"
+    description: "Recognized for outstanding contribution to microservices migration project"
+  - title: "Hackathon Winner"
+    issuer: "Dutch Python Conference"
+    year: "2021"
+    description: "First place for AI-powered code review tool"
+interests: ["Open Source", "Machine Learning", "Cloud Architecture", "Photography"]

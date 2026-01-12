@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/20</span>
+                <span class='fraction'>18/22</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>9/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/20</span>
+                <span class='fraction'>18/22</span>
             </div>
         
             
@@ -135,7 +135,15 @@
 <a name='L70'></a><a href='#L70'>70</a>
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
-<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -156,9 +164,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,7 +172,18 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -213,7 +229,7 @@ import { PaginatedResponse } from '@/types/api'
 &nbsp;
 export const resumesAPI = {
   getResumes: async (_filters: DashboardFilters, page = 1, pageSize = 20) =&gt; {
-    const { data } = await apiClient.get&lt;PaginatedResponse&lt;Resume&gt;&gt;('/resume/user/demo-user', {
+    const { data } = await apiClient.get&lt;PaginatedResponse&lt;Resume&gt;&gt;('/resume/user/local-user', {
       params: { page, pageSize },
     })
     return data
@@ -225,8 +241,9 @@ export const resumesAPI = {
   },
 &nbsp;
   updateStatus: async (id: string, status: string) =&gt; {
-    const { data } = await apiClient.put&lt;Record&lt;string, unknown&gt;&gt;(
-      `/resume/${id}/status/${status}`
+    const { data } = await apiClient.patch&lt;Record&lt;string, unknown&gt;&gt;(
+      `/resume/${id}/status`,
+      { application_status: status }
     )
     return data
   },
@@ -240,6 +257,13 @@ export const resumesAPI = {
       responseType: 'blob',
     })
     return data
+  },
+&nbsp;
+  downloadOriginalResume: <span class="fstat-no" title="function not covered" >async (i</span>d: string) =&gt; {
+    const { data } = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;Blob&gt;(`/resume/${id}/download-original`, {</span>
+      responseType: 'blob',
+    })
+<span class="cstat-no" title="statement not covered" >    return data</span>
   },
 &nbsp;
   downloadCoverLetter: <span class="fstat-no" title="function not covered" >async (i</span>d: string) =&gt; {
@@ -286,7 +310,7 @@ export const resumesAPI = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-09T19:48:16.045Z
+                at 2026-01-12T15:48:36.070Z
             </div>
         <script src="../prettify.js"></script>
         <script>

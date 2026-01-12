@@ -1,0 +1,75 @@
+Jane Smith
+Senior Software Engineer
+Amsterdam, Netherlands
+jane.smith@example.com | +31 6 12345678
+linkedin.com/in/janesmith | github.com/janesmith | janesmith.dev
+
+PROFESSIONAL SUMMARY
+Experienced software engineer with 5+ years in full-stack development, specializing in Python, React, and cloud technologies. Passionate about building scalable applications and mentoring teams.
+
+WORK EXPERIENCE
+
+Senior Software Engineer - TechCorp, Amsterdam
+2022 - Present
+- Led a team of 5 developers in migrating legacy systems to microservices architecture, reducing deployment time by 60%
+- Implemented CI/CD pipelines using GitHub Actions, improving code quality and release frequency
+- Developed RESTful APIs serving 1M+ requests daily with 99.9% uptime
+- Mentored junior developers and established coding standards
+
+Software Engineer - StartupXYZ, Rotterdam
+2020 - 2022
+- Built full-stack web applications using Django and React
+- Integrated payment systems (Stripe) handling €500k+ monthly transactions
+- Optimized database queries reducing response time by 40%
+
+Junior Developer - Consulting Inc, Utrecht
+2019 - 2020
+- Developed internal tools and automation scripts
+- Participated in agile development processes
+
+SKILLS
+- Programming: Python, JavaScript, TypeScript, SQL, Bash
+- Frameworks: FastAPI, Django, Flask, React, Vue.js
+- Databases: PostgreSQL, MongoDB, Redis, MySQL
+- DevOps: Docker, Kubernetes, AWS, GitHub Actions, Terraform
+- Soft Skills: Team Leadership, Problem Solving, Communication, Mentoring
+- Languages: English (Native), Dutch (Fluent), German (Intermediate)
+- Certifications: AWS Solutions Architect, Certified Kubernetes Administrator
+
+EDUCATION
+
+Master of Science in Computer Science - University of Amsterdam
+2017 - 2019
+Thesis: Scalable Microservices Architecture
+
+Bachelor of Science in Information Technology - Hogeschool van Amsterdam
+2014 - 2017
+
+PROJECTS
+
+Open Source API Framework
+Contributed to popular Python API framework used by 10k+ developers
+Technologies: Python, FastAPI, OpenAPI
+GitHub: github.com/janesmith/api-framework
+- 1000+ GitHub stars
+- Featured in Python Weekly
+
+Personal Finance App
+Built a personal finance tracking app with budgeting features
+Technologies: React, Node.js, MongoDB
+GitHub: github.com/janesmith/finance-app
+- 500+ users
+- Positive user feedback
+
+AWARDS & RECOGNITION
+
+Best Innovation Award - TechCorp
+2023
+Recognized for outstanding contribution to microservices migration project
+
+Hackathon Winner - Dutch Python Conference
+2021
+First place for AI-powered code review tool
+
+INTERESTS
+Open Source, Machine Learning, Cloud Architecture, Photography
