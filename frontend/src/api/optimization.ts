@@ -40,6 +40,22 @@ function extractKeyword(item: KeywordItem | string): string {
   return String(item)
 }
 
+// Helper to get CV text from request
+async function getCvText(request: OptimizationRequest): Promise<string> {
+  if (request.sourceType === 'upload' && request.uploadedFile) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => resolve(e.target?.result as string)
+      reader.onerror = reject
+      reader.readAsText(request.uploadedFile as File)
+    })
+  } else if (request.sourceType === 'master_cv' && request.sourceId) {
+    const { data } = await apiClient.get(`/master-cv/${request.sourceId}`)
+    return data.cv_text || ''
+  }
+  throw new Error('Invalid request: missing CV source')
+}
+
 // Transform backend response to frontend format
 function transformAnalysisResponse(data: BackendAnalysisResponse): AnalysisResult {
   const matchedKeywords = data.keyword_analysis?.matched_keywords || []
@@ -73,7 +89,7 @@ function transformOptimizationResponse(data: BackendOptimizationResponse): Optim
   return {
     resumeId: data.resume_id || data.resumeId,
     improvements: data.improvements,
-    optimizedResumeUrl: data.optimizedResumeUrl,
+    optimizedResumeUrl: data.optimizedResumeUrl || '',
     coverLetterUrl: data.coverLetterUrl,
     coverLetter: data.cover_letter || data.coverLetter || '',
     ats_score: data.ats_score,
