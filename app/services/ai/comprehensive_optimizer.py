@@ -176,9 +176,6 @@ Use markdown with clear sections. End with "READY FOR INTERVIEW" when complete.
                 "resume_text",
                 "focus_area",
             ],
-            partial_variables={
-                "format_instructions": self.output_parser.get_format_instructions()
-            },
         )
 
     def _get_ats_keyword_prompt_template(self) -> PromptTemplate:
@@ -322,7 +319,7 @@ Top 3 weaknesses → targeted rewrites → new scores
         """
         try:
             prompt = self._get_master_prompt_template()
-            chain = prompt | self.llm | self.output_parser
+            chain = prompt | self.llm
 
             result = await chain.ainvoke(
                 {
@@ -334,10 +331,25 @@ Top 3 weaknesses → targeted rewrites → new scores
                 }
             )
 
-            return result
+            # Extract content from AIMessage
+            content = (
+                result.content
+                if hasattr(result, "content")
+                else str(result)
+            )
+
+            return {"optimized_resume": content}
 
         except Exception as e:
-            raise Exception(f"Master optimization failed: {str(e)}")
+            error_msg = str(e).lower()
+            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
+                raise Exception("AI service rate limit exceeded. Please wait a moment and try again.")
+            elif "timeout" in error_msg:
+                raise Exception("AI service request timed out. Please try again.")
+            elif "connection" in error_msg:
+                raise Exception("Unable to connect to AI service. Please check your connection and try again.")
+            else:
+                raise Exception(f"Master optimization failed: {str(e)}")
 
     async def analyze_ats_keywords(
         self, job_description: str, resume_text: str
@@ -366,7 +378,8 @@ Top 3 weaknesses → targeted rewrites → new scores
             print(f"DEBUG: Chain result: {result}")
             print(f"DEBUG: Result type: {type(result)}")
 
-            return result
+            # Transform to frontend expected format
+            return self._transform_ats_response(result)
 
         except Exception as e:
             print(f"DEBUG: Exception occurred: {str(e)}")
@@ -410,7 +423,8 @@ Top 3 weaknesses → targeted rewrites → new scores
                                 if match.strip().startswith("{"):
                                     parsed = json.loads(match.strip())
                                     print(f"DEBUG: Successfully parsed JSON: {parsed}")
-                                    return parsed
+                                    # Transform to frontend expected format
+                                    return self._transform_ats_response(parsed)
                             except Exception as parse_e:
                                 print(f"DEBUG: JSON parse failed: {parse_e}")
                                 continue
@@ -418,7 +432,7 @@ Top 3 weaknesses → targeted rewrites → new scores
                     # If no JSON found, create a basic structure from markdown
                     print("DEBUG: No JSON found, creating fallback structure")
                     print(f"DEBUG: Raw AI content: {content[:1000]}...")  # Debug print
-                    return {
+                    fallback_data = {
                         "keywords": ["analysis", "completed"],
                         "matching_skills": ["skill1", "skill2"],
                         "missing_skills": ["missing1", "missing2"],
@@ -428,10 +442,11 @@ Top 3 weaknesses → targeted rewrites → new scores
                         ),
                         "ats_score": 75,
                     }
+                    return self._transform_ats_response(fallback_data)
 
                 except Exception as fallback_e:
                     print(f"DEBUG: Fallback exception: {fallback_e}")
-                    return {
+                    fallback_data = {
                         "keywords": [],
                         "matching_skills": [],
                         "missing_skills": [],
@@ -439,8 +454,27 @@ Top 3 weaknesses → targeted rewrites → new scores
                         "recommendation": f"Analysis completed with parsing error: {str(fallback_e)}",
                         "ats_score": 70,
                     }
+                    return self._transform_ats_response(fallback_data)
 
             raise Exception(f"ATS keyword analysis failed: {str(e)}")
+
+    def _transform_ats_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Transform ATS analysis response to frontend expected format.
+
+        Args:
+            data: Raw ATS analysis data
+
+        Returns:
+            Dict in frontend expected format
+        """
+        return {
+            "ats_score": data.get("ats_score", 0),
+            "keyword_analysis": {
+                "matched_keywords": data.get("matching_skills", []),
+                "missing_critical": data.get("missing_skills", []),
+            },
+            "recommendations": [data.get("recommendation", "")] if data.get("recommendation") else [],
+        }
 
     async def extract_hidden_achievements(
         self, role_description: str

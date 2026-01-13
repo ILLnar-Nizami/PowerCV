@@ -37,6 +37,7 @@ export interface OptimizationResult {
   missing_skills?: string[]
   analysisResult?: AnalysisResult
   analysis?: Record<string, unknown>
+  optimizedResume?: string
 }
 
 export interface OptimizationState {

@@ -254,13 +254,24 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
     mock_comp_optimizer.create_three_versions.return_value = {"versions": []}
     mock_comp_optimizer.iterative_improvement.return_value = {"improved": True}
 
-    assert (
-        client.post(
-            "/api/comprehensive/optimize/master",
-            json={"target_role": "R", "job_description": "J", "resume_text": "R"},
-        ).status_code
-        == 200
-    )
+    # Mock the workflow orchestrator used by the master optimization endpoint
+    with patch("app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator") as mock_orch:
+        mock_instance = MagicMock()
+        mock_instance.optimize_cv_for_job.return_value = {
+            "optimized_cv": {"user_information": {"name": "Test"}},
+            "ats_score": 85,
+            "matching_skills": ["skill1"],
+            "missing_skills": ["skill2"],
+            "recommendation": "Good",
+        }
+        mock_orch.return_value = mock_instance
+        assert (
+            client.post(
+                "/api/comprehensive/optimize/master",
+                json={"target_role": "R", "job_description": "J", "resume_text": "R"},
+            ).status_code
+            == 200
+        )
     assert (
         client.post(
             "/api/comprehensive/analyze/ats",

@@ -1,3 +1,87 @@
+# Changelog - Comprehensive ATS & Cover Letter Fixes 2026-01-13
+
+Fixed ATS score not updating after optimization by enabling proper score recalculation. Corrected CV and cover letter download filenames to follow {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter generation by enabling generation flag and proper database storage. Enhanced PDF generation with data validation to prevent formatting issues.
+
+## Comprehensive ATS & Cover Letter Fixes (2026-01-13)
+
+### Cover Letter Generation
+- **Enabled Generation**: Changed generate_cover_letter=False to generate_cover_letter=True in master optimization
+- **Database Storage**: Cover letters now saved to database and included in API response
+- **Filename Format**: Cover letter downloads follow correct {cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format
+
+### ATS Score Recalculation
+- **Score Update**: Added logging to track ATS scores before and after optimization
+- **Workflow Integration**: CVWorkflowOrchestrator recalculates ATS score on optimized content
+- **Database Storage**: Updated ATS scores saved with optimized resumes
+
+### PDF Generation Improvements
+- **Data Validation**: Added _validate_data_structure() method to TypstGenerator
+- **Error Handling**: Better error messages for data structure mismatches
+- **Template Compatibility**: Ensured data structure matches template expectations
+
+### Configuration Fixes
+- **Unified Settings**: Updated AI generator to use proper settings references
+- **Model Configuration**: Fixed model name and API base URL references
+- **Prompt Format**: Fixed cover letter prompt format syntax issues
+
+### Technical Implementation
+- **Backend Response**: Optimization endpoint returns resume_id, ats_score, matching_skills, missing_skills, improvements, and cover_letter
+- **Frontend Compatibility**: Updated transformOptimizationResponse to handle cover letter data
+- **Error Prevention**: Data validation prevents PDF generation failures
+
+### Impact
+- **User Experience**: Complete optimization workflow from analysis to working PDF download
+- **Data Persistence**: Optimized resumes saved to database for future access and modifications
+- **Reliability**: No more "undefined" download URLs or empty optimization results
+- **Functionality**: All template types generate proper PDFs with optimized content
+
+### Files Modified
+- `app/api/routers/comprehensive_optimizer.py`: Integrated workflow orchestrator and database persistence
+- `frontend/src/api/optimization.ts`: Maintained compatibility with new response format
+- `CHANGELOG.md`: Documented comprehensive optimization and download fixes
+
+---
+
+# Changelog - ATS Analysis & PDF Generation Fixes 2026-01-13
+
+Fixed ATS compatibility analysis showing 0% skills match, corrected PDF filename template, and resolved empty PDF downloads. Improved frontend-backend data format compatibility.
+
+## ATS Analysis & PDF Generation Fixes (2026-01-13)
+
+### ATS Compatibility Analysis Fix
+- **Skills Match Display Issue**: Fixed frontend showing 0% skills match by correcting response format mismatch between backend and frontend
+- **Response Format Transformation**: Added _transform_ats_response() method to convert backend format to frontend expected structure
+- **Keyword Analysis Structure**: Backend now returns keyword_analysis.matched_keywords and keyword_analysis.missing_critical as expected by frontend
+
+### PDF Filename Template Correction
+- **Professional Naming Convention**: Updated PDF download naming to match user requirements
+- **New Format**: cv_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy}.pdf
+- **Name Parsing**: Automatic extraction of first initial and lastname from user information
+- **Date Format**: Changed from YYYYMMDD to dd.mm.yy format
+
+### PDF Generation Investigation
+- **Empty PDF Issue**: Identified potential causes for 30-byte PDF files (template rendering failures, missing data fields)
+- **Template Validation**: Verified Typst template structure and conditional rendering logic
+- **Data Structure Checks**: Ensured optimized_data contains required user_information fields
+
+### Technical Implementation
+- **Backend Response Transformation**: ComprehensiveResumeOptimizer now transforms ATS analysis responses to frontend-compatible format
+- **Filename Generation Logic**: Updated download_resume endpoint with proper name parsing and date formatting
+- **Error Handling**: Maintained existing fallback mechanisms for AI processing failures
+
+### Impact
+- **User Experience**: ATS analysis now shows correct skills match percentages instead of 0%
+- **File Management**: Professional PDF naming convention implemented
+- **Data Accuracy**: Frontend receives properly formatted analysis data
+- **Reliability**: Improved compatibility between backend AI responses and frontend display
+
+### Files Modified
+- `app/services/ai/comprehensive_optimizer.py`: Added _transform_ats_response() method and response format transformation
+- `app/api/routers/resume.py`: Updated PDF filename generation logic to match user requirements
+- `CHANGELOG.md`: Documented fixes and improvements
+
+---
+
 # Changelog - Test Suite Expansion & PDF Naming Template 2026-01-12
 
 Added comprehensive test mockups and updated PDF export naming convention for professional file downloads.

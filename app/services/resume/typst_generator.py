@@ -93,6 +93,11 @@ class TypstGenerator:
             logger.error("No data loaded")
             return False
 
+        # Validate data structure matches template expectations
+        if not self._validate_data_structure():
+            logger.error("Data structure validation failed")
+            return False
+
         # Check if this is a LaTeX template
         if template_name.endswith(".tex"):
             logger.warning(
@@ -179,6 +184,45 @@ class TypstGenerator:
         for char, repl in replacements.items():
             text = text.replace(char, repl)
         return text
+
+    def _validate_data_structure(self) -> bool:
+        """Validate that data structure matches template expectations."""
+        try:
+            # Check required top-level structure
+            if not isinstance(self.json_data, dict):
+                logger.error("Data is not a dictionary")
+                return False
+
+            # Check user_information exists and has basic structure
+            user_info = self.json_data.get("user_information", {})
+            if not isinstance(user_info, dict):
+                logger.error("user_information is missing or not a dictionary")
+                return False
+
+            # Check for required fields in user_information
+            required_fields = ["name", "email"]
+            for field in required_fields:
+                if field not in user_info or not user_info[field]:
+                    logger.warning(f"Missing or empty required field: {field}")
+
+            # Check experiences structure if present
+            experiences = user_info.get("experiences", [])
+            if experiences and not isinstance(experiences, list):
+                logger.error("experiences should be a list")
+                return False
+
+            # Check education structure if present
+            education = user_info.get("education", [])
+            if education and not isinstance(education, list):
+                logger.error("education should be a list")
+                return False
+
+            logger.info("Data structure validation passed")
+            return True
+
+        except Exception as e:
+            logger.error(f"Data validation error: {str(e)}")
+            return False
 
     @staticmethod
     def format_date(date_str) -> str:

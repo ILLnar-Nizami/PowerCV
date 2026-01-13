@@ -10,7 +10,10 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
+from app.database.models.resume import Resume
+from app.database.repositories.resume_repository import ResumeRepository
 from app.services.ai.comprehensive_optimizer import ComprehensiveResumeOptimizer
+from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 
 # Pydantic models for request/response
@@ -77,18 +80,54 @@ async def master_optimization(
 ) -> Dict[str, Any]:
     """Execute the master optimization prompt with all tasks."""
     try:
-        result = await optimizer.optimize_resume_master(
-            target_role=request.target_role,
-            job_description=request.job_description,
-            resume_text=request.resume_text,
-            target_company=request.target_company,
-            focus_area=request.focus_area,
+        # Use workflow orchestrator for structured optimization
+        orchestrator = CVWorkflowOrchestrator()
+        result = orchestrator.optimize_cv_for_job(
+            cv_text=request.resume_text,
+            jd_text=request.job_description,
+            generate_cover_letter=True,  # Enable cover letter generation
         )
-        return result
+
+        # Save optimized resume to database
+        repo = ResumeRepository()
+        optimized_resume = Resume(
+            user_id="local-user",  # Use a default user ID
+            title=f"Optimized CV - {request.target_role}",
+            original_content=request.resume_text,
+            job_description=request.job_description,
+            master_content=request.resume_text,  # Keep original as master
+            target_company=request.target_company,
+            target_role=request.target_role,
+            optimized_data=result["optimized_cv"],
+            matching_score=result["ats_score"],
+            matching_skills=result["matching_skills"],
+            missing_skills=result["missing_skills"],
+            recommendation=result["recommendation"],
+            cover_letter=result.get("cover_letter"),  # Add cover letter to resume
+        )
+
+        resume_id = await repo.create_resume(optimized_resume)
+
+        # Return result with resume_id for download
+        return {
+            "resume_id": resume_id,
+            "optimized_resume": "Resume optimized successfully",  # Keep for compatibility
+            "ats_score": result["ats_score"],
+            "matching_skills": result["matching_skills"],
+            "missing_skills": result["missing_skills"],
+            "improvements": ["Resume optimized successfully"],  # Add improvements
+            "cover_letter": result.get("cover_letter", "Cover letter not available"),  # Include cover letter in response
+        }
     except Exception as e:
+        error_detail = str(e)
+        if "rate limit" in error_detail.lower() or "too many requests" in error_detail.lower():
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=error_detail,
+            )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Master optimization failed: {str(e)}",
+            detail=f"Master optimization failed: {error_detail}",
         )
 
 

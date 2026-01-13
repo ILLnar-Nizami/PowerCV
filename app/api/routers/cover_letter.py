@@ -539,10 +539,58 @@ async def download_cover_letter_pdf(
 
     pdf_path = output_path
 
-    # Return PDF file
-    filename = (
-        f"cover_letter_{cover_letter.get('title', 'untitled').replace(' ', '_')}.pdf"
-    )
+    # Generate filename in format: cover_letter_FirstInitial.Lastname_Company_Role_dd.mm.yy
+    import re
+    from datetime import datetime
+
+    # Extract name from cover letter data
+    first_initial = "J"
+    lastname = "Doe"
+    content_data = cover_letter.get("content_data", {})
+    if isinstance(content_data, dict):
+        sender_name = content_data.get("sender_name", "")
+        if sender_name:
+            name_parts = sender_name.strip().split()
+            if len(name_parts) >= 2:
+                first_initial = name_parts[0][0].upper()
+                lastname = "".join(name_parts[1:])
+                lastname = re.sub(r"[^\w-]", "", lastname).strip()
+            elif len(name_parts) == 1:
+                first_initial = name_parts[0][0].upper()
+                lastname = name_parts[0][1:] or "Doe"
+
+    # Get company and position from cover letter metadata
+    company = cover_letter.get("target_company", "")
+    if company:
+        company = re.sub(r"[^\w\s-]", "", company).strip()
+        company = re.sub(r"[-\s]+", "_", company).title()[:30]
+    else:
+        company = "Company"
+
+    position = cover_letter.get("target_role", "")
+    if position:
+        position = re.sub(r"[^\w\s-]", "", position).strip()
+        position = re.sub(r"[-\s]+", "_", position).title()[:30]
+    else:
+        position = "Role"
+
+    # Get date in dd.mm.yy format
+    date_str = ""
+    if cover_letter.get("updated_at"):
+        if isinstance(cover_letter["updated_at"], datetime):
+            date_str = cover_letter["updated_at"].strftime("%d.%m.%y")
+        elif isinstance(cover_letter["updated_at"], str):
+            try:
+                date_obj = datetime.fromisoformat(
+                    cover_letter["updated_at"].replace("Z", "+00:00")
+                )
+                date_str = date_obj.strftime("%d.%m.%y")
+            except:
+                date_str = datetime.now().strftime("%d.%m.%y")
+    else:
+        date_str = datetime.now().strftime("%d.%m.%y")
+
+    filename = f"cover_letter_{first_initial}.{lastname}_{company}_{position}_{date_str}.pdf"
     return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
 
 

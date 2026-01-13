@@ -31,6 +31,7 @@ interface BackendOptimizationResponse {
   missing_skills?: string[]
   analysisResult?: AnalysisResult
   analysis?: Record<string, unknown>
+  optimized_resume?: string
 }
 
 // Helper to extract keyword string from various formats
@@ -88,7 +89,7 @@ function transformAnalysisResponse(data: BackendAnalysisResponse): AnalysisResul
 function transformOptimizationResponse(data: BackendOptimizationResponse): OptimizationResult {
   return {
     resumeId: data.resume_id || data.resumeId,
-    improvements: data.improvements,
+    improvements: data.improvements || (data.optimized_resume ? ['Resume optimized successfully'] : []),
     optimizedResumeUrl: data.optimizedResumeUrl || '',
     coverLetterUrl: data.coverLetterUrl,
     coverLetter: data.cover_letter || data.coverLetter || '',
@@ -96,29 +97,14 @@ function transformOptimizationResponse(data: BackendOptimizationResponse): Optim
     matching_skills: data.matching_skills,
     missing_skills: data.missing_skills,
     analysisResult: data.analysisResult,
-    analysis: data.analysis
+    analysis: data.analysis,
+    optimizedResume: data.optimized_resume || ''
   }
 }
 
 export const optimizationAPI = {
   analyze: async (request: OptimizationRequest) => {
     const cvText = await getCvText(request)
-    // Map template enum to actual template path
-    const templateMap: Record<string, string> = {
-      'modern': 'modern.typ',
-      'classic': 'resume.typ',
-      'professional': 'brilliant-cv/cv.typ',
-      'creative': 'awesome-cv/cv.tex',
-      'minimal': 'simple-xd-resume/cv.typ'
-    }
-    const templatePath = templateMap[request.template] || 'resume.typ'
-
-    const payload = {
-      cv_text: cvText,
-      jd_text: request.jobDescription,
-      generate_cover_letter: false,
-      template: templatePath
-    }
 
     const analysisPayload = {
       job_description: request.jobDescription,
@@ -133,22 +119,6 @@ export const optimizationAPI = {
 
   optimize: async (request: OptimizationRequest) => {
     const cvText = await getCvText(request)
-    // Map template enum to actual template path
-    const templateMap: Record<string, string> = {
-      'modern': 'modern.typ',
-      'classic': 'resume.typ',
-      'professional': 'brilliant-cv/cv.typ',
-      'creative': 'awesome-cv/cv.tex',
-      'minimal': 'simple-xd-resume/cv.typ'
-    }
-    const templatePath = templateMap[request.template] || 'resume.typ'
-
-    const payload = {
-      cv_text: cvText,
-      jd_text: request.jobDescription,
-      generate_cover_letter: request.generateCoverLetter,
-      template: templatePath
-    }
 
     const optimizePayload = {
       target_role: request.position || 'Professional',
@@ -166,22 +136,6 @@ export const optimizationAPI = {
 
   getComprehensiveOptimization: async (request: OptimizationRequest) => {
     const cvText = await getCvText(request)
-    // Map template enum to actual template path
-    const templateMap: Record<string, string> = {
-      'modern': 'modern.typ',
-      'classic': 'resume.typ',
-      'professional': 'brilliant-cv/cv.typ',
-      'creative': 'awesome-cv/cv.tex',
-      'minimal': 'simple-xd-resume/cv.typ'
-    }
-    const templatePath = templateMap[request.template] || 'resume.typ'
-
-    const payload = {
-      cv_text: cvText,
-      jd_text: request.jobDescription,
-      generate_cover_letter: request.generateCoverLetter,
-      template: templatePath
-    }
 
     const compPayload = {
       target_role: request.position || 'Professional',

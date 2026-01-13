@@ -65,18 +65,35 @@ class CVWorkflowOrchestrator:
             "missing_critical", []
         )
 
+        # Re-analyze optimized CV to get updated ATS score
+        optimized_text = self._dict_to_text(optimized_data)
+        logger.info(f"Re-analyzing optimized CV for ATS score calculation. Optimized text length: {len(optimized_text)}")
+        optimized_analysis = self.analyzer.analyze(optimized_text, jd_text)
+        optimized_ats_score = optimized_analysis.get("ats_score", analysis.get("ats_score", 0))
+        logger.info(f"ATS score before optimization: {analysis.get('ats_score', 'N/A')}")
+        logger.info(f"ATS score after optimization: {optimized_ats_score}")
+        logger.info(f"ATS score improvement: {optimized_ats_score - analysis.get('ats_score', 0)}")
+
+        # Update skills from optimized analysis
+        optimized_matching_skills = optimized_analysis.get("keyword_analysis", {}).get(
+            "matched_keywords", matching_skills
+        )
+        optimized_missing_skills = optimized_analysis.get("keyword_analysis", {}).get(
+            "missing_critical", missing_skills
+        )
+
         result = {
             "analysis": analysis,
             "optimized_cv": optimized_data,  # Now returns the full dict structure
             "cover_letter": cover_letter,
-            "ats_score": analysis.get("ats_score", 0),
+            "ats_score": optimized_ats_score,  # Updated score after optimization
             "matching_skills": [
-                k.get("keyword") for k in matching_skills if k.get("keyword")
+                k.get("keyword") for k in optimized_matching_skills if k.get("keyword")
             ],
             "missing_skills": [
-                k.get("keyword") for k in missing_skills if k.get("keyword")
+                k.get("keyword") for k in optimized_missing_skills if k.get("keyword")
             ],
-            "recommendation": analysis.get("summary", ""),
+            "recommendation": optimized_analysis.get("summary", analysis.get("summary", "")),
         }
 
         logger.info(f"Workflow completed. ATS Score: {result['ats_score']}")
@@ -410,3 +427,68 @@ class CVWorkflowOrchestrator:
         # Combine and deduplicate
         combined = list(dict.fromkeys(requirements + found_tech))
         return combined[:10]
+
+    def _dict_to_text(self, cv_dict: Dict) -> str:
+        """Convert optimized CV dict back to text for re-analysis.
+
+        Args:
+            cv_dict: Optimized CV data dict
+
+        Returns:
+            str: Text representation of the CV
+        """
+        lines = []
+
+        # User information
+        ui = cv_dict.get("user_information", {})
+        if ui:
+            lines.append(ui.get("name", "Candidate"))
+            lines.append(ui.get("email", ""))
+            lines.append(ui.get("phone", ""))
+            lines.append("")
+
+            lines.append("PROFESSIONAL SUMMARY")
+            lines.append(ui.get("profile_description", ""))
+            lines.append("")
+
+        # Skills
+        skills = ui.get("skills", {})
+        if skills:
+            lines.append("SKILLS")
+            hard_skills = skills.get("hard_skills", [])
+            soft_skills = skills.get("soft_skills", [])
+            all_skills = hard_skills + soft_skills
+            if all_skills:
+                lines.append(", ".join(all_skills))
+            lines.append("")
+
+        # Experience
+        experiences = ui.get("experiences", [])
+        if experiences:
+            lines.append("EXPERIENCE")
+            for exp in experiences:
+                title = exp.get("job_title", "")
+                company = exp.get("company", "")
+                start = exp.get("start_date", "")
+                end = exp.get("end_date", "")
+                lines.append(f"{title} - {company}")
+                lines.append(f"{start} - {end}")
+                tasks = exp.get("four_tasks", [])
+                for task in tasks:
+                    lines.append(f"- {task}")
+                lines.append("")
+
+        # Education
+        education = ui.get("education", [])
+        if education:
+            lines.append("EDUCATION")
+            for edu in education:
+                institution = edu.get("institution", "")
+                degree = edu.get("degree", "")
+                start = edu.get("start_date", "")
+                end = edu.get("end_date", "")
+                lines.append(f"{degree} - {institution}")
+                lines.append(f"{start} - {end}")
+            lines.append("")
+
+        return "\n".join(lines)

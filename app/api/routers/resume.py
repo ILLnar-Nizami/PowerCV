@@ -1972,53 +1972,60 @@ async def download_resume(
         # We need to return the file path for FileResponse
         pdf_path = output_path
 
-        # Generate filename in format: name_cv_company_position_date
+        # Generate filename in format: cv_FirstInitial.Lastname_Company_Role_dd.mm.yy
         import re
 
         # Extract name from optimized data
-        name = "resume"
+        first_initial = "J"
+        lastname = "Doe"
         if json_data and isinstance(json_data, dict):
             user_info = json_data.get("user_information", {})
             if isinstance(user_info, dict):
                 name_str = user_info.get("name", "")
                 if name_str:
-                    # Sanitize name for filename (remove special chars, spaces -> underscores)
-                    name = re.sub(r"[^\w\s-]", "", name_str).strip()
-                    name = re.sub(r"[-\s]+", "_", name)
-                    name = name.lower()[:50]  # Limit length
+                    # Split name into parts
+                    name_parts = name_str.strip().split()
+                    if len(name_parts) >= 2:
+                        first_initial = name_parts[0][0].upper()  # First letter of first name
+                        lastname = "".join(name_parts[1:])  # Rest as lastname
+                        # Sanitize lastname for filename
+                        lastname = re.sub(r"[^\w-]", "", lastname).strip()
+                    elif len(name_parts) == 1:
+                        first_initial = name_parts[0][0].upper()
+                        lastname = name_parts[0][1:] or "Doe"  # Rest of single name or default
 
         # Get company and position from resume metadata
         company = resume.get("target_company", "")
         if company:
             company = re.sub(r"[^\w\s-]", "", company).strip()
-            company = re.sub(r"[-\s]+", "_", company).lower()[:30]
+            company = re.sub(r"[-\s]+", "_", company).title()[:30]  # Title case
         else:
-            company = "company"
+            company = "Company"
 
         position = resume.get("target_role", "")
         if position:
             position = re.sub(r"[^\w\s-]", "", position).strip()
-            position = re.sub(r"[-\s]+", "_", position).lower()[:30]
+            position = re.sub(r"[-\s]+", "_", position).title()[:30]  # Title case
         else:
-            position = "position"
+            position = "Role"
 
-        # Get date (use updated_at or current date)
+        # Get date in dd.mm.yy format (use updated_at or current date)
         date_str = ""
         if resume.get("updated_at"):
             if isinstance(resume["updated_at"], datetime):
-                date_str = resume["updated_at"].strftime("%Y%m%d")
+                date_str = resume["updated_at"].strftime("%d.%m.%y")
             elif isinstance(resume["updated_at"], str):
                 try:
                     date_obj = datetime.fromisoformat(
                         resume["updated_at"].replace("Z", "+00:00")
                     )
-                    date_str = date_obj.strftime("%Y%m%d")
+                    date_str = date_obj.strftime("%d.%m.%y")
                 except:
-                    date_str = datetime.now().strftime("%Y%m%d")
+                    date_str = datetime.now().strftime("%d.%m.%y")
         else:
-            date_str = datetime.now().strftime("%Y%m%d")
+            date_str = datetime.now().strftime("%d.%m.%y")
 
-        filename = f"{name}_cv_{company}_{position}_{date_str}.pdf"
+        filename = f"cv_{first_initial}.{lastname}_{company}_{position}_{date_str}.pdf"
         return FileResponse(
             path=pdf_path,
             filename=filename,

@@ -6,9 +6,9 @@
   body
 ) = {
   set document(author: author, title: title)
-  set text(font: "Linux Libertine", lang: "en", size: 10pt)
-  set page(margin: (x: 1.5cm, y: 1.5cm))
-  set par(leading: 0.5em, justify: true) // Tighten line spacing
+  set text(font: "Linux Libertine", lang: "en", size: 9pt)
+  set page(margin: (x: 2cm, y: 2cm))
+  set par(leading: 0.6em, justify: true) // Better line spacing
 
   // Header
   align(center)[
