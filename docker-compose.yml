@@ -38,6 +38,7 @@ services:
       # n8n integration
       - N8N_API_KEY=${N8N_API_KEY}
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678}
+      - TIMEOUT=${REQUEST_TIMEOUT:-30}
     volumes:
       # Mount data directories for persistence
       - ./data:/app/data
@@ -58,8 +59,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
-    environment:
-      - TIMEOUT=${REQUEST_TIMEOUT:-30}
 
   # n8n Workflow Automation
   n8n:

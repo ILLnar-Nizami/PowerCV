@@ -1,3 +1,46 @@
+# Changelog - Test Suite Expansion & PDF Naming Template 2026-01-12
+
+Added comprehensive test mockups and updated PDF export naming convention for professional file downloads.
+
+## Test Infrastructure Enhancements (2026-01-12)
+
+### Mock Data Creation
+- **Master CV Mockup**: Created structured YAML and text versions of test CV data
+  - Includes complete profile, experience, skills, education, projects, awards
+  - Realistic data for Jane Smith with 5+ years experience
+- **Job Vacancy Mockup**: Created test job description for Senior Full Stack Developer
+  - Comprehensive requirements and company information
+  - Used for functionality testing
+
+### PDF Naming Template Update
+- **New Naming Convention**: Implemented custom filename template for optimized CV PDFs
+  - Format: `{first_letter},{last_name}_{type}_{company}_{role}_{dd.mm.yy}.pdf`
+  - Example: `J,Smith_cv_InnovateTech_Senior_Full_Stack_Developer_12.01.26.pdf`
+  - Supports both CV (cv) and cover letter (cl) types
+  - Automatic name parsing and company/role extraction from job descriptions
+
+## Code Quality Improvements (2026-01-12)
+
+### Type Safety Fixes
+- **Workflow Orchestrator**: Added isinstance checks for analysis data structures
+  - Prevents AttributeError when relevant_roles is string instead of list
+  - Robust handling of varying AI response formats
+  - Improved error resilience in cover letter generation
+
+### Testing & Validation
+- **Test Suite**: All 150 tests passing with comprehensive coverage
+- **Functionality Testing**: Verified CV optimization workflow with CLI
+- **Mock Integration**: Test data ready for automated testing scenarios
+
+## Quality Metrics (2026-01-12)
+
+- **Test Coverage**: 150 tests passing, 1 skipped
+- **Functionality**: Complete CV optimization pipeline working
+- **Code Quality**: Type-safe error handling, professional naming conventions
+- **User Experience**: Standardized file naming for downloads
+
+---
+
 # Changelog - Critical Bug Fixes & Template System Overhaul 2026-01-11
 
 Resolved critical application-breaking bugs and implemented complete template selection system. Fixed validation errors, PDF generation failures, and UI crashes. Application now fully functional with proper template rendering.

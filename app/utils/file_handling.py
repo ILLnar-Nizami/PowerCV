@@ -23,11 +23,12 @@ def extract_text_from_docx(docx_path: str) -> str:
     """
     try:
         from docx import Document
+
         doc = Document(docx_path)
         text = []
         for paragraph in doc.paragraphs:
             text.append(paragraph.text)
-        return '\n'.join(text)
+        return "\n".join(text)
     except ImportError:
         return "Error: python-docx package is required for DOCX support. Install with: pip install python-docx"
     except Exception as e:
@@ -44,7 +45,7 @@ def extract_text_from_markdown(md_path: str) -> str:
         str: Extracted text content
     """
     try:
-        with open(md_path, 'r', encoding='utf-8') as file:
+        with open(md_path, "r", encoding="utf-8") as file:
             return file.read()
     except Exception as e:
         return f"Error reading Markdown file: {str(e)}"
@@ -60,12 +61,12 @@ def extract_text_from_txt(txt_path: str) -> str:
         str: Extracted text content
     """
     try:
-        with open(txt_path, 'r', encoding='utf-8') as file:
+        with open(txt_path, "r", encoding="utf-8") as file:
             return file.read()
     except UnicodeDecodeError:
         # Try with different encoding
         try:
-            with open(txt_path, 'r', encoding='latin-1') as file:
+            with open(txt_path, "r", encoding="latin-1") as file:
                 return file.read()
         except Exception as e:
             return f"Error reading TXT file: {str(e)}"
@@ -85,13 +86,13 @@ def extract_text_from_file(file_path: str, file_extension: str) -> str:
     """
     file_extension = file_extension.lower()
 
-    if file_extension == '.pdf':
+    if file_extension == ".pdf":
         return extract_text_from_pdf(file_path)
-    elif file_extension == '.docx':
+    elif file_extension == ".docx":
         return extract_text_from_docx(file_path)
-    elif file_extension in ['.md', '.markdown']:
+    elif file_extension in [".md", ".markdown"]:
         return extract_text_from_markdown(file_path)
-    elif file_extension == '.txt':
+    elif file_extension == ".txt":
         return extract_text_from_txt(file_path)
     else:
         return f"Unsupported file format: {file_extension}"

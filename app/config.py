@@ -20,15 +20,16 @@ class Settings(BaseSettings):
     app_version: str = "2.0.0"
     debug: bool = False
 
-    @field_validator('debug', mode='before')
+    @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, v):
         """Parse debug field to handle various boolean representations."""
         if isinstance(v, bool):
             return v
         if isinstance(v, str):
-            return v.lower() in ('true', '1', 'yes', 'on', 'enable', 'enabled')
+            return v.lower() in ("true", "1", "yes", "on", "enable", "enabled")
         return bool(v)
+
     environment: str = "development"
 
     # Server settings
@@ -43,7 +44,7 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "https://localhost:3000",
         "https://localhost:8080",
-        "https://localhost:8000"
+        "https://localhost:8000",
     ]
 
     # MongoDB settings
@@ -62,9 +63,13 @@ class Settings(BaseSettings):
     # AI Provider settings
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
-        default=None, validation_alias=AliasChoices("CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"))
-    cerebras_api_base: str = Field(default="https://api.cerebras.ai/v1",
-                                   validation_alias=AliasChoices("CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"))
+        default=None,
+        validation_alias=AliasChoices("CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
+    )
+    cerebras_api_base: str = Field(
+        default="https://api.cerebras.ai/v1",
+        validation_alias=AliasChoices("CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
+    )
     cerebras_model: str = "gpt-oss-120b"
 
     # OpenAI
@@ -130,10 +135,7 @@ class Settings(BaseSettings):
     use_fast_optimizer: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
 

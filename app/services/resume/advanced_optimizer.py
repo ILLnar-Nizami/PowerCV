@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 class AdvancedResumeOptimizer:
     """Advanced optimizer using comprehensive prompt engineering."""
-    
+
     def __init__(self, **llm_config):
         """Initialize the optimizer with LLM configuration."""
         self.llm = get_llm(**llm_config)
-    
+
     async def optimize_resume_comprehensive(
         self,
         resume_text: str,
@@ -25,7 +25,7 @@ class AdvancedResumeOptimizer:
         job_title: str = "",
         company: str = "",
         focus_area: str = "backend/data",
-        seniority: str = "mid-senior"
+        seniority: str = "mid-senior",
     ) -> Dict[str, Any]:
         """Run comprehensive resume optimization using the master prompt."""
         master_prompt = f"""You are optimizing a resume for a job application.
@@ -67,27 +67,25 @@ READY FOR INTERVIEW"""
         try:
             result = await self.llm.complete(
                 prompt=master_prompt,
-                temperature=0.3  # Lower temperature for consistency
+                temperature=0.3,  # Lower temperature for consistency
             )
-            
+
             return {
                 "success": True,
                 "optimized_resume": result,  # result is already a string
-                "method": "comprehensive_master_prompt"
+                "method": "comprehensive_master_prompt",
             }
-            
+
         except Exception as e:
             logger.error(f"Error in comprehensive optimization: {e}")
             return {
                 "success": False,
                 "error": str(e),
-                "method": "comprehensive_master_prompt"
+                "method": "comprehensive_master_prompt",
             }
-    
+
     async def ats_keyword_analysis(
-        self,
-        resume_text: str,
-        job_description: str
+        self, resume_text: str, job_description: str
     ) -> Dict[str, Any]:
         """ATS keyword and gap analysis."""
         prompt = f"""Analyze JD vs resume for ATS gaps:
@@ -101,26 +99,19 @@ Resume: {resume_text}
 
         try:
             result = await self.llm.complete(prompt=prompt, temperature=0.2)
-            
+
             return {
                 "success": True,
                 "analysis": result,  # result is already a string
-                "method": "ats_keyword_analysis"
+                "method": "ats_keyword_analysis",
             }
-            
+
         except Exception as e:
             logger.error(f"Error in ATS analysis: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "method": "ats_keyword_analysis"
-            }
-    
+            return {"success": False, "error": str(e), "method": "ats_keyword_analysis"}
+
     async def create_three_versions(
-        self,
-        resume_text: str,
-        job_description: str,
-        job_title: str = ""
+        self, resume_text: str, job_description: str, job_title: str = ""
     ) -> Dict[str, Any]:
         """Create 3 resume positioning variants."""
         prompt = f"""Create 3 resume positioning variants for this JD:
@@ -137,26 +128,23 @@ Each: summary + 4 bullets + when to use."""
 
         try:
             result = await self.llm.complete(prompt=prompt, temperature=0.3)
-            
+
             return {
                 "success": True,
                 "variants": result,  # result is already a string
-                "method": "three_version_positioning"
+                "method": "three_version_positioning",
             }
-            
+
         except Exception as e:
             logger.error(f"Error creating variants: {e}")
             return {
                 "success": False,
                 "error": str(e),
-                "method": "three_version_positioning"
+                "method": "three_version_positioning",
             }
-    
+
     async def quick_ats_pass(
-        self,
-        resume_text: str,
-        job_description: str,
-        job_title: str = ""
+        self, resume_text: str, job_description: str, job_title: str = ""
     ) -> Dict[str, Any]:
         """5-minute ATS pass for emergency applications."""
         prompt = f"""Quick ATS optimization for emergency application:
@@ -175,54 +163,40 @@ Focus on ATS keywords and basic relevance. Output optimized resume."""
 
         try:
             result = await self.llm.complete(prompt=prompt, temperature=0.1)
-            
+
             return {
                 "success": True,
                 "optimized_resume": result,  # result is already a string
-                "method": "quick_ats_pass"
+                "method": "quick_ats_pass",
             }
-            
+
         except Exception as e:
             logger.error(f"Error in quick ATS pass: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "method": "quick_ats_pass"
-            }
+            return {"success": False, "error": str(e), "method": "quick_ats_pass"}
 
 
 # Convenience function for easy usage
 async def optimize_resume_advanced(
-    resume_text: str,
-    job_description: str,
-    method: str = "comprehensive",
-    **kwargs
+    resume_text: str, job_description: str, method: str = "comprehensive", **kwargs
 ) -> Dict[str, Any]:
     """Optimize resume using advanced prompts."""
     optimizer = AdvancedResumeOptimizer()
-    
+
     if method == "comprehensive":
         return await optimizer.optimize_resume_comprehensive(
-            resume_text=resume_text,
-            job_description=job_description,
-            **kwargs
+            resume_text=resume_text, job_description=job_description, **kwargs
         )
     elif method == "ats_analysis":
         return await optimizer.ats_keyword_analysis(
-            resume_text=resume_text,
-            job_description=job_description
+            resume_text=resume_text, job_description=job_description
         )
     elif method == "three_versions":
         return await optimizer.create_three_versions(
-            resume_text=resume_text,
-            job_description=job_description,
-            **kwargs
+            resume_text=resume_text, job_description=job_description, **kwargs
         )
     elif method == "quick_ats":
         return await optimizer.quick_ats_pass(
-            resume_text=resume_text,
-            job_description=job_description,
-            **kwargs
+            resume_text=resume_text, job_description=job_description, **kwargs
         )
     else:
         raise ValueError(f"Unknown optimization method: {method}")

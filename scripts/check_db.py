@@ -23,7 +23,8 @@ async def check_db():
                 if count > 0:
                     sample = await db.resumes.find_one()
                     print(
-                        f"Sample resume from {db_name}: {sample.get('title')} for user {sample.get('user_id')}")
+                        f"Sample resume from {db_name}: {sample.get('title')} for user {sample.get('user_id')}"
+                    )
         except Exception as e:
             print(f"Error checking {db_name}: {e}")
 

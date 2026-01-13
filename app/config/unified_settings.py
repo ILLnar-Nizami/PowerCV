@@ -21,14 +21,14 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", env="ENVIRONMENT")
     debug: bool = Field(default=False, env="DEBUG")
 
-    @field_validator('debug', mode='before')
+    @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, v):
         """Parse debug field to handle various boolean representations."""
         if isinstance(v, bool):
             return v
         if isinstance(v, str):
-            return v.lower() in ('true', '1', 'yes', 'on', 'enable', 'enabled')
+            return v.lower() in ("true", "1", "yes", "on", "enable", "enabled")
         return bool(v)
 
     # Server settings
@@ -46,9 +46,9 @@ class Settings(BaseSettings):
             "https://localhost:3000",
             "https://localhost:5173",
             "https://localhost:8080",
-            "https://localhost:8000"
+            "https://localhost:8000",
         ],
-        env="CORS_ORIGINS"
+        env="CORS_ORIGINS",
     )
 
     # Database settings
@@ -67,59 +67,63 @@ class Settings(BaseSettings):
     # AI Provider settings
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
-        default=None, 
-        env=["CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"]
+        default=None, env=["CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"]
     )
     cerebras_api_base: str = Field(
         default="https://api.cerebras.ai/v1",
-        env=["CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"]
+        env=["CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"],
     )
     cerebras_model: str = Field(default="gpt-oss-120b", env="CEREBRAS_MODEL")
 
     # OpenAI
     openai_api_key: Optional[str] = Field(
-        default=None,
-        env=["OPENAI_API_KEY", "OPENAI_API_KEY_UPPER"]
+        default=None, env=["OPENAI_API_KEY", "OPENAI_API_KEY_UPPER"]
     )
-    openai_api_base: str = Field(default="https://api.openai.com/v1", env="OPENAI_API_BASE")
+    openai_api_base: str = Field(
+        default="https://api.openai.com/v1", env="OPENAI_API_BASE"
+    )
     openai_model: str = Field(default="gpt-4", env="OPENAI_MODEL")
 
     # Deepseek
     deepseek_api_key: Optional[str] = Field(
-        default=None,
-        env=["API_KEY", "API_KEY_UPPER", "DEEPSEEK_API_KEY"]
+        default=None, env=["API_KEY", "API_KEY_UPPER", "DEEPSEEK_API_KEY"]
     )
 
     # Ollama (local models)
-    ollama_base_url: str = Field(default="http://localhost:11434", env="OLLAMA_BASE_URL")
+    ollama_base_url: str = Field(
+        default="http://localhost:11434", env="OLLAMA_BASE_URL"
+    )
     ollama_model: str = Field(default="llama2", env="OLLAMA_MODEL")
 
     # Security settings
     secret_key: str = Field(
-        default="development-secret-key-change-in-production",
-        env="SECRET_KEY"
+        default="development-secret-key-change-in-production", env="SECRET_KEY"
     )
     algorithm: str = Field(default="HS256", env="ALGORITHM")
-    access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    access_token_expire_minutes: int = Field(
+        default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
 
     # Rate limiting
     rate_limit_enabled: bool = Field(default=True, env="RATE_LIMIT_ENABLED")
-    rate_limit_requests_per_minute: int = Field(default=100, env="RATE_LIMIT_REQUESTS_PER_MINUTE")
-    rate_limit_requests_per_hour: int = Field(default=1000, env="RATE_LIMIT_REQUESTS_PER_HOUR")
+    rate_limit_requests_per_minute: int = Field(
+        default=100, env="RATE_LIMIT_REQUESTS_PER_MINUTE"
+    )
+    rate_limit_requests_per_hour: int = Field(
+        default=1000, env="RATE_LIMIT_REQUESTS_PER_HOUR"
+    )
 
     # File upload settings
     max_file_size: int = Field(default=10 * 1024 * 1024, env="MAX_FILE_SIZE")  # 10MB
     allowed_file_types: List[str] = Field(
-        default=["pdf", "doc", "docx", "txt"],
-        env="ALLOWED_FILE_TYPES"
+        default=["pdf", "doc", "docx", "txt"], env="ALLOWED_FILE_TYPES"
     )
     upload_dir: str = Field(default="uploads", env="UPLOAD_DIR")
 
     # Logging settings
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
     log_format: str = Field(
-        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        env="LOG_FORMAT"
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s", env="LOG_FORMAT"
     )
 
     # External services
@@ -147,7 +151,9 @@ class Settings(BaseSettings):
 
     # Token tracking
     enable_token_tracking: bool = Field(default=True, env="ENABLE_TOKEN_TRACKING")
-    token_usage_limit_per_user: int = Field(default=10000, env="TOKEN_USAGE_LIMIT_PER_USER")
+    token_usage_limit_per_user: int = Field(
+        default=10000, env="TOKEN_USAGE_LIMIT_PER_USER"
+    )
 
     # Additional AI settings
     llm_provider: str = Field(default="cerebras", env="LLM_PROVIDER")
@@ -166,14 +172,11 @@ class Settings(BaseSettings):
         "smtp_password",
         "n8n_webhook_secret",
         "n8n_password",
-        "sentry_dsn"
+        "sentry_dsn",
     }
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
     def __repr__(self):
@@ -190,13 +193,13 @@ class Settings(BaseSettings):
         """Get database configuration (without exposing credentials in logs)."""
         return {
             "uri": self._mask_mongodb_uri(self.mongodb_uri),
-            "database": self.mongodb_db
+            "database": self.mongodb_db,
         }
 
     @staticmethod
     def _mask_mongodb_uri(uri: str) -> str:
         """Mask credentials in MongoDB URI for safe logging."""
-        return re.sub(r'://([^:]+):([^@]+)@', '://***:***@', uri)
+        return re.sub(r"://([^:]+):([^@]+)@", "://***:***@", uri)
 
     @property
     def is_development(self) -> bool:

@@ -1,4 +1,3 @@
-
 import json
 import logging
 import os
@@ -13,9 +12,10 @@ logger = logging.getLogger(__name__)
 
 class ModelTier(Enum):
     """Model tier definitions"""
-    FAST = 1        # 3B model (e.g., qwen2.5:3b)
-    BALANCED = 2    # 7B model (e.g., mistral:7b)
-    DEEP = 3        # Heavy model (optional)
+
+    FAST = 1  # 3B model (e.g., qwen2.5:3b)
+    BALANCED = 2  # 7B model (e.g., mistral:7b)
+    DEEP = 3  # Heavy model (optional)
 
 
 class TaskComplexity(Enum):
@@ -28,6 +28,7 @@ class ModelRouter:
     """Routes tasks to the appropriate model based on complexity.
     Adapts the user's architectural plan to use Ollama backend.
     """
+
     _instance = None
     _models: Dict[ModelTier, Any] = {}
 
@@ -39,12 +40,13 @@ class ModelRouter:
     def __init__(self):
         # Configuration - these could be loaded from env
         # Use env var for BALANCED to respect user's speed choice (Qwen), default to Mistral if not set
-        provider = (os.getenv("API_TYPE") or os.getenv(
-            "LLM_PROVIDER") or "").lower()
+        provider = (os.getenv("API_TYPE") or os.getenv("LLM_PROVIDER") or "").lower()
         cerebras_key = os.getenv("CEREBRAS_API_KEY")
         forced_provider = (os.getenv("FORCE_LLM_PROVIDER") or "").lower()
-        force_local = forced_provider in {
-            "ollama", "local"} or provider in {"ollama", "local"}
+        force_local = forced_provider in {"ollama", "local"} or provider in {
+            "ollama",
+            "local",
+        }
 
         if cerebras_key and not force_local:
             default_fast = os.getenv("CEREBRAS_MODEL_NAME", "gpt-oss-120b")
@@ -78,18 +80,16 @@ class ModelRouter:
 
         # Task mapping
         self.task_mapping = {
-            'extract_keywords': ModelTier.FAST,
-            'format_text': ModelTier.FAST,
-            'split_sections': ModelTier.FAST,
-            'ats_score': ModelTier.FAST,
-            'parse_resume_structure': ModelTier.FAST,
-
-            'rewrite_bullets': ModelTier.BALANCED,
-            'write_summary': ModelTier.BALANCED,
-            'optimize_skills': ModelTier.BALANCED,
-
-            'psychological_optimize': ModelTier.BALANCED,  # Or DEEP if available
-            'gap_analysis': ModelTier.BALANCED
+            "extract_keywords": ModelTier.FAST,
+            "format_text": ModelTier.FAST,
+            "split_sections": ModelTier.FAST,
+            "ats_score": ModelTier.FAST,
+            "parse_resume_structure": ModelTier.FAST,
+            "rewrite_bullets": ModelTier.BALANCED,
+            "write_summary": ModelTier.BALANCED,
+            "optimize_skills": ModelTier.BALANCED,
+            "psychological_optimize": ModelTier.BALANCED,  # Or DEEP if available
+            "gap_analysis": ModelTier.BALANCED,
         }
 
     def get_model(self, tier: ModelTier):
@@ -108,8 +108,7 @@ class ModelRouter:
         return self._models[tier]
 
     def route_task(self, task_name: str, **kwargs) -> Dict[str, Any]:
-        """Execute a task using the appropriate model tier.
-        """
+        """Execute a task using the appropriate model tier."""
         tier = self.task_mapping.get(task_name, ModelTier.BALANCED)
         model = self.get_model(tier)
 
@@ -119,18 +118,13 @@ class ModelRouter:
         try:
             result = self._execute_task(model, task_name, **kwargs)
         except Exception as e:
-            logger.error(
-                f"Error executing task {task_name} on {tier.name}: {e}")
+            logger.error(f"Error executing task {task_name} on {tier.name}: {e}")
             # Fallback logic could go here (e.g. try BALANCED if FAST fails)
             raise e
 
         execution_time = time.time() - start_time
 
-        return {
-            'result': result,
-            'tier': tier.name,
-            'execution_time': execution_time
-        }
+        return {"result": result, "tier": tier.name, "execution_time": execution_time}
 
     def _execute_task(self, model, task_name: str, **kwargs):
         """Internal task execution router"""
@@ -150,7 +144,7 @@ class ModelRouter:
                 "here is a rewritten bullet point:",
             ]:
                 if cleaned.lower().startswith(prefix):
-                    cleaned = cleaned[len(prefix):].strip()
+                    cleaned = cleaned[len(prefix) :].strip()
             # If the model still returned explanations, keep only the actual bullet.
             for splitter in [
                 "\n",
@@ -166,8 +160,8 @@ class ModelRouter:
             cleaned = cleaned.replace("\n", " ").strip()
             return cleaned
 
-        if task_name == 'extract_keywords':
-            job_description = kwargs.get('job_description', '')
+        if task_name == "extract_keywords":
+            job_description = kwargs.get("job_description", "")
             prompt = f"""You are an ATS optimization expert.
 
             TASK:
@@ -183,13 +177,13 @@ class ModelRouter:
             {job_description[:3500]}
             """
             response = model.invoke(prompt).content
-            return [k.strip() for k in response.split(',') if k.strip()]
+            return [k.strip() for k in response.split(",") if k.strip()]
 
-        elif task_name == 'rewrite_bullets':
-            bullets = kwargs.get('bullets', [])
-            keywords = kwargs.get('keywords', [])
-            job_description = kwargs.get('job_description', '')
-            role_context = kwargs.get('role_context', '')
+        elif task_name == "rewrite_bullets":
+            bullets = kwargs.get("bullets", [])
+            keywords = kwargs.get("keywords", [])
+            job_description = kwargs.get("job_description", "")
+            role_context = kwargs.get("role_context", "")
             keywords_str = ", ".join(keywords[:10])  # Top 10 critical
 
             bullets = [b for b in bullets if isinstance(b, str) and b.strip()]
@@ -228,6 +222,7 @@ class ModelRouter:
             response = model.invoke(prompt).content
             try:
                 import re
+
                 arr_match = re.search(r"\[.*\]", response, re.DOTALL)
                 if arr_match:
                     parsed = json.loads(arr_match.group(0))
@@ -235,11 +230,11 @@ class ModelRouter:
                     parsed = json.loads(response)
 
                 if isinstance(parsed, list):
-                    cleaned = [_clean_llm_text(x)
-                               for x in parsed if isinstance(x, str)]
+                    cleaned = [_clean_llm_text(x) for x in parsed if isinstance(x, str)]
                     if len(cleaned) < len(bullets):
-                        cleaned.extend([_clean_llm_text(b)
-                                       for b in bullets[len(cleaned):]])
+                        cleaned.extend(
+                            [_clean_llm_text(b) for b in bullets[len(cleaned) :]]
+                        )
                     return cleaned[: len(bullets)]
             except Exception:
                 pass
@@ -279,10 +274,10 @@ class ModelRouter:
                 optimized.append(_clean_llm_text(r))
             return optimized
 
-        elif task_name == 'write_summary':
-            experience = kwargs.get('experience', '')
-            keywords = kwargs.get('keywords', [])
-            job_description = kwargs.get('job_description', '')
+        elif task_name == "write_summary":
+            experience = kwargs.get("experience", "")
+            keywords = kwargs.get("keywords", [])
+            job_description = kwargs.get("job_description", "")
             kw_str = ", ".join(keywords[:8])
 
             # Based on PROMPT #9: Professional Summary Generator
@@ -315,7 +310,7 @@ class ModelRouter:
 
             return _clean_llm_text(model.invoke(prompt).content)
 
-        elif task_name == 'optimize_skills':
+        elif task_name == "optimize_skills":
             kw_str = ", ".join(keywords[:15])
             prompt = f"""You are an expert Resume Skills Optimizer working with ATS systems.
 
@@ -342,9 +337,9 @@ class ModelRouter:
             """
             return model.invoke(prompt).content.strip()
 
-        elif task_name == 'parse_resume_structure':
+        elif task_name == "parse_resume_structure":
             # Parse raw text into structured JSON matching ResumeData schema
-            content = kwargs.get('content', '')
+            content = kwargs.get("content", "")
             prompt = f"""You are an expert Resume Parser.
             Extract the following sections from the resume text into a *strict* JSON object.
             
@@ -400,15 +395,14 @@ class ModelRouter:
 
         else:
             # Generic valid prompt pass-through if needed
-            if 'prompt' in kwargs:
-                return model.invoke(kwargs['prompt']).content
+            if "prompt" in kwargs:
+                return model.invoke(kwargs["prompt"]).content
             else:
                 raise ValueError(f"Unknown task: {task_name}")
 
 
 class CascadeRouter(ModelRouter):
-    """Router that attempts a task with a lower tier first, then escalates based on quality.
-    """
+    """Router that attempts a task with a lower tier first, then escalates based on quality."""
 
     def route_with_cascade(self, task_name: str, **kwargs) -> Dict[str, Any]:
         # For now, default to standard routing.

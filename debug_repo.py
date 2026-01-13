@@ -1,4 +1,3 @@
-
 from app.database.repositories.base_repo import BaseRepository
 import asyncio
 import sys
@@ -18,7 +17,9 @@ async def debug_find():
     # Try with exception
     mock_collection.find.side_effect = Exception("TEST_EXCEPTION")
 
-    with patch("app.database.connector.MongoConnectionManager.get_instance") as mock_get_instance:
+    with patch(
+        "app.database.connector.MongoConnectionManager.get_instance"
+    ) as mock_get_instance:
         instance = MagicMock()
         mock_get_instance.return_value = instance
 

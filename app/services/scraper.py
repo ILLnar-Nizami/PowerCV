@@ -237,7 +237,9 @@ class IndeedScraper(JobDescriptionScraper):
 
     def _extract_company(self, soup: BeautifulSoup) -> str:
         """Extract company name from Indeed."""
-        company_elem = soup.find("div", {"class": "jobsearch-CompanyRating-withReviewIcon"})
+        company_elem = soup.find(
+            "div", {"class": "jobsearch-CompanyRating-withReviewIcon"}
+        )
         if company_elem:
             return self._clean_text(company_elem.get_text())
 
@@ -318,8 +320,12 @@ class GenericScraper(JobDescriptionScraper):
 
             # If no meta description, try to find main content
             if not description:
-                main_content = soup.find("main") or soup.find("article") or soup.find(
-                    "div", {"class": lambda x: x and "content" in str(x).lower()}
+                main_content = (
+                    soup.find("main")
+                    or soup.find("article")
+                    or soup.find(
+                        "div", {"class": lambda x: x and "content" in str(x).lower()}
+                    )
                 )
                 if main_content:
                     description = main_content.get_text()[:3000]  # Limit length

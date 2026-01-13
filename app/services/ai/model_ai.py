@@ -78,8 +78,9 @@ class AtsResumeOptimizer:
         self.model_name = model_name or os.getenv("MODEL_NAME")
         self.resume = resume
         self.api_key = api_key or os.getenv("API_KEY")
-        self.api_base = api_base or os.getenv(
-            "API_BASE") or os.getenv("OLLAMA_BASE_URL")
+        self.api_base = (
+            api_base or os.getenv("API_BASE") or os.getenv("OLLAMA_BASE_URL")
+        )
         self.user_id = user_id
 
         # Initialize LLM component and output parser
@@ -114,8 +115,7 @@ class AtsResumeOptimizer:
                 api_base=self.api_base,
                 feature="resume_optimization",
                 user_id=self.user_id,
-                metadata={"resume_length": len(
-                    self.resume) if self.resume else 0}
+                metadata={"resume_length": len(self.resume) if self.resume else 0},
             )
         else:
             # Fallback to standard model if no specific model is configured
@@ -201,13 +201,16 @@ Process the following resume to align with the provided job description. The goa
 
         # Add missing skills section if provided
         if missing_skills:
-            prompt += f"\n\n## MISSING SKILLS TO INCORPORATE:\n{', '.join(missing_skills)}"
+            prompt += (
+                f"\n\n## MISSING SKILLS TO INCORPORATE:\n{', '.join(missing_skills)}"
+            )
 
         return PromptTemplate(
             template=prompt,
             input_variables=["job_description", "resume"],
             partial_variables={
-                "format_instructions": self.output_parser.get_format_instructions()}
+                "format_instructions": self.output_parser.get_format_instructions()
+            },
         )
 
     def _setup_chain(self, missing_skills: Optional[List[str]] = None) -> None:
@@ -260,14 +263,14 @@ Process the following resume to align with the provided job description. The goa
                     self._setup_chain(missing_skills)
 
                     print(
-                        f"Initial ATS Score: {score_results.get('final_score', 'N/A')}%")
-                    print(
-                        f"Found {len(missing_skills)} missing skills to incorporate")
-                    print(
-                        f"Found {len(matching_skills)} matching skills to emphasize")
+                        f"Initial ATS Score: {score_results.get('final_score', 'N/A')}%"
+                    )
+                    print(f"Found {len(missing_skills)} missing skills to incorporate")
+                    print(f"Found {len(matching_skills)} matching skills to emphasize")
                 except Exception as e:
                     print(
-                        f"Warning: ATS scoring failed, proceeding without skill recommendations: {str(e)}")
+                        f"Warning: ATS scoring failed, proceeding without skill recommendations: {str(e)}"
+                    )
                     pass
 
             # Step 2: Generate optimized resume using LLM
@@ -294,14 +297,13 @@ Process the following resume to align with the provided job description. The goa
                             "initial_score": score_results.get("final_score", 0),
                             "matching_skills": score_results.get("matching_skills", []),
                             "missing_skills": score_results.get("missing_skills", []),
-                            "recommendation": score_results.get("recommendation", "")
+                            "recommendation": score_results.get("recommendation", ""),
                         }
 
                     return json_result
                 except json.JSONDecodeError:
                     # Fallback 1: Extract JSON from code blocks
-                    json_match = re.search(
-                        r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                    json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
                     if json_match:
                         json_str = json_match.group(1)
                         json_result = json.loads(json_str)
@@ -310,9 +312,15 @@ Process the following resume to align with the provided job description. The goa
                         if score_results:
                             json_result["ats_metrics"] = {
                                 "initial_score": score_results.get("final_score", 0),
-                                "matching_skills": score_results.get("matching_skills", []),
-                                "missing_skills": score_results.get("missing_skills", []),
-                                "recommendation": score_results.get("recommendation", "")
+                                "matching_skills": score_results.get(
+                                    "matching_skills", []
+                                ),
+                                "missing_skills": score_results.get(
+                                    "missing_skills", []
+                                ),
+                                "recommendation": score_results.get(
+                                    "recommendation", ""
+                                ),
                             }
 
                         return json_result
@@ -326,9 +334,15 @@ Process the following resume to align with the provided job description. The goa
                         if score_results:
                             json_result["ats_metrics"] = {
                                 "initial_score": score_results.get("final_score", 0),
-                                "matching_skills": score_results.get("matching_skills", []),
-                                "missing_skills": score_results.get("missing_skills", []),
-                                "recommendation": score_results.get("recommendation", "")
+                                "matching_skills": score_results.get(
+                                    "matching_skills", []
+                                ),
+                                "missing_skills": score_results.get(
+                                    "missing_skills", []
+                                ),
+                                "recommendation": score_results.get(
+                                    "recommendation", ""
+                                ),
                             }
 
                         return json_result
@@ -363,7 +377,11 @@ if __name__ == "__main__":
         model_name=MODEL_NAME,
         resume=resume,
         api_key=CEREBRAS_API_KEY if CEREBRAS_API_KEY else API_KEY,
-        api_base="https://api.cerebras.ai/v1" if CEREBRAS_API_KEY else "https://api.deepseek.com/v1",
+        api_base=(
+            "https://api.cerebras.ai/v1"
+            if CEREBRAS_API_KEY
+            else "https://api.deepseek.com/v1"
+        ),
     )
 
     result = model.generate_ats_optimized_resume_json(job_description)

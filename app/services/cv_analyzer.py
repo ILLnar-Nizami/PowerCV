@@ -1,4 +1,5 @@
 """CV analysis service using multi-provider AI."""
+
 import logging
 from typing import Dict
 
@@ -19,7 +20,7 @@ class CVAnalyzer:
         self._client = None
         if CVAnalyzer._system_prompt is None:
             loader = PromptLoader()
-            CVAnalyzer._system_prompt = loader.load_prompt('cv_analyzer')
+            CVAnalyzer._system_prompt = loader.load_prompt("cv_analyzer")
         logger.info("CVAnalyzer initialized")
 
     @property
@@ -42,10 +43,10 @@ class CVAnalyzer:
         logger.info("Starting CV analysis")
 
         # Basic sanitization
-        cv_text = ValidationHelper.validate_text_input(
-            cv_text, 25000, "CV text")
+        cv_text = ValidationHelper.validate_text_input(cv_text, 25000, "CV text")
         jd_text = ValidationHelper.validate_text_input(
-            jd_text, 15000, "job description")
+            jd_text, 15000, "job description"
+        )
 
         user_message = f"""
 **JOB DESCRIPTION:**
@@ -60,7 +61,7 @@ class CVAnalyzer:
             system_prompt=CVAnalyzer._system_prompt,
             user_message=user_message,
             temperature=0.3,  # Lower temp for more consistent structure
-            max_tokens=3000
+            max_tokens=3000,
         )
 
         # Parse JSON response with fallback
@@ -68,12 +69,14 @@ class CVAnalyzer:
         analysis = JSONParser.safe_json_parse(response, fallback_analysis)
 
         # Ensure ats_score is properly formatted
-        if 'ats_score' in analysis:
-            analysis['ats_score'] = MetricsHelper.extract_ats_score_from_text(
-                analysis['ats_score'])
+        if "ats_score" in analysis:
+            analysis["ats_score"] = MetricsHelper.extract_ats_score_from_text(
+                analysis["ats_score"]
+            )
 
         logger.info(
-            f"Analysis completed. ATS Score: {analysis.get('ats_score', 'N/A')}")
+            f"Analysis completed. ATS Score: {analysis.get('ats_score', 'N/A')}"
+        )
         return analysis
 
     def _get_fallback_analysis(self) -> Dict:
@@ -88,42 +91,46 @@ class CVAnalyzer:
             "keyword_analysis": {
                 "matched_keywords": [
                     {"keyword": "Communication", "jd_mentions": 1, "cv_mentions": 1},
-                    {"keyword": "Teamwork", "jd_mentions": 1, "cv_mentions": 1}
+                    {"keyword": "Teamwork", "jd_mentions": 1, "cv_mentions": 1},
                 ],
                 "missing_critical": [
-                    {"keyword": "Project Management", "category": "skill", "priority": "HIGH"}
+                    {
+                        "keyword": "Project Management",
+                        "category": "skill",
+                        "priority": "HIGH",
+                    }
                 ],
-                "missing_nice_to_have": []
+                "missing_nice_to_have": [],
             },
             "experience_analysis": {
                 "relevant_roles": ["Professional Experience"],
-                "transferable_roles": []
+                "transferable_roles": [],
             },
             "skill_gaps": {
                 "critical": ["Advanced Technical Skills"],
                 "important": ["Industry-Specific Knowledge"],
-                "nice_to_have": ["Certifications"]
+                "nice_to_have": ["Certifications"],
             },
             "strengths": ["Professional Experience", "Communication Skills"],
             "education_relevance": {
                 "relevant_degrees": ["Bachelor's Degree"],
-                "relevant_certifications": []
+                "relevant_certifications": [],
             },
             "optimization_priorities": [
                 {
                     "section": "Skills",
                     "action": "Add relevant technical skills and certifications",
-                    "priority": "HIGH"
+                    "priority": "HIGH",
                 },
                 {
                     "section": "Experience",
                     "action": "Quantify achievements with specific metrics",
-                    "priority": "MEDIUM"
-                }
+                    "priority": "MEDIUM",
+                },
             ],
             "recommendations": [
                 "Consider adding more specific technical skills relevant to the target role",
                 "Include quantifiable achievements in your experience section",
-                "Add relevant certifications or training programs"
-            ]
+                "Add relevant certifications or training programs",
+            ],
         }

@@ -15,63 +15,60 @@ from app.config import computed_settings as settings
 
 class SimpleMatchScorer:
     """Simplified resume-job matching scorer using Cerebras AI."""
-    
+
     def __init__(self, model_name: Optional[str] = None):
         """Initialize the scorer with Cerebras AI client.
-        
+
         Args:
             model_name: Name of the model to use (defaults to API_MODEL_NAME from settings)
         """
         self.model_name = model_name or settings.API_MODEL_NAME
         self.client = OpenAI(
-            base_url=settings.API_BASE,
-            api_key=settings.CEREBRASAI_API_KEY
+            base_url=settings.API_BASE, api_key=settings.CEREBRASAI_API_KEY
         )
-    
+
     async def calculate_match_score(
-        self, 
-        resume_text: str, 
-        job_description: str,
-        user_id: Optional[str] = None
+        self, resume_text: str, job_description: str, user_id: Optional[str] = None
     ) -> Dict:
         """Calculate a comprehensive match score between resume and job description.
-        
+
         Args:
             resume_text: The candidate's resume text
             job_description: The job description text
             user_id: Optional user ID for tracking
-            
+
         Returns:
             Dictionary containing match score and analysis
         """
         try:
             # Create the analysis prompt
             prompt = self._create_analysis_prompt(resume_text, job_description)
-            
+
             # Get AI analysis
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
-                    {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) analyzer and recruiter."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert ATS (Applicant Tracking System) analyzer and recruiter.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.1,
-                max_tokens=1500
+                max_tokens=1500,
             )
-            
+
             # Parse the response
             result_text = response.choices[0].message.content
             analysis = self._parse_analysis_response(result_text)
-            
+
             # Ensure we have all required fields
-            analysis.update({
-                "user_id": user_id,
-                "model_used": self.model_name,
-                "success": True
-            })
-            
+            analysis.update(
+                {"user_id": user_id, "model_used": self.model_name, "success": True}
+            )
+
             return analysis
-            
+
         except Exception as e:
             # Return error fallback
             return {
@@ -83,16 +80,16 @@ class SimpleMatchScorer:
                 "user_id": user_id,
                 "model_used": self.model_name,
                 "success": False,
-                "error": str(e)
+                "error": str(e),
             }
-    
+
     def _create_analysis_prompt(self, resume_text: str, job_description: str) -> str:
         """Create the analysis prompt for the AI.
-        
+
         Args:
             resume_text: The resume text
             job_description: The job description
-            
+
         Returns:
             The formatted prompt string
         """
@@ -122,53 +119,63 @@ Scoring guidelines:
 - 0-29: Poor match, candidate lacks most requirements
 
 Be optimistic - consider transferable skills and relevant experience. Return ONLY valid JSON."""
-    
+
     def _parse_analysis_response(self, response_text: str) -> Dict:
         """Parse the AI response into a structured dictionary.
-        
+
         Args:
             response_text: The raw response from the AI
-            
+
         Returns:
             Parsed analysis dictionary
         """
         try:
             # Try to extract JSON from the response
-            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
                 parsed = json.loads(json_str)
-                
+
                 # Validate and fix the parsed data
                 return {
                     "score": min(100, max(0, int(parsed.get("score", 50)))),
-                    "matching_skills": self._ensure_list(parsed.get("matching_skills", [])),
-                    "missing_skills": self._ensure_list(parsed.get("missing_skills", [])),
-                    "recommendation": str(parsed.get("recommendation", "No recommendation provided."))[:500],
-                    "rationale": str(parsed.get("rationale", "No rationale provided."))[:500]
+                    "matching_skills": self._ensure_list(
+                        parsed.get("matching_skills", [])
+                    ),
+                    "missing_skills": self._ensure_list(
+                        parsed.get("missing_skills", [])
+                    ),
+                    "recommendation": str(
+                        parsed.get("recommendation", "No recommendation provided.")
+                    )[:500],
+                    "rationale": str(parsed.get("rationale", "No rationale provided."))[
+                        :500
+                    ],
                 }
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             print(f"Error parsing AI response: {e}")
             print(f"Response text: {response_text[:500]}...")
-        
+
         # Fallback: try to extract score manually
-        score_match = re.search(r'score["\']?\s*:\s*(\d+)', response_text, re.IGNORECASE)
+        score_match = re.search(
+            r'score["\']?\s*:\s*(\d+)', response_text, re.IGNORECASE
+        )
         score = int(score_match.group(1)) if score_match else 50
-        
+
         return {
             "score": min(100, max(0, score)),
             "matching_skills": [],
             "missing_skills": [],
             "recommendation": "Analysis completed but response format was unclear.",
-            "rationale": "Score extracted from response but detailed analysis could not be parsed."
+            "rationale": "Score extracted from response but detailed analysis could not be parsed.",
         }
-    
+
     def _ensure_list(self, value) -> List[str]:
         """Ensure the value is a list of strings.
-        
+
         Args:
             value: Value to convert to list
-            
+
         Returns:
             List of strings
         """
@@ -176,7 +183,7 @@ Be optimistic - consider transferable skills and relevant experience. Return ONL
             return [str(item) for item in value if item]
         elif isinstance(value, str):
             # Try to parse if it looks like a JSON list string
-            if value.startswith('[') and value.endswith(']'):
+            if value.startswith("[") and value.endswith("]"):
                 try:
                     parsed = json.loads(value)
                     if isinstance(parsed, list):
@@ -190,19 +197,19 @@ Be optimistic - consider transferable skills and relevant experience. Return ONL
 
 # Convenience function for backward compatibility
 async def compute_match_score(
-    resume_text: str, 
-    job_description: str, 
+    resume_text: str,
+    job_description: str,
     weights: Optional[Dict] = None,
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
 ) -> Dict:
     """Compute match score between resume and job description.
-    
+
     Args:
         resume_text: The candidate's resume text
         job_description: The job description text
         weights: Ignored, kept for backward compatibility
         user_id: Optional user ID for tracking
-        
+
     Returns:
         Dictionary containing match score and analysis
     """
@@ -214,21 +221,21 @@ async def compute_match_score(
 async def demo_simple_match_scorer():
     """Demo function to showcase the SimpleMatchScorer functionality."""
     scorer = SimpleMatchScorer()
-    
+
     resume = """
     John Doe
     Software Engineer with 5 years of experience in Python, Django, and React.
     Experience building web applications, REST APIs, and working with databases.
     """
-    
+
     job_desc = """
     Senior Software Engineer
     Requirements: 5+ years Python experience, Django framework, React frontend, 
     database design, REST APIs.
     """
-    
+
     result = await scorer.calculate_match_score(resume, job_desc)
-    
+
     print(f"Score: {result['score']}%")
     print(f"Matching Skills: {', '.join(result['matching_skills'])}")
     print(f"Missing Skills: {', '.join(result['missing_skills'])}")
@@ -238,4 +245,5 @@ async def demo_simple_match_scorer():
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(demo_simple_match_scorer())

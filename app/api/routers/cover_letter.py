@@ -49,8 +49,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-cover_letter_router = APIRouter(
-    prefix="/api/cover-letter", tags=["Cover Letter"])
+cover_letter_router = APIRouter(prefix="/api/cover-letter", tags=["Cover Letter"])
 
 
 def get_ai_generator() -> AICoverLetterGenerator:
@@ -62,7 +61,7 @@ def get_ai_generator() -> AICoverLetterGenerator:
     return AICoverLetterGenerator(
         model_name=settings.CEREBRAS_MODEL,
         api_key=settings.CEREBRAS_API_KEY,
-        api_base=settings.CEREBRAS_API_BASE
+        api_base=settings.CEREBRAS_API_BASE,
     )
 
 
@@ -106,21 +105,20 @@ async def generate_cover_letter_with_ai(
             job_title=ai_request.job_title,
             tone=ai_request.tone,
             length=ai_request.length,
-            additional_instructions=ai_request.additional_instructions or ""
+            additional_instructions=ai_request.additional_instructions or "",
         )
 
         return AICoverLetterResponse(
             content=cover_letter_content,
             template_name=ai_request.template_name or "ai_generated",
-            model=ai_generator.model_name
+            model=ai_generator.model_name,
         )
 
     except Exception as e:
-        logger.error(
-            f"AI cover letter generation failed: {str(e)}", exc_info=True)
+        logger.error(f"AI cover letter generation failed: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate cover letter: {str(e)}"
+            detail=f"Failed to generate cover letter: {str(e)}",
         )
 
 
@@ -180,12 +178,15 @@ async def create_cover_letter(
             body_paragraphs=[],  # Empty initially
             closing="",  # Empty initially
             # Default signature
-            signature=f"Sincerely,\n{cover_letter_data.sender_name}"
+            signature=f"Sincerely,\n{cover_letter_data.sender_name}",
         )
 
         # Get user ID from request context (fallback to session/temp ID for development)
-        user_id = getattr(request.state, 'user_id', None) or 'temp-user-' + str(hash(str(request.client)))[:8]
-        
+        user_id = (
+            getattr(request.state, "user_id", None)
+            or "temp-user-" + str(hash(str(request.client)))[:8]
+        )
+
         new_cover_letter = CoverLetter(
             user_id=user_id,
             title=cover_letter_data.title,
@@ -249,13 +250,11 @@ async def generate_cover_letter(
         cover_letter = await repo.get_cover_letter_by_id(cover_letter_id)
         if not cover_letter:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cover letter not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Cover letter not found"
             )
 
         # Create CoverLetterData from existing data and new content
-        existing_content_data = CoverLetterData(
-            **cover_letter.get("content_data", {}))
+        existing_content_data = CoverLetterData(**cover_letter.get("content_data", {}))
 
         # Update with new generation data
         existing_content_data.introduction = generation_data.introduction
@@ -266,18 +265,19 @@ async def generate_cover_letter(
         # Validate content data
         template_generator = CoverLetterTemplateGenerator()
         validation_errors = template_generator.validate_content_data(
-            existing_content_data)
+            existing_content_data
+        )
         if validation_errors:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Validation errors: {'; '.join(validation_errors)}"
+                detail=f"Validation errors: {'; '.join(validation_errors)}",
             )
 
         # Generate formatted content using template generator
-        template_name = cover_letter.get(
-            "template_name", "professional_template")
+        template_name = cover_letter.get("template_name", "professional_template")
         generated_content = template_generator.generate_cover_letter(
-            existing_content_data, template_name)
+            existing_content_data, template_name
+        )
 
         # Update cover letter with generated content
         update_data = {
@@ -290,10 +290,13 @@ async def generate_cover_letter(
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to update cover letter with generated content"
+                detail="Failed to update cover letter with generated content",
             )
 
-        return {"message": "Cover letter generated successfully", "content": generated_content}
+        return {
+            "message": "Cover letter generated successfully",
+            "content": generated_content,
+        }
 
     except HTTPException:
         raise
@@ -363,15 +366,17 @@ async def get_user_cover_letters(
     formatted_cover_letters = []
 
     for cover_letter in cover_letters:
-        formatted_cover_letters.append({
-            "id": str(cover_letter.get("_id")),
-            "title": cover_letter.get("title"),
-            "target_company": cover_letter.get("target_company"),
-            "target_role": cover_letter.get("target_role"),
-            "is_generated": cover_letter.get("is_generated", False),
-            "created_at": cover_letter.get("created_at"),
-            "updated_at": cover_letter.get("updated_at"),
-        })
+        formatted_cover_letters.append(
+            {
+                "id": str(cover_letter.get("_id")),
+                "title": cover_letter.get("title"),
+                "target_company": cover_letter.get("target_company"),
+                "target_role": cover_letter.get("target_role"),
+                "is_generated": cover_letter.get("is_generated", False),
+                "created_at": cover_letter.get("created_at"),
+                "updated_at": cover_letter.get("updated_at"),
+            }
+        )
 
     return formatted_cover_letters
 
@@ -483,15 +488,14 @@ async def download_cover_letter_pdf(
     cover_letter = await repo.get_cover_letter_by_id(cover_letter_id)
     if not cover_letter:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cover letter not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cover letter not found"
         )
 
     # Check if cover letter is generated
     if not cover_letter.get("is_generated"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cover letter content not generated yet"
+            detail="Cover letter content not generated yet",
         )
 
     # Get content data
@@ -503,15 +507,17 @@ async def download_cover_letter_pdf(
             "name": content_data.sender_name,
             "email": content_data.sender_email,
             "phone": content_data.sender_phone,
-            "address": content_data.sender_location
+            "address": content_data.sender_location,
         },
         # Join paragraphs for body
-        "cover_letter_content": "\n\n".join([
-            content_data.introduction,
-            *content_data.body_paragraphs,
-            content_data.closing,
-            content_data.signature
-        ])
+        "cover_letter_content": "\n\n".join(
+            [
+                content_data.introduction,
+                *content_data.body_paragraphs,
+                content_data.closing,
+                content_data.signature,
+            ]
+        ),
     }
 
     # Initialize Typst Generator
@@ -520,7 +526,7 @@ async def download_cover_letter_pdf(
     generator.json_data = {"data": typst_data}
 
     # Generate PDF
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_pdf:
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_pdf:
         output_path = tmp_pdf.name
 
     success = generator.generate_pdf("cover_letter.typ", output_path)
@@ -528,18 +534,16 @@ async def download_cover_letter_pdf(
     if not success or not Path(output_path).exists():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate PDF. Check Typst installation."
+            detail="Failed to generate PDF. Check Typst installation.",
         )
 
     pdf_path = output_path
 
     # Return PDF file
-    filename = f"cover_letter_{cover_letter.get('title', 'untitled').replace(' ', '_')}.pdf"
-    return FileResponse(
-        path=pdf_path,
-        filename=filename,
-        media_type="application/pdf"
+    filename = (
+        f"cover_letter_{cover_letter.get('title', 'untitled').replace(' ', '_')}.pdf"
     )
+    return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
 
 
 @cover_letter_router.get(
@@ -569,15 +573,17 @@ async def search_cover_letters(
     formatted_cover_letters = []
 
     for cover_letter in cover_letters:
-        formatted_cover_letters.append({
-            "id": str(cover_letter.get("_id")),
-            "title": cover_letter.get("title"),
-            "target_company": cover_letter.get("target_company"),
-            "target_role": cover_letter.get("target_role"),
-            "is_generated": cover_letter.get("is_generated", False),
-            "created_at": cover_letter.get("created_at"),
-            "updated_at": cover_letter.get("updated_at"),
-        })
+        formatted_cover_letters.append(
+            {
+                "id": str(cover_letter.get("_id")),
+                "title": cover_letter.get("title"),
+                "target_company": cover_letter.get("target_company"),
+                "target_role": cover_letter.get("target_role"),
+                "is_generated": cover_letter.get("is_generated", False),
+                "created_at": cover_letter.get("created_at"),
+                "updated_at": cover_letter.get("updated_at"),
+            }
+        )
 
     return formatted_cover_letters
 
@@ -625,17 +631,20 @@ async def get_cover_letter_templates(
     """
     try:
         from app.services.cover_letter.templates import CoverLetterTemplates
+
         templates_service = CoverLetterTemplates()
         all_templates = templates_service.get_all_templates()
 
         # Convert to response format
         template_list = []
         for template_name, template_data in all_templates.items():
-            template_list.append({
-                "name": template_data["name"],
-                "display_name": template_data["display_name"],
-                "description": template_data["description"]
-            })
+            template_list.append(
+                {
+                    "name": template_data["name"],
+                    "display_name": template_data["display_name"],
+                    "description": template_data["description"],
+                }
+            )
 
         return template_list
 
@@ -674,17 +683,16 @@ async def preview_cover_letter(
         cover_letter = await repo.get_cover_letter_by_id(cover_letter_id)
         if not cover_letter:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cover letter not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Cover letter not found"
             )
 
         content_data = CoverLetterData(**cover_letter.get("content_data", {}))
-        template_name = cover_letter.get(
-            "template_name", "professional_template")
+        template_name = cover_letter.get("template_name", "professional_template")
 
         template_generator = CoverLetterTemplateGenerator()
         preview_info = template_generator.preview_cover_letter(
-            content_data, template_name)
+            content_data, template_name
+        )
 
         return preview_info
 

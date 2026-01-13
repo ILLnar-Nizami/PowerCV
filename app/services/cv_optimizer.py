@@ -9,7 +9,7 @@ from .ai_client import get_ai_client
 from .cv_validator import CVValidator
 
 # Compiled regex for email extraction to avoid recompilation on every call
-EMAIL_REGEX = re.compile(r'[\w\.-]+@[\w\.-]+\.\w+')
+EMAIL_REGEX = re.compile(r"[\w\.-]+@[\w\.-]+\.\w+")
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,10 @@ class CVOptimizer:
         self._client = None
         if CVOptimizer._system_prompt is None:
             loader = PromptLoader()
-            CVOptimizer._system_prompt = loader.load_prompt('cv_optimizer')
+            CVOptimizer._system_prompt = loader.load_prompt("cv_optimizer")
             CVOptimizer._comprehensive_prompt = loader.load_prompt(
-                'comprehensive_optimizer')
+                "comprehensive_optimizer"
+            )
         logger.info("CVOptimizer initialized with comprehensive support")
 
     @property
@@ -42,7 +43,7 @@ class CVOptimizer:
         cv_text: str,
         jd_text: str,
         analysis: Optional[Dict] = None,
-        email: Optional[str] = None
+        email: Optional[str] = None,
     ) -> Dict:
         """Perform one-shot comprehensive CV optimization.
 
@@ -77,7 +78,7 @@ class CVOptimizer:
             system_prompt=CVOptimizer._comprehensive_prompt,
             user_message=user_message,
             temperature=0.2,
-            max_tokens=8000
+            max_tokens=8000,
         )
 
         # Parse JSON response with fallback
@@ -88,16 +89,16 @@ class CVOptimizer:
         validation = CVValidator.validate_optimization(cv_text, result)
 
         # Log validation results
-        if not validation['valid']:
-            for error in validation['errors']:
+        if not validation["valid"]:
+            for error in validation["errors"]:
                 logger.error(f"CV Optimization Validation Error: {error}")
 
-        if validation['warnings']:
-            for warning in validation['warnings']:
+        if validation["warnings"]:
+            for warning in validation["warnings"]:
                 logger.warning(f"CV Optimization Warning: {warning}")
 
         # Add validation results to the output
-        result['_validation'] = validation
+        result["_validation"] = validation
 
         logger.info("Comprehensive optimization JSON parsed successfully")
         return result
@@ -107,7 +108,7 @@ class CVOptimizer:
         original_section: str,
         jd_text: str,
         keywords: List[str],
-        optimization_focus: str
+        optimization_focus: str,
     ) -> Dict:
         """Optimize a specific CV section.
 
@@ -141,26 +142,24 @@ class CVOptimizer:
             system_prompt=CVOptimizer._system_prompt,
             user_message=user_message,
             temperature=0.6,  # Moderate temp for creative optimization
-            max_tokens=2000
+            max_tokens=2000,
         )
 
         # Parse JSON response
         fallback_result = {
             "optimized_content": original_section,
             "keywords_used": [],
-            "improvements_made": ["Optimization failed, returned original section"]
+            "improvements_made": ["Optimization failed, returned original section"],
         }
 
         result = JSONParser.safe_json_parse(response, fallback_result)
         logger.info(
-            f"Section optimization completed. Keywords used: {len(result.get('keywords_used', []))}")
+            f"Section optimization completed. Keywords used: {len(result.get('keywords_used', []))}"
+        )
         return result
 
     def optimize_professional_summary(
-        self,
-        cv_data: str,
-        jd_text: str,
-        keywords: List[str]
+        self, cv_data: str, jd_text: str, keywords: List[str]
     ) -> Dict:
         """Optimize professional summary section.
 
@@ -177,9 +176,9 @@ class CVOptimizer:
         if isinstance(cv_data, str):
             current_summary = cv_data
         elif isinstance(cv_data, dict):
-            current_summary = cv_data.get('professional_summary', '')
+            current_summary = cv_data.get("professional_summary", "")
             if not current_summary:
-                current_summary = cv_data.get('summary', '')
+                current_summary = cv_data.get("summary", "")
 
         if not current_summary or current_summary.strip() == "":
             # Create a basic summary
@@ -195,10 +194,12 @@ class CVOptimizer:
             original_section=f"PROFESSIONAL SUMMARY\n\n{current_summary}",
             jd_text=jd_text,
             keywords=keywords,
-            optimization_focus=optimization_focus
+            optimization_focus=optimization_focus,
         )
 
-    def _get_fallback_comprehensive_structure(self, cv_text: str = "", email: Optional[str] = None) -> Dict:
+    def _get_fallback_comprehensive_structure(
+        self, cv_text: str = "", email: Optional[str] = None
+    ) -> Dict:
         """Get fallback comprehensive structure with basic extraction from original CV.
 
         Args:
@@ -221,8 +222,7 @@ class CVOptimizer:
         if not email:
             email = "please-add-your-email@example.com"
 
-        logger.warning(
-            f"Using fallback structure with extracted name: {name[:30]}...")
+        logger.warning(f"Using fallback structure with extracted name: {name[:30]}...")
 
         return {
             "user_information": {
@@ -248,8 +248,8 @@ class CVOptimizer:
                             "Managed key projects and deliverables",
                             "Collaborated with cross-functional teams",
                             "Implemented best practices and standards",
-                            "Achieved measurable business outcomes"
-                        ]
+                            "Achieved measurable business outcomes",
+                        ],
                     }
                 ],
                 "education": [
@@ -257,15 +257,19 @@ class CVOptimizer:
                         "institution": "University",
                         "degree": "Bachelor's Degree",
                         "start_date": "2015-09-01",
-                        "end_date": "2019-06-01"
+                        "end_date": "2019-06-01",
                     }
                 ],
                 "skills": {
-                    "hard_skills": ["Communication", "Problem Solving", "Project Management"],
-                    "soft_skills": ["Teamwork", "Leadership", "Adaptability"]
+                    "hard_skills": [
+                        "Communication",
+                        "Problem Solving",
+                        "Project Management",
+                    ],
+                    "soft_skills": ["Teamwork", "Leadership", "Adaptability"],
                 },
                 "certifications": [],
-                "hobbies": []
+                "hobbies": [],
             },
             "projects": [],
             "certificate": [],
@@ -275,8 +279,8 @@ class CVOptimizer:
                 "errors": [],
                 "warnings": ["This is a fallback structure due to processing issues"],
                 "original_contact": {},
-                "optimized_contact": {}
-            }
+                "optimized_contact": {},
+            },
         }
 
     def _extract_optimized_section(self, response: Dict) -> str:
@@ -288,4 +292,4 @@ class CVOptimizer:
         Returns:
             str: Optimized section content only
         """
-        return response.get('optimized_content', '')
+        return response.get("optimized_content", "")

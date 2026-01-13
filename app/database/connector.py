@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def sanitize_mongodb_uri_for_logging(uri: str) -> str:
     """Remove credentials from URI for safe logging."""
-    return re.sub(r'://([^:]+):([^@]+)@', '://***:***@', uri)
+    return re.sub(r"://([^:]+):([^@]+)@", "://***:***@", uri)
 
 
 def get_secure_mongodb_config():
@@ -31,10 +31,7 @@ def get_secure_mongodb_config():
     if not settings.mongodb_uri:
         raise ValueError("MONGODB_URI not configured")
 
-    return {
-        "uri": settings.mongodb_uri,
-        "database": settings.database_name
-    }
+    return {"uri": settings.mongodb_uri, "database": settings.database_name}
 
 
 # Initialize configuration
@@ -76,10 +73,12 @@ class MongoConnectionManager:
 
     # Add TLS settings only when TLS is enabled
     if USE_TLS:
-        MONGO_CONFIG.update({
-            "tls": True,
-            "tlsAllowInvalidCertificates": False,  # Strict certificate validation for production
-        })
+        MONGO_CONFIG.update(
+            {
+                "tls": True,
+                "tlsAllowInvalidCertificates": False,  # Strict certificate validation for production
+            }
+        )
 
     @classmethod
     def get_instance(cls):
@@ -94,7 +93,10 @@ class MongoConnectionManager:
 
     def __init__(self):
         """Initialize the MongoDB connection manager."""
-        if MongoConnectionManager._instance is not None and MongoConnectionManager._instance is not self:
+        if (
+            MongoConnectionManager._instance is not None
+            and MongoConnectionManager._instance is not self
+        ):
             return  # Don't re-initialize if instance already exists
 
     async def _get_client(self) -> motor.motor_asyncio.AsyncIOMotorClient:
@@ -108,12 +110,14 @@ class MongoConnectionManager:
         """
         try:
             client = motor.motor_asyncio.AsyncIOMotorClient(
-            MONGODB_URI, **self.MONGO_CONFIG
-        )
+                MONGODB_URI, **self.MONGO_CONFIG
+            )
 
             # Test connection
-            await client.admin.command('ping')
-            logger.info(f"Successfully connected to MongoDB: {sanitize_mongodb_uri_for_logging(MONGODB_URI)}")
+            await client.admin.command("ping")
+            logger.info(
+                f"Successfully connected to MongoDB: {sanitize_mongodb_uri_for_logging(MONGODB_URI)}"
+            )
 
             return client
 
@@ -138,7 +142,9 @@ class MongoConnectionManager:
                 self._client = motor.motor_asyncio.AsyncIOMotorClient(
                     MONGODB_URI, **self.MONGO_CONFIG
                 )
-                logger.info(f"MongoDB client created: {sanitize_mongodb_uri_for_logging(MONGODB_URI)}")
+                logger.info(
+                    f"MongoDB client created: {sanitize_mongodb_uri_for_logging(MONGODB_URI)}"
+                )
             except Exception as e:
                 logger.error("Failed to create MongoDB client")
                 raise ConnectionError("Database client creation failed") from e

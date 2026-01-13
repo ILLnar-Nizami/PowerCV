@@ -1,4 +1,5 @@
 """Rate limiting middleware for PowerCV."""
+
 import logging
 
 from fastapi import HTTPException, Request, status
@@ -56,9 +57,9 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
         detail={
             "error": "Rate limit exceeded",
             "message": "Too many requests. Please try again later.",
-            "retry_after": exc.retry_after
+            "retry_after": exc.retry_after,
         },
-        headers={"Retry-After": str(exc.retry_after)}
+        headers={"Retry-After": str(exc.retry_after)},
     )
 
 

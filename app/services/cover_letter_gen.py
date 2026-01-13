@@ -1,4 +1,5 @@
 """Cover letter generation service using multi-provider AI."""
+
 import asyncio
 import logging
 import re
@@ -25,8 +26,7 @@ class CoverLetterGenerator:
         self._client = None
         if CoverLetterGenerator._system_prompt is None:
             loader = PromptLoader()
-            CoverLetterGenerator._system_prompt = loader.load_prompt(
-                'cover_letter')
+            CoverLetterGenerator._system_prompt = loader.load_prompt("cover_letter")
         logger.info("CoverLetterGenerator initialized")
 
     @property
@@ -37,10 +37,7 @@ class CoverLetterGenerator:
         return self._client
 
     def generate(
-        self,
-        candidate_data: Dict,
-        job_data: Dict,
-        tone: str = "Professional"
+        self, candidate_data: Dict, job_data: Dict, tone: str = "Professional"
     ) -> Dict:
         """Generate a cover letter.
 
@@ -78,7 +75,7 @@ Requirements: {', '.join(job_data.get('requirements', []))}
             system_prompt=CoverLetterGenerator._system_prompt,
             user_message=user_message,
             temperature=0.7,  # Higher temp for creative writing
-            max_tokens=1500
+            max_tokens=1500,
         )
 
         # Parse JSON response with fallback
@@ -86,7 +83,8 @@ Requirements: {', '.join(job_data.get('requirements', []))}
         result = JSONParser.safe_json_parse(response, fallback_result)
 
         logger.info(
-            f"Cover letter generated successfully ({len(result.get('cover_letter', ''))} chars)")
+            f"Cover letter generated successfully ({len(result.get('cover_letter', ''))} chars)"
+        )
         return result
 
     def _format_achievements(self, achievements: List[str]) -> str:
@@ -108,7 +106,7 @@ Requirements: {', '.join(job_data.get('requirements', []))}
         resume_content: str,
         company: str,
         position: str,
-        job_description: str = ""
+        job_description: str = "",
     ) -> str:
         """Generate a cover letter from resume content and job details.
 
@@ -127,8 +125,7 @@ Requirements: {', '.join(job_data.get('requirements', []))}
             # Create a simple prompt for cover letter generation
             # Limit resume content to first 2000 chars to avoid token limits
             truncated_resume = resume_content[:2000]
-            truncated_job_desc = job_description[:
-                                                 1000] if job_description else ""
+            truncated_job_desc = job_description[:1000] if job_description else ""
 
             user_message = f"""
 Based on the following resume content, generate a professional cover letter for the position of {position} at {company}.
@@ -165,21 +162,21 @@ Generate the complete cover letter text:
             )
 
             # Extract the cover letter text
-            if isinstance(response, dict) and 'content' in response:
-                cover_letter = response['content'].strip()
+            if isinstance(response, dict) and "content" in response:
+                cover_letter = response["content"].strip()
             else:
                 cover_letter = str(response).strip()
 
             # Clean up any markdown formatting
-            cover_letter = re.sub(r'^[#*`\[\]]+', '',
-                                  cover_letter, flags=re.MULTILINE)
+            cover_letter = re.sub(r"^[#*`\[\]]+", "", cover_letter, flags=re.MULTILINE)
             cover_letter = cover_letter.strip()
 
             if not cover_letter:
                 cover_letter = f"Dear Hiring Manager,\n\nI am writing to express my interest in the {position} position at {company}. With my background in the relevant field, I am confident I can contribute effectively to your team.\n\nPlease consider my application. I look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\n[Your Name]"
 
             logger.info(
-                f"Cover letter generated successfully ({len(cover_letter)} chars)")
+                f"Cover letter generated successfully ({len(cover_letter)} chars)"
+            )
             return cover_letter
 
         except Exception as e:
@@ -199,7 +196,7 @@ Generate the complete cover letter text:
         return {
             "cover_letter": "Unable to generate cover letter due to parsing error.",
             "word_count": 0,
-            "tone": tone
+            "tone": tone,
         }
 
 

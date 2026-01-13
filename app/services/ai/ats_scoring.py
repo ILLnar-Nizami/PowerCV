@@ -59,8 +59,9 @@ class ATSScorerLLM:
             ValueError: If required credentials are missing after falling back to environment variables.
         """
         self.api_key = api_key or os.getenv("API_KEY")
-        self.api_base = api_base or os.getenv(
-            "API_BASE") or os.getenv("OLLAMA_BASE_URL")
+        self.api_base = (
+            api_base or os.getenv("API_BASE") or os.getenv("OLLAMA_BASE_URL")
+        )
         self.model_name = model_name or os.getenv("MODEL_NAME")
         self.user_id = user_id
 
@@ -87,7 +88,7 @@ class ATSScorerLLM:
             api_key=self.api_key,
             api_base=self.api_base,
             feature="ats_scoring",
-            user_id=self.user_id
+            user_id=self.user_id,
         )
 
         self.parser = PydanticOutputParser(pydantic_object=SkillsExtraction)
@@ -114,7 +115,7 @@ class ATSScorerLLM:
             
             Output ONLY valid JSON. Do not include markdown formatting or explanations.
             """,
-            input_variables=["resume_text"]
+            input_variables=["resume_text"],
         )
 
         # Prompt for extracting requirements from job description
@@ -133,7 +134,7 @@ class ATSScorerLLM:
             
             Output ONLY valid JSON. Do not include markdown formatting or explanations.
             """,
-            input_variables=["job_text"]
+            input_variables=["job_text"],
         )
 
         # More optimistic and explicit scoring prompt with rationale
@@ -183,12 +184,15 @@ class ATSScorerLLM:
 
         self.matching_chain = self.matching_prompt | self.llm
 
-    def _extract_json_from_result(self, result_content: str, default_key: str = "skills"):
+    def _extract_json_from_result(
+        self, result_content: str, default_key: str = "skills"
+    ):
         """Helper to safely extract JSON from LLM output."""
         try:
             # 1. Try to find JSON block in markdown
             json_match = re.search(
-                r"```json\s*(\{.*?\})\s*```", result_content, re.DOTALL)
+                r"```json\s*(\{.*?\})\s*```", result_content, re.DOTALL
+            )
             if json_match:
                 return json.loads(json_match.group(1))
 
@@ -199,12 +203,13 @@ class ATSScorerLLM:
 
             # 3. Fallback: Return empty structure
             print(
-                f"Warning: Could not extract JSON from content: {result_content[:100]}...")
+                f"Warning: Could not extract JSON from content: {result_content[:100]}..."
+            )
             return {
                 "skills": [],
                 "experience_years": None,
                 "key_requirements": [],
-                "domains": []
+                "domains": [],
             }
         except Exception as e:
             print(f"Error parsing JSON from LLM: {e}")
@@ -212,7 +217,7 @@ class ATSScorerLLM:
                 "skills": [],
                 "experience_years": None,
                 "key_requirements": [],
-                "domains": []
+                "domains": [],
             }
 
     def extract_resume_info(self, resume_text):
@@ -267,10 +272,9 @@ class ATSScorerLLM:
             if not isinstance(job_analysis, str):
                 job_analysis = str(job_analysis.model_dump())
 
-            result = self.matching_chain.invoke({
-                "resume_skills": resume_analysis,
-                "job_requirements": job_analysis
-            })
+            result = self.matching_chain.invoke(
+                {"resume_skills": resume_analysis, "job_requirements": job_analysis}
+            )
 
             json_match = re.search(r"\{.*\}", result.content, re.DOTALL)
 
@@ -286,18 +290,17 @@ class ATSScorerLLM:
             score_match = re.search(
                 r'["\']?score["\']?\s*:\s*(\d+)', result.content, re.IGNORECASE
             )
-            score = (
-                int(score_match.group(1)) if score_match else 50
-            )
+            score = int(score_match.group(1)) if score_match else 50
 
             matching_section = re.search(
-                r'["\']?matching_skills["\']?\s*:\s*\[(.*?)\]', result.content, re.DOTALL
+                r'["\']?matching_skills["\']?\s*:\s*\[(.*?)\]',
+                result.content,
+                re.DOTALL,
             )
             matching_skills = []
             if matching_section:
                 skills_text = matching_section.group(1)
-                matching_skills = re.findall(
-                    r'["\']([^"\']+)["\']', skills_text)
+                matching_skills = re.findall(r'["\']([^"\']+)["\']', skills_text)
 
             missing_section = re.search(
                 r'["\']?missing_skills["\']?\s*:\s*\[(.*?)\]', result.content, re.DOTALL
@@ -305,8 +308,7 @@ class ATSScorerLLM:
             missing_skills = []
             if missing_section:
                 skills_text = missing_section.group(1)
-                missing_skills = re.findall(
-                    r'["\']([^"\']+)["\']', skills_text)
+                missing_skills = re.findall(r'["\']([^"\']+)["\']', skills_text)
 
             # Extract recommendation
             rec_match = re.search(
@@ -343,10 +345,12 @@ class ATSScorerLLM:
                 "matching_skills": [],
                 "missing_skills": [],
                 "recommendation": "Error analyzing match. The candidate appears to have relevant skills but a detailed analysis could not be completed.",
-                "rationale": "Error during LLM analysis."
+                "rationale": "Error during LLM analysis.",
             }
 
-    def compute_match_score(self, resume_text: str, job_text: str, weights: dict = None) -> dict:
+    def compute_match_score(
+        self, resume_text: str, job_text: str, weights: dict = None
+    ) -> dict:
         """Calculate comprehensive match score between resume and job using LLM only.
 
         Args:
@@ -363,8 +367,7 @@ class ATSScorerLLM:
 
         # Get LLM analysis of match (all scoring, matching, and rationale)
         match_analysis = self.analyze_match(resume_analysis, job_analysis)
-        llm_score = match_analysis.get(
-            "score", 50) / 100  # Convert to 0-1 scale
+        llm_score = match_analysis.get("score", 50) / 100  # Convert to 0-1 scale
         # Set a floor of 0.45 (45%) for LLM score
         llm_score = max(llm_score, 0.45)
         final_score = llm_score  # 100% LLM-based
@@ -383,7 +386,7 @@ class ATSScorerLLM:
             "matching_skills": match_analysis.get("matching_skills", []),
             "missing_skills": match_analysis.get("missing_skills", []),
             "recommendation": match_analysis.get("recommendation", ""),
-            "rationale": match_analysis.get("rationale", "")
+            "rationale": match_analysis.get("rationale", ""),
         }
         return result
 
@@ -398,8 +401,7 @@ def demo_ats_scorer_llm():
     model_name = os.getenv("API_MODEL_NAME", "gpt-oss-120b")
     api_base = os.getenv("API_BASE", "https://api.cerebras.ai/v1")
 
-    scorer = ATSScorerLLM(
-        api_key=api_key, model_name=model_name, api_base=api_base)
+    scorer = ATSScorerLLM(api_key=api_key, model_name=model_name, api_base=api_base)
 
     resume = """
     """

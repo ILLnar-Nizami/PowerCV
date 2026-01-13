@@ -1,4 +1,5 @@
 """Validate PowerCV Cerebras integration installation."""
+
 import os
 import sys
 from pathlib import Path
@@ -18,7 +19,7 @@ def check_files():
         "app/services/cv_optimizer.py",
         "app/services/cover_letter_gen.py",
         "app/services/workflow_orchestrator.py",
-        ".env"
+        ".env",
     ]
 
     missing = []
@@ -44,6 +45,7 @@ def check_imports():
         from app.services.workflow_orchestrator import (
             CVWorkflowOrchestrator,  # noqa: F401
         )
+
         print(" All imports successful")
         return True
     except ImportError as e:
@@ -55,6 +57,7 @@ def check_prompts():
     """Check prompts can be loaded."""
     try:
         from app.prompts.prompt_loader import PromptLoader
+
         loader = PromptLoader()
         prompts = loader.load_all_prompts()
         print(f" Loaded {len(prompts)} prompts")
@@ -79,12 +82,7 @@ def check_env():
 
 if __name__ == "__main__":
     print("--- PowerCV Installation Validation ---")
-    results = [
-        check_files(),
-        check_imports(),
-        check_prompts(),
-        check_env()
-    ]
+    results = [check_files(), check_imports(), check_prompts(), check_env()]
 
     if all(results):
         print("\n Installation looks solid!")

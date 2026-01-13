@@ -1,4 +1,5 @@
 """n8n-friendly API endpoints."""
+
 import logging
 import os
 from typing import Optional
@@ -40,10 +41,12 @@ class CVOptimizationRequest(BaseModel):
 
 
 class ProviderSwitchRequest(BaseModel):
-    provider: str = Field(...,
-                          description="AI provider to switch to (deepseek/cerebras/openai)")
+    provider: str = Field(
+        ..., description="AI provider to switch to (deepseek/cerebras/openai)"
+    )
     test_connection: bool = Field(
-        False, description="Whether to test the provider connection")
+        False, description="Whether to test the provider connection"
+    )
 
 
 # Endpoints
@@ -56,15 +59,14 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "PowerCV",
-        "ai_provider": info['provider'],
-        "ai_model": info['model']
+        "ai_provider": info["provider"],
+        "ai_model": info["model"],
     }
 
 
 @router.post("/analyze")
 async def analyze_cv(
-    request: CVAnalysisRequest,
-    api_key: str = Depends(verify_api_key)
+    request: CVAnalysisRequest, api_key: str = Depends(verify_api_key)
 ):
     """Analyze CV against job description.
     Returns quick analysis for n8n workflows.
@@ -78,11 +80,11 @@ async def analyze_cv(
         # Simplified response for n8n
         return {
             "success": True,
-            "ats_score": analysis.get('ats_score', 0),
-            "matched_keywords": analysis['keyword_analysis']['matched_keywords'][:10],
-            "missing_keywords": analysis['keyword_analysis']['missing_critical'][:5],
-            "top_recommendations": analysis['recommendations'][:3],
-            "user_id": request.user_id
+            "ats_score": analysis.get("ats_score", 0),
+            "matched_keywords": analysis["keyword_analysis"]["matched_keywords"][:10],
+            "missing_keywords": analysis["keyword_analysis"]["missing_critical"][:5],
+            "top_recommendations": analysis["recommendations"][:3],
+            "user_id": request.user_id,
         }
 
     except Exception as e:
@@ -92,8 +94,7 @@ async def analyze_cv(
 
 @router.post("/optimize")
 async def optimize_cv(
-    request: CVOptimizationRequest,
-    api_key: str = Depends(verify_api_key)
+    request: CVOptimizationRequest, api_key: str = Depends(verify_api_key)
 ):
     """Full CV optimization workflow for n8n.
     Returns structured JSON for easy n8n processing.
@@ -105,23 +106,23 @@ async def optimize_cv(
         result = orchestrator.optimize_cv_for_job(
             cv_text=request.cv_text,
             jd_text=request.jd_text,
-            generate_cover_letter=request.generate_cover_letter
+            generate_cover_letter=request.generate_cover_letter,
         )
 
         # Format for n8n
         return {
             "success": True,
             "data": {
-                "ats_score": result['ats_score'],
-                "analysis": result['analysis'],
-                "optimized_cv": result.get('optimized_cv', {}),
-                "cover_letter": result.get('cover_letter', {}).get('cover_letter', ''),
-                "user_id": request.user_id
+                "ats_score": result["ats_score"],
+                "analysis": result["analysis"],
+                "optimized_cv": result.get("optimized_cv", {}),
+                "cover_letter": result.get("cover_letter", {}).get("cover_letter", ""),
+                "user_id": request.user_id,
             },
             "metadata": {
-                "processing_time": result.get('processing_time', 0),
-                "model_used": get_ai_client().model
-            }
+                "processing_time": result.get("processing_time", 0),
+                "model_used": get_ai_client().model,
+            },
         }
 
     except Exception as e:
@@ -131,22 +132,20 @@ async def optimize_cv(
 
 @router.post("/switch-provider")
 async def switch_ai_provider(
-    request: ProviderSwitchRequest,
-    api_key: str = Depends(verify_api_key)
+    request: ProviderSwitchRequest, api_key: str = Depends(verify_api_key)
 ):
     """Switch AI provider dynamically.
     Useful for A/B testing in n8n workflows.
     """
     try:
         # Validate provider
-        if request.provider not in ['cerebras', 'openai']:
+        if request.provider not in ["cerebras", "openai"]:
             raise HTTPException(
-                status_code=400,
-                detail="Invalid provider. Choose: cerebras, openai"
+                status_code=400, detail="Invalid provider. Choose: cerebras, openai"
             )
 
         # Set environment variable
-        os.environ['AI_PROVIDER'] = request.provider
+        os.environ["AI_PROVIDER"] = request.provider
 
         # Test new provider if requested
         if request.test_connection:
@@ -157,12 +156,11 @@ async def switch_ai_provider(
                     system_prompt="Test",
                     user_message="Hello",
                     max_tokens=10,
-                    timeout=10
+                    timeout=10,
                 )
                 connection_tested = True
             except Exception as test_error:
-                logger.warning(
-                    f"Provider connection test failed: {test_error}")
+                logger.warning(f"Provider connection test failed: {test_error}")
                 connection_tested = False
         else:
             connection_tested = None
@@ -175,9 +173,9 @@ async def switch_ai_provider(
 
         response = {
             "success": True,
-            "provider": info['provider'],
-            "model": info['model'],
-            "message": f"Switched to {request.provider}"
+            "provider": info["provider"],
+            "model": info["model"],
+            "message": f"Switched to {request.provider}",
         }
 
         if request.test_connection:
@@ -192,8 +190,7 @@ async def switch_ai_provider(
 
 @router.get("/providers")
 async def list_providers(api_key: str = Depends(verify_api_key)):
-    """Get current AI provider information and available providers.
-    """
+    """Get current AI provider information and available providers."""
     try:
         client = get_ai_client()
         info = client.get_provider_info()
@@ -201,22 +198,24 @@ async def list_providers(api_key: str = Depends(verify_api_key)):
         # Check which providers are configured
         available_providers = []
         provider_configs = {
-            'cerebras': {'model': 'gpt-oss-120b', 'key': 'CEREBRAS_API_KEY'},
-            'openai': {'model': 'gpt-4', 'key': 'OPENAI_API_KEY'}
+            "cerebras": {"model": "gpt-oss-120b", "key": "CEREBRAS_API_KEY"},
+            "openai": {"model": "gpt-4", "key": "OPENAI_API_KEY"},
         }
 
         for provider_name, config in provider_configs.items():
-            configured = bool(os.getenv(config['key']))
-            available_providers.append({
-                "name": provider_name,
-                "model": config['model'],
-                "configured": configured
-            })
+            configured = bool(os.getenv(config["key"]))
+            available_providers.append(
+                {
+                    "name": provider_name,
+                    "model": config["model"],
+                    "configured": configured,
+                }
+            )
 
         return {
-            "current_provider": info['provider'],
-            "current_model": info['model'],
-            "available_providers": available_providers
+            "current_provider": info["provider"],
+            "current_model": info["model"],
+            "available_providers": available_providers,
         }
 
     except Exception as e:

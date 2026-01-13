@@ -1,4 +1,3 @@
-
 import hashlib
 import json
 import logging
@@ -13,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class KeywordCache:
     """Simple in-memory cache for keywords to avoid re-extraction."""
+
     _cache = {}
     _ttl = 3600  # 1 hour
 
@@ -32,10 +32,11 @@ class KeywordCache:
 
 
 class UltraFastResumeOptimizer:
-    """Optimizes resume sections in parallel using ThreadPoolExecutor.
-    """
+    """Optimizes resume sections in parallel using ThreadPoolExecutor."""
 
-    def __init__(self, model_name: str, api_key: str, api_base: str, max_workers: int = 5):
+    def __init__(
+        self, model_name: str, api_key: str, api_base: str, max_workers: int = 5
+    ):
         self.model_name = model_name
         self.api_key = api_key
         self.api_base = api_base
@@ -48,7 +49,7 @@ class UltraFastResumeOptimizer:
             temperature=0.2,
             api_key=self.api_key,
             api_base=self.api_base,
-            feature="fast_optimization"
+            feature="fast_optimization",
         )
 
     def optimize_resume(self, resume_data: Dict, job_description: str) -> Dict:
@@ -61,7 +62,8 @@ class UltraFastResumeOptimizer:
         # 1. Extract Keywords (Cached)
         keywords = self._get_keywords(job_description)
         logger.info(
-            f"Keywords extracted: {len(keywords)} in {time.time() - start_time:.2f}s")
+            f"Keywords extracted: {len(keywords)} in {time.time() - start_time:.2f}s"
+        )
 
         # 2. Prepare Tasks
         # We need to optimize: Profile Summary, Experience (each job), Projects (each project)
@@ -71,39 +73,47 @@ class UltraFastResumeOptimizer:
 
         # Task: User Information / Profile Summary
         if "user_information" in resume_data:
-            tasks.append({
-                "type": "summary",
-                "content": resume_data["user_information"],
-                "target": "user_information"
-            })
+            tasks.append(
+                {
+                    "type": "summary",
+                    "content": resume_data["user_information"],
+                    "target": "user_information",
+                }
+            )
 
         # Tasks: Experience (One task per job)
         if "experiences" in resume_data.get("user_information", {}):
             for i, exp in enumerate(resume_data["user_information"]["experiences"]):
-                tasks.append({
-                    "type": "experience",
-                    "content": exp,
-                    "index": i,
-                    "target": "experience"
-                })
+                tasks.append(
+                    {
+                        "type": "experience",
+                        "content": exp,
+                        "index": i,
+                        "target": "experience",
+                    }
+                )
 
         # Tasks: Projects (One task per project)
         if "projects" in resume_data and resume_data["projects"]:
             for i, proj in enumerate(resume_data["projects"]):
-                tasks.append({
-                    "type": "project",
-                    "content": proj,
-                    "index": i,
-                    "target": "project"
-                })
+                tasks.append(
+                    {
+                        "type": "project",
+                        "content": proj,
+                        "index": i,
+                        "target": "project",
+                    }
+                )
 
         # Skills optimization can be done quickly in main thread or parallel, let's parallelize
         if "skills" in resume_data.get("user_information", {}):
-            tasks.append({
-                "type": "skills",
-                "content": resume_data["user_information"]["skills"],
-                "target": "skills"
-            })
+            tasks.append(
+                {
+                    "type": "skills",
+                    "content": resume_data["user_information"]["skills"],
+                    "target": "skills",
+                }
+            )
 
         # 3. Parallel Execution
         results = {}
@@ -135,8 +145,7 @@ class UltraFastResumeOptimizer:
                         results["skills"] = result
 
                 except Exception as e:
-                    logger.error(
-                        f"Error optimizing section {task['type']}: {e}")
+                    logger.error(f"Error optimizing section {task['type']}: {e}")
                     # Fallback to original content?
                     pass
 
@@ -148,8 +157,7 @@ class UltraFastResumeOptimizer:
             # We assume result returns partial update (e.g. updated summary string)
             # Actually, simpler: we update specific fields.
             # Let's say _optimize_section returns a dict of updated fields.
-            optimized_resume["user_information"].update(
-                results["user_information"])
+            optimized_resume["user_information"].update(results["user_information"])
 
         # Update Experiences
         if "experiences" in results:
@@ -170,8 +178,7 @@ class UltraFastResumeOptimizer:
         if "skills" in results:
             optimized_resume["user_information"]["skills"] = results["skills"]
 
-        logger.info(
-            f"Total optimization time: {time.time() - start_time:.2f}s")
+        logger.info(f"Total optimization time: {time.time() - start_time:.2f}s")
         return optimized_resume
 
     def _get_keywords(self, job_description: str) -> List[str]:
@@ -235,7 +242,8 @@ class UltraFastResumeOptimizer:
             try:
                 # Extract JSON list
                 import re
-                match = re.search(r'\[.*\]', response, re.DOTALL)
+
+                match = re.search(r"\[.*\]", response, re.DOTALL)
                 if match:
                     new_tasks = json.loads(match.group(0))
                     # Ensure constraints (1-6 items)
@@ -264,7 +272,8 @@ class UltraFastResumeOptimizer:
             response = self.llm.invoke(prompt).content
             try:
                 import re
-                match = re.search(r'\[.*\]', response, re.DOTALL)
+
+                match = re.search(r"\[.*\]", response, re.DOTALL)
                 if match:
                     new_goals = json.loads(match.group(0))
                     content_copy = content.copy()
@@ -291,7 +300,8 @@ class UltraFastResumeOptimizer:
             response = self.llm.invoke(prompt).content
             try:
                 import re
-                match = re.search(r'\{.*\}', response, re.DOTALL)
+
+                match = re.search(r"\{.*\}", response, re.DOTALL)
                 if match:
                     new_skills = json.loads(match.group(0))
                     return new_skills

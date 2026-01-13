@@ -1,4 +1,5 @@
 """Secure application settings configuration."""
+
 from functools import lru_cache
 from typing import Optional
 
@@ -15,7 +16,9 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Security
-    secret_key: str = "development-secret-key-change-in-production"  # Must be set in environment for production
+    secret_key: str = (
+        "development-secret-key-change-in-production"  # Must be set in environment for production
+    )
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
 
@@ -65,6 +68,7 @@ class Settings(BaseSettings):
 
     class Config:
         """Pydantic configuration."""
+
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True  # Strict case-sensitive environment variables
@@ -81,7 +85,7 @@ class Settings(BaseSettings):
             "OPENAI_API_KEY_UPPER",
             "mongodb_uri",
             "redis_url",
-            "sentry_dsn"
+            "sentry_dsn",
         }
 
     def __repr__(self):
@@ -99,14 +103,15 @@ class Settings(BaseSettings):
         """Get database configuration (without exposing credentials in logs)."""
         return {
             "uri": self._mask_mongodb_uri(self.mongodb_uri),
-            "database": self.database_name
+            "database": self.database_name,
         }
 
     @staticmethod
     def _mask_mongodb_uri(uri: str) -> str:
         """Mask credentials in MongoDB URI for safe logging."""
         import re
-        return re.sub(r'://([^:]+):([^@]+)@', '://***:***@', uri)
+
+        return re.sub(r"://([^:]+):([^@]+)@", "://***:***@", uri)
 
 
 @lru_cache

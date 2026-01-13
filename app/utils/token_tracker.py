@@ -17,6 +17,7 @@ from langchain_openai import ChatOpenAI
 
 try:
     from langchain_ollama import ChatOllama
+
     HAS_OLLAMA = True
 except ImportError:
     HAS_OLLAMA = False
@@ -33,9 +34,8 @@ MODEL_PRICING = {
     # CerebrasAI GPT-OSS models
     "gpt-oss-120b": {"input": 0.70, "output": 0.80},
     "gpt-oss-20b": {"input": 0.35, "output": 0.45},
-
     # Default model (gpt-oss-120b)
-    "default": {"input": 0.70, "output": 0.80}
+    "default": {"input": 0.70, "output": 0.80},
 }
 
 
@@ -51,7 +51,7 @@ class TokenUsageCallback(BaseCallbackHandler):
         feature: str,
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ):
         """Initialize the token usage callback handler.
 
@@ -106,7 +106,7 @@ class TokenUsageCallback(BaseCallbackHandler):
             request_id=self.request_id,
             status=self.status,
             cost_usd=cost,
-            metadata=self.metadata
+            metadata=self.metadata,
         )
 
     def on_llm_error(self, error, **kwargs):
@@ -122,8 +122,7 @@ class TokenUsageCallback(BaseCallbackHandler):
         Returns:
             float: The calculated cost in USD
         """
-        model_prices = MODEL_PRICING.get(
-            self.model_name, MODEL_PRICING["default"])
+        model_prices = MODEL_PRICING.get(self.model_name, MODEL_PRICING["default"])
 
         # Convert from price per 1M tokens to price per token
         input_price_per_token = model_prices["input"] / 1_000_000
@@ -153,7 +152,7 @@ class TokenTracker:
         feature: str,
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> TokenUsageCallback:
         """Create a LangChain callback handler for token tracking.
 
@@ -167,10 +166,7 @@ class TokenTracker:
             A LangChain callback handler configured for token tracking
         """
         return TokenUsageCallback(
-            feature=feature,
-            user_id=user_id,
-            request_id=request_id,
-            metadata=metadata
+            feature=feature, user_id=user_id, request_id=request_id, metadata=metadata
         )
 
     @classmethod
@@ -184,7 +180,7 @@ class TokenTracker:
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
         metadata: Optional[dict] = None,
-        **kwargs
+        **kwargs,
     ):
         """Create a LangChain LLM instance with token tracking.
 
@@ -207,22 +203,20 @@ class TokenTracker:
         """
         # Create the token tracking callback
         callback = cls.create_langchain_callback(
-            feature=feature,
-            user_id=user_id,
-            request_id=request_id,
-            metadata=metadata
+            feature=feature, user_id=user_id, request_id=request_id, metadata=metadata
         )
 
-        provider = (os.getenv("API_TYPE") or os.getenv(
-            "LLM_PROVIDER") or "").lower()
+        provider = (os.getenv("API_TYPE") or os.getenv("LLM_PROVIDER") or "").lower()
         cerebras_key = os.getenv("CEREBRAS_API_KEY")
         forced_provider = (os.getenv("FORCE_LLM_PROVIDER") or "").lower()
 
         # Prefer Cerebras whenever it is configured, to avoid accidentally routing to a leftover
         # local Ollama base URL (e.g. API_BASE=http://localhost:11434). You can force local
         # behavior explicitly via FORCE_LLM_PROVIDER=ollama (or local).
-        force_local = forced_provider in {
-            "ollama", "local"} or provider in {"ollama", "local"}
+        force_local = forced_provider in {"ollama", "local"} or provider in {
+            "ollama",
+            "local",
+        }
         if cerebras_key and not force_local:
             if not api_key:
                 api_key = cerebras_key
@@ -256,14 +250,15 @@ class TokenTracker:
         if is_ollama:
             if not HAS_OLLAMA:
                 logger.warning(
-                    "langchain-ollama not installed, falling back to ChatOpenAI")
+                    "langchain-ollama not installed, falling back to ChatOpenAI"
+                )
                 return ChatOpenAI(
                     model_name=model_name,
                     temperature=temperature,
                     openai_api_key=api_key,
                     openai_api_base=effective_api_base,
                     callbacks=[callback],
-                    **kwargs
+                    **kwargs,
                 )
 
             # Use ChatOllama for local models
@@ -276,7 +271,7 @@ class TokenTracker:
                 base_url=ollama_base_url,
                 temperature=temperature,
                 callbacks=[callback],
-                **kwargs
+                **kwargs,
             )
         else:
             # Use ChatOpenAI for cloud models
@@ -286,7 +281,7 @@ class TokenTracker:
                 openai_api_key=api_key,
                 openai_api_base=effective_api_base,
                 callbacks=[callback],
-                **kwargs
+                **kwargs,
             )
 
     @classmethod
@@ -302,7 +297,7 @@ class TokenTracker:
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
         status: str = "success",
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> None:
         """Log token usage from an API call.
 
@@ -331,7 +326,7 @@ class TokenTracker:
             feature=feature,
             status=status,
             cost_usd=cost_usd,
-            metadata=metadata
+            metadata=metadata,
         )
 
         # Store the usage record
@@ -349,7 +344,7 @@ class TokenTracker:
         cls,
         days: int = 30,
         feature: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> TokenUsageSummary:
         """Generate a summary of token usage for the specified period.
 
@@ -366,17 +361,17 @@ class TokenTracker:
 
         # Filter records by date and optional parameters
         filtered_records = [
-            r for r in cls._token_usage_records
-            if r.timestamp >= period_start and
-            (feature is None or r.feature == feature) and
-            (user_id is None or r.user_id == user_id)
+            r
+            for r in cls._token_usage_records
+            if r.timestamp >= period_start
+            and (feature is None or r.feature == feature)
+            and (user_id is None or r.user_id == user_id)
         ]
 
         # Initialize counters
         total_api_calls = len(filtered_records)
         total_prompt_tokens = sum(r.prompt_tokens for r in filtered_records)
-        total_completion_tokens = sum(
-            r.completion_tokens for r in filtered_records)
+        total_completion_tokens = sum(r.completion_tokens for r in filtered_records)
         total_tokens = sum(r.total_tokens for r in filtered_records)
         total_cost_usd = sum(r.cost_usd for r in filtered_records)
 
@@ -392,12 +387,14 @@ class TokenTracker:
                     "prompt_tokens": 0,
                     "completion_tokens": 0,
                     "total_tokens": 0,
-                    "cost_usd": 0.0
+                    "cost_usd": 0.0,
                 }
 
             usage_by_model[record.llm_model]["calls"] += 1
             usage_by_model[record.llm_model]["prompt_tokens"] += record.prompt_tokens
-            usage_by_model[record.llm_model]["completion_tokens"] += record.completion_tokens
+            usage_by_model[record.llm_model][
+                "completion_tokens"
+            ] += record.completion_tokens
             usage_by_model[record.llm_model]["total_tokens"] += record.total_tokens
             usage_by_model[record.llm_model]["cost_usd"] += record.cost_usd
 
@@ -408,12 +405,14 @@ class TokenTracker:
                     "prompt_tokens": 0,
                     "completion_tokens": 0,
                     "total_tokens": 0,
-                    "cost_usd": 0.0
+                    "cost_usd": 0.0,
                 }
 
             usage_by_feature[record.feature]["calls"] += 1
             usage_by_feature[record.feature]["prompt_tokens"] += record.prompt_tokens
-            usage_by_feature[record.feature]["completion_tokens"] += record.completion_tokens
+            usage_by_feature[record.feature][
+                "completion_tokens"
+            ] += record.completion_tokens
             usage_by_feature[record.feature]["total_tokens"] += record.total_tokens
             usage_by_feature[record.feature]["cost_usd"] += record.cost_usd
 
@@ -427,7 +426,7 @@ class TokenTracker:
             period_start=period_start,
             period_end=datetime.utcnow(),
             usage_by_model=usage_by_model,
-            usage_by_feature=usage_by_feature
+            usage_by_feature=usage_by_feature,
         )
 
     @classmethod

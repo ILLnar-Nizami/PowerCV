@@ -9,7 +9,7 @@ from .template_generator import CoverLetterTemplateGenerator
 from .templates import CoverLetterTemplates
 
 __all__ = [
-    "CoverLetterTemplateGenerator", 
+    "CoverLetterTemplateGenerator",
     "CoverLetterTemplates",
-    "AICoverLetterGenerator"
+    "AICoverLetterGenerator",
 ]

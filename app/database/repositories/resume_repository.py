@@ -95,12 +95,15 @@ class ResumeRepository(BaseRepository):
             return False
 
     async def update_optimized_data(
-        self, resume_id: str, optimized_data: ResumeData, ats_score: int,
+        self,
+        resume_id: str,
+        optimized_data: ResumeData,
+        ats_score: int,
         original_ats_score: Optional[int] = None,
         matching_skills: Optional[List[str]] = None,
         missing_skills: Optional[List[str]] = None,
         score_improvement: Optional[int] = None,
-        recommendation: Optional[str] = None
+        recommendation: Optional[str] = None,
     ) -> bool:
         """Update a resume with AI-optimized data and ATS scores.
 
@@ -125,8 +128,9 @@ class ResumeRepository(BaseRepository):
             if original_ats_score is not None and ats_score < original_ats_score:
                 # Apply a correction factor to account for format differences
                 # This ensures the optimization doesn't appear to reduce the score
-                format_correction = original_ats_score - \
-                    ats_score + 5  # Add a small improvement margin
+                format_correction = (
+                    original_ats_score - ats_score + 5
+                )  # Add a small improvement margin
                 corrected_ats_score = original_ats_score + format_correction
 
                 # Cap at 100 to keep within valid score range
