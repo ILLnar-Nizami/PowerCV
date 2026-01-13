@@ -15,14 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class AIClient:
-    """Supports Cerebras (primary), OpenAI, and Deepseek (legacy fallback)."""
+    """Supports Cerebras (primary) and OpenAI."""
 
     CONFIGS = {
-        "deepseek": {
-            "base": "https://api.deepseek.com/v1",
-            "model": "deepseek-chat",
-            "key": "API_KEY",
-        },
         "cerebras": {
             "base": "https://api.cerebras.ai/v1",
             "model": "gpt-oss-120b",

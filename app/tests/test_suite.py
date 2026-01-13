@@ -3,6 +3,7 @@
 import pytest
 import json
 from pathlib import Path
+from typing import Dict, Any
 from unittest.mock import Mock, patch, AsyncMock
 from fastapi.testclient import TestClient
 import sys
@@ -154,14 +155,14 @@ Requirements:
 # =============================================================================
 
 
-def create_mock_ai_client(response: dict):
+def create_mock_ai_client(response: Dict[str, Any]):
     """Create a mock AI client for testing."""
     mock_client = Mock()
     mock_client.chat_completion = Mock(return_value=json.dumps(response))
     return mock_client
 
 
-def create_mock_ai_client_async(response: dict):
+def create_mock_ai_client_async(response: Dict[str, Any]):
     """Create a mock async AI client for testing."""
     mock_client = AsyncMock()
     mock_client.chat_completion = AsyncMock(return_value=json.dumps(response))
@@ -176,7 +177,7 @@ def create_mock_ai_client_async(response: dict):
 class TestCVAnalyzer:
     """Tests for CV Analyzer service."""
 
-    def test_analyze_structure(self, sample_cv_text, sample_jd_text, mock_ai_response):
+    def test_analyze_structure(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
         """Test that analyzer returns proper structure."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -193,7 +194,7 @@ class TestCVAnalyzer:
             assert "experience_analysis" in result
             assert "skill_gaps" in result
 
-    def test_ats_score_range(self, sample_cv_text, sample_jd_text, mock_ai_response):
+    def test_ats_score_range(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
         """Test that ATS score is within valid range."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -207,7 +208,7 @@ class TestCVAnalyzer:
             assert 0 <= result["ats_score"] <= 100
 
     def test_keyword_analysis_structure(
-        self, sample_cv_text, sample_jd_text, mock_ai_response
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test keyword analysis has required fields."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
@@ -224,7 +225,7 @@ class TestCVAnalyzer:
             assert "missing_critical" in keyword_analysis
             assert "missing_nice_to_have" in keyword_analysis
 
-    def test_ai_client_called(self, sample_cv_text, sample_jd_text, mock_ai_response):
+    def test_ai_client_called(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
         """Test that AI client is called with correct parameters."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -245,7 +246,7 @@ class TestCVAnalyzer:
             assert sample_cv_text in call_args.kwargs["user_message"]
             assert sample_jd_text in call_args.kwargs["user_message"]
 
-    def test_empty_cv_handling(self, sample_jd_text, mock_ai_response):
+    def test_empty_cv_handling(self, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
         """Test that empty CV is handled gracefully."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -269,7 +270,7 @@ class TestCVOptimizer:
     """Tests for CV Optimizer service."""
 
     def test_optimizer_returns_dict(
-        self, sample_cv_text, sample_jd_text, mock_ai_response
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimizer returns dictionary."""
         with patch("app.services.cv_optimizer.get_ai_client") as mock_get_client:
@@ -286,7 +287,7 @@ class TestCVOptimizer:
             assert isinstance(result, dict)
 
     def test_optimization_contains_optimized_resume(
-        self, sample_cv_text, sample_jd_text, mock_ai_response
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimization result contains optimized resume."""
         with patch("app.services.cv_optimizer.get_ai_client") as mock_get_client:
@@ -317,7 +318,7 @@ class TestJobScraper:
     """Tests for Job Description Scraper service."""
 
     @pytest.mark.asyncio
-    async def test_linkedin_scraper_extracts_data(self, mock_scraper_response):
+    async def test_linkedin_scraper_extracts_data(self, mock_scraper_response: Dict[str, Any]):
         """Test LinkedIn scraper extracts required fields."""
         with patch("app.services.scraper.LinkedInScraper.fetch") as mock_fetch:
             mock_fetch.return_value = mock_scraper_response
@@ -333,7 +334,7 @@ class TestJobScraper:
             assert result["source"] == "linkedin"
 
     @pytest.mark.asyncio
-    async def test_indeed_scraper_extracts_data(self, mock_scraper_response):
+    async def test_indeed_scraper_extracts_data(self, mock_scraper_response: Dict[str, Any]):
         """Test Indeed scraper extracts required fields."""
         with patch("app.services.scraper.IndeedScraper.fetch") as mock_fetch:
             mock_fetch.return_value = {**mock_scraper_response, "source": "indeed"}
@@ -380,7 +381,7 @@ class TestJobScraper:
         assert isinstance(scraper, GenericScraper)
 
     @pytest.mark.asyncio
-    async def test_extract_keywords_from_jd(self, sample_jd_text):
+    async def test_extract_keywords_from_jd(self, sample_jd_text: str):
         """Test keyword extraction from job description."""
         from app.services.scraper import extract_keywords_from_jd
 
@@ -399,7 +400,7 @@ class TestJobScraper:
 class TestCoverLetterGenerator:
     """Tests for Cover Letter Generator service."""
 
-    def test_generate_returns_dict(self, mock_ai_response):
+    def test_generate_returns_dict(self, mock_ai_response: Dict[str, Any]):
         """Test that cover letter generator returns dictionary."""
         mock_cover_response = {
             "cover_letter": "Dear Hiring Manager,\n\nI am writing to express my interest...",
@@ -436,7 +437,7 @@ class TestCoverLetterGenerator:
             assert isinstance(result, dict)
             assert "cover_letter" in result
 
-    def test_generate_with_tone(self, mock_ai_response):
+    def test_generate_with_tone(self, mock_ai_response: Dict[str, Any]):
         """Test cover letter generation with different tones."""
         mock_cover_response = {
             "cover_letter": "Excited to apply for this position...",
@@ -470,7 +471,7 @@ class TestWorkflowOrchestrator:
     """Tests for CV Workflow Orchestrator."""
 
     def test_optimize_workflow_returns_structure(
-        self, sample_cv_text, sample_jd_text, mock_ai_response
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimization workflow returns complete structure."""
         # Mock all dependencies
@@ -521,7 +522,7 @@ class TestWorkflowOrchestrator:
             assert "ats_score" in result
 
     def test_optimize_workflow_without_cover_letter(
-        self, sample_cv_text, sample_jd_text, mock_ai_response
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test workflow without cover letter generation."""
         with patch(
@@ -574,7 +575,7 @@ class TestMasterCV:
         assert "skills" in cv.data
         assert "education" in cv.data
 
-    def test_cv_to_markdown(self, sample_cv_text):
+    def test_cv_to_markdown(self, sample_cv_text: str):
         """Test CV to Markdown conversion."""
         from app.services.master_cv import MasterCV
 
@@ -703,20 +704,20 @@ class TestAPIEndpoints:
 
         return TestClient(app, raise_server_exceptions=False)
 
-    def test_health_endpoint(self, test_client):
+    def test_health_endpoint(self, test_client: TestClient):
         """Test health endpoint returns 200."""
         response = test_client.get("/health")
 
         # May return 404 if endpoint doesn't exist, but should be healthy
         assert response.status_code in [200, 404]
 
-    def test_docs_endpoint(self, test_client):
+    def test_docs_endpoint(self, test_client: TestClient):
         """Test API docs endpoint exists."""
         response = test_client.get("/docs")
 
         assert response.status_code == 200
 
-    def test_optimize_endpoint_exists(self, test_client):
+    def test_optimize_endpoint_exists(self, test_client: TestClient):
         """Test optimization endpoint exists."""
         # Check if v2 optimize endpoint exists
         response = test_client.get("/openapi.json")

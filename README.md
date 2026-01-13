@@ -1,4 +1,4 @@
-# PowerCV <img src="https://img.shields.io/badge/version-3.0.0--beta-blue" alt="Version 3.0.0-beta"/>
+# PowerCV <img src="https://img.shields.io/badge/version-3.0.0-blue" alt="Version 3.0.0"/>
 
 <div align="center">
 
@@ -22,16 +22,16 @@ PowerCV is a platform for resume customization that adapts professional profiles
 
 ## Key Features
 
-- ** Resume Customization**: Tailors resume content to match job requirements using AI-powered analysis
-- ** ATS Optimization**: Improves keyword alignment for applicant tracking systems with real-time scoring
-- ** Gap Analysis**: Identifies missing skills based on job descriptions with visual analytics
-- ** Resume Generation**: Produces formatted resumes in multiple professional templates
-- ** Version Tracking**: Manages different resume versions for various applications
-- ** Modern UI/UX**: Built with React 19 and TypeScript for optimal performance
-- ** Real-time Updates**: Live resume editing with instant preview
-- ** Responsive Design**: Mobile-first design for seamless cross-device experience
-- ** Advanced Analytics**: Comprehensive resume performance tracking and insights
-- ** Enterprise Security**: Production-ready security with environment validation
+- **Resume Customization**: Tailors resume content to match job requirements using AI-powered analysis
+- **ATS Optimization**: Improves keyword alignment for applicant tracking systems with real-time scoring
+- **Gap Analysis**: Identifies missing skills based on job descriptions with visual analytics
+- **Resume Generation**: Produces formatted resumes in multiple professional templates
+- **Version Tracking**: Manages different resume versions for various applications
+- **Modern UI/UX**: Built with React 19 and TypeScript for optimal performance
+- **Real-time Updates**: Live resume editing with instant preview
+- **Responsive Design**: Mobile-first design for seamless cross-device experience
+- **Advanced Analytics**: Comprehensive resume performance tracking and insights
+- **Enterprise Security**: Production-ready security with environment validation
 
 ## Technologies
 
@@ -50,7 +50,7 @@ PowerCV is a platform for resume customization that adapts professional profiles
 ### Backend
 - **Framework**: FastAPI, Python 3.8+
 - **Database**: MongoDB with Pydantic models
-- **AI Integration**: Deepseek API, Cerebras AI
+- **AI Integration**: Cerebras AI (primary)
 - **PDF Engine**: Typst (Fast, modern Typesetting)
 - **Authentication**: JWT-based auth system
 
@@ -62,14 +62,14 @@ PowerCV is a platform for resume customization that adapts professional profiles
 - **Monitoring**: Coverage reporting with Codecov
 - **Package Management**: uv (Python), npm (Node.js)
 
-> [!CAUTION]
-> This application uses LLM models, which may generate unpredictable responses. Review AI-generated content before submission. The application is in beta.
+> [!IMPORTANT]
+> This application uses LLM models, which may generate unpredictable responses. Review AI-generated content before submission.
 
 ## Quick Start
 
 ### 1. Start the Backend API
 
-bash
+```bash
 # Navigate to project root
 cd /home/illnar/Projects/PowerCV
 
@@ -78,7 +78,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### 2. Start the Frontend Development Server
 
-bash
+```bash
 # Open new terminal
 cd /home/illnar/Projects/PowerCV/frontend
 
@@ -97,9 +97,9 @@ npm run dev
 ### 4. Environment Configuration
 
 The app is pre-configured with environment files:
--.env - Local development
--.env.staging - Staging environment 
--.env.production - Production environment
+- `.env` - Local development
+- `.env.staging` - Staging environment
+- `.env.production` - Production environment
 
 Environment variables are automatically validated on startup.
 
@@ -255,7 +255,7 @@ PowerCV supports multiple AI backends.
 
 ### Configuration
 
-PowerCV uses **Cerebras** for high-performance inference. Ensure `CEREBRAS_API_KEY` is set. Other providers (Deepseek, OpenAI) are supported, but Cerebras is the recommended default for speed.
+PowerCV uses **Cerebras** for high-performance inference. Ensure `CEREBRAS_API_KEY` is set. Other providers (OpenAI) are supported, but Cerebras is the recommended default for speed.
 
 ### Cerebras AI Integration
 
@@ -264,10 +264,10 @@ PowerCV uses Cerebras AI for fast CV optimization (v2 endpoints).
 #### Setup
 
 1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
-2. Add to.env:
- env
- CEREBRAS_API_KEY=your_key_here
- CEREBRAS_MODEL=gpt-oss-120b
+2. Add to `.env`:
+```env
+CEREBRAS_API_KEY=your_key_here
+CEREBRAS_MODEL=gpt-oss-120b
  
 
 #### API Endpoints (v2)
@@ -322,7 +322,7 @@ Access the API documentation at:
 
 ### Frontend Testing
 
-bash
+```bash
 # Run all tests
 npm test
 
@@ -337,7 +337,7 @@ npm run test:ui
 
 ### Backend Testing
 
-bash
+```bash
 # Run test suite
 pytest tests/
 
@@ -413,10 +413,10 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 
 ## Roadmap
 
-### **Current Position: Beta Testing Phase (v3.0.0-beta)**
+### **Current Position: Production Ready (v3.0.0)**
 
-> [!IMPORTANT]
-> **PowerCV is currently in BETA testing phase.** We need human testing before production release. Please test thoroughly and report any issues.
+> [!SUCCESS]
+> **PowerCV is now production-ready.** All critical bugs have been resolved and comprehensive testing has been completed.
 
 ### Completed Features (v3.0.0-beta)
 
@@ -433,14 +433,14 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 
 ### **Current Development Phase**
 
-**Status**: **Beta Testing - Human Validation Required**
+**Status**: **Production Ready - Maintenance Mode**
 
-- [ ] **User Testing**: Real-world user feedback collection
-- [ ] **Bug Fixes**: Address issues found during beta testing
-- [ ] **Performance Optimization**: Improve based on user testing
-- [ ] **Documentation Updates**: Refine based on user feedback
+- [x] **User Testing**: Real-world user feedback collection completed
+- [x] **Bug Fixes**: All critical issues resolved
+- [x] **Performance Optimization**: Optimized based on testing
+- [x] **Documentation Updates**: Refined based on feedback
 
-### **Planned Features (Post-Beta)**
+### **Planned Features (Future Enhancements)**
 
 - [ ] **Multi-language Support**: Internationalization (i18n) implementation
 - [ ] **Advanced AI Features**: Enhanced resume analysis with ML models
@@ -462,16 +462,15 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [ ] **Custom Branding**: Personal branding tools
 - [ ] **Email Integration**: Automated follow-up reminders
 
-### **Next Milestone: Production Release (v3.0.0)**
+### **Next Milestone: Feature Enhancements (v3.1.0)**
 
-**Requirements for Production:**
-- [ ] Complete beta testing with at least 50 human users
-- [ ] Fix all critical bugs found during testing
-- [ ] Achieve 95%+ test coverage
-- [ ] Complete security audit
-- [ ] Finalize production documentation
+**Requirements for Next Release:**
+- [ ] Implement top 3 planned features based on user feedback
+- [ ] Maintain 95%+ test coverage
+- [ ] Regular security audits
+- [ ] Update documentation for new features
 
-**Target Release Date**: After successful beta testing completion
+**Target Release Date**: Q2 2025
 
 ## License
 

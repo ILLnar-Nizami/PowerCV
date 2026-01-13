@@ -51,21 +51,14 @@ class TemplateConfig:
 
     # Alias mappings for template selection
     ALIASES = {
-        # Legacy aliases
-        "classic": "resume.typ",
-        "simple": "resume.typ",
         # Template-specific aliases
         "modern": "modern.typ",
         "brilliant-cv": "brilliant-cv/cv.typ",
         "brilliant": "brilliant-cv/cv.typ",
-        "awesome-cv": "awesome-cv/cv.tex",
-        "awesome": "awesome-cv/cv.tex",
         "simple-xd-resume": "simple-xd-resume/cv.typ",
-        "simple-xd": "simple-xd-resume/cv.typ",
-        "xd": "simple-xd-resume/cv.typ",
         "rendercv-classic": "rendercv-classic/cv.typ",
-        "rendercv": "rendercv-classic/cv.typ",
         "rendercv-modern": "rendercv-modern/cv.typ",
+        "rendercv": "rendercv-classic/cv.typ",
     }
 
     @classmethod

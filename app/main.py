@@ -20,7 +20,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers.comprehensive_optimizer import comprehensive_router
 from app.api.routers.cover_letter import cover_letter_router
-from app.api.routers.resume import resume_router, ResumeRepository
+from app.api.routers.resume import ResumeRepository, resume_router
 from app.api.routers.token_usage import router as token_usage_router
 from app.config.logging_config import logger
 from app.config.settings import get_settings
@@ -35,10 +35,6 @@ from app.services.master_cv import MasterCV
 from app.services.scraper import extract_keywords_from_jd
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.utils.error_handler import ErrorContext, ErrorHandler, debug_endpoint
-
-# Legacy web routes removed - frontend is now React + Vite
-# from app.web.core import core_web_router
-# from app.web.dashboard import web_router
 
 # Load environment variables from .env file
 load_dotenv(override=True)
@@ -173,7 +169,7 @@ async def shutdown_logic(app: FastAPI) -> None:
 app = FastAPI(
     title="PowerCV API",
     summary="",
-    description=""" 
+    description="""
     PowerCV is a resume generation system that adapts resumes to specific job descriptions.
     It leverages AI to provide customized resume content based on user input.
     """,
@@ -601,7 +597,7 @@ async def generate_cover_letter_v2(request: CoverLetterRequest):
         )
 
 
-# Legacy/General endpoints
+# General endpoints
 
 
 @app.post("/api/optimize-resume", response_model=OptimizationResponse)
@@ -796,9 +792,6 @@ app.include_router(token_usage_router)
 app.include_router(comprehensive_router)
 # Add n8n integration endpoints
 app.include_router(n8n_router)
-# Legacy web routers removed - frontend is now React + Vite
-# app.include_router(core_web_router)
-# app.include_router(web_router)
 
 
 # Catch-all for not found pages - IMPORTANT: This must come AFTER including all routers

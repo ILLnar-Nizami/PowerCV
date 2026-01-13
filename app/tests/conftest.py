@@ -66,9 +66,6 @@ def mock_env_vars():
         "CEREBRAS_API_KEY": "sk-mock-cerebras-key",
         "CEREBRAS_API_BASE": "https://api.cerebras.ai/v1",
         "CEREBRAS_MODEL": "gpt-oss-120b",
-        "API_KEY": "dummy",  # Deprecated deepseek key
-        "API_BASE": "https://api.deepseek.com/v1",
-        "MODEL_NAME": "deepseek-chat",
         "OPENAI_API_KEY": "",
         "OPENAI_API_BASE": "https://api.openai.com/v1",
         "MONGODB_URI": "mongodb://localhost:27017/powercv-test",
