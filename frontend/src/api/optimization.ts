@@ -50,8 +50,8 @@ async function getCvText(request: OptimizationRequest): Promise<string> {
       reader.readAsText(request.uploadedFile as File)
     })
   } else if (request.sourceType === 'master_cv' && request.sourceId) {
-    const { data } = await apiClient.get(`/master-cv/${request.sourceId}`)
-    return data.cv_text || ''
+    const { data } = await apiClient.get(`/resume/master-cv/${request.sourceId}`)
+    return data.master_content || ''
   }
   throw new Error('Invalid request: missing CV source')
 }
@@ -120,9 +120,13 @@ export const optimizationAPI = {
       template: templatePath
     }
 
+    const analysisPayload = {
+      job_description: request.jobDescription,
+      resume_text: cvText
+    }
     const { data } = await apiClient.post<BackendAnalysisResponse>(
-      '/v2/analyze',
-      payload
+      '/comprehensive/analyze/ats',
+      analysisPayload
     )
     return transformAnalysisResponse(data)
   },
@@ -146,9 +150,16 @@ export const optimizationAPI = {
       template: templatePath
     }
 
+    const optimizePayload = {
+      target_role: request.position || 'Professional',
+      job_description: request.jobDescription,
+      resume_text: cvText,
+      target_company: request.company || '',
+      focus_area: 'backend/data/DevOps/leadership'
+    }
     const { data } = await apiClient.post(
-      '/v2/optimize',
-      payload
+      '/comprehensive/optimize/master',
+      optimizePayload
     )
     return transformOptimizationResponse(data)
   },
@@ -172,9 +183,16 @@ export const optimizationAPI = {
       template: templatePath
     }
 
+    const compPayload = {
+      target_role: request.position || 'Professional',
+      job_description: request.jobDescription,
+      resume_text: cvText,
+      target_company: request.company || '',
+      focus_area: 'backend/data/DevOps/leadership'
+    }
     const { data } = await apiClient.post<Record<string, unknown>>(
-      '/comprehensive-optimize',
-      payload
+      '/comprehensive/optimize/master',
+      compPayload
     )
     return data
   },

@@ -75,14 +75,14 @@ Languages: English (Highly proficient), Russian (Native), Tatar (Native)"""
         """Initialize the comprehensive optimizer.
 
         Args:
-            model_name: OpenAI model name to use
-            api_key: OpenAI API key
-            api_base: OpenAI API base URL
+            model_name: Model name to use
+            api_key: API key for the AI provider
+            api_base: API base URL
             user_id: User ID for tracking
         """
         self.model_name = model_name or os.getenv("API_MODEL_NAME", "gpt-oss-120b")
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.api_base = api_base or os.getenv("OPENAI_API_BASE")
+        self.api_key = api_key or os.getenv("CEREBRAS_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.api_base = api_base or os.getenv("CEREBRAS_API_BASE") or os.getenv("OPENAI_API_BASE")
         self.user_id = user_id
         self.llm = self._get_openai_model()
         self.output_parser = JsonOutputParser()
@@ -195,6 +195,16 @@ Job Description:
 Resume:
 {{resume_text}}
 
+IMPORTANT: Return ONLY valid JSON. Do NOT include markdown, explanations, or formatting.
+
+Required JSON structure with these exact keys:
+- keywords: array of strings
+- matching_skills: array of strings
+- missing_skills: array of strings
+- gaps: array of strings
+- recommendation: string
+- ats_score: number
+
 1) Extract 20 keywords from JD, categorize, prioritize
 2) Table: Keyword | Priority | Coverage | Fix
 3) Bullet-level rewrite suggestions for top 5 gaps
@@ -248,7 +258,7 @@ Resume:
 {{resume_text}}
 
 1) Results-focused ($$/ROI/business impact)
-2) Leadership-focused (teams/mentoring/collaboration)  
+2) Leadership-focused (teams/mentoring/collaboration)
 3) Technical-depth (architecture/scale/innovation)
 
 Each: summary + 4 bullets + when to use.
