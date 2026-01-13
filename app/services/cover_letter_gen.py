@@ -70,22 +70,37 @@ Requirements: {', '.join(job_data.get('requirements', []))}
 {tone}
 """
 
-        # Call AI API
-        response = self.client.chat_completion(
-            system_prompt=CoverLetterGenerator._system_prompt,
-            user_message=user_message,
-            temperature=0.7,  # Higher temp for creative writing
-            max_tokens=1500,
-        )
+        # Call AI API with rate limit handling
+        try:
+            response = self.client.chat_completion(
+                system_prompt=CoverLetterGenerator._system_prompt,
+                user_message=user_message,
+                temperature=0.7,  # Higher temp for creative writing
+                max_tokens=1500,
+            )
 
-        # Parse JSON response with fallback
-        fallback_result = self._get_fallback_result(tone)
-        result = JSONParser.safe_json_parse(response, fallback_result)
+            # Parse JSON response with fallback
+            fallback_result = self._get_fallback_result(tone)
+            result = JSONParser.safe_json_parse(response, fallback_result)
 
-        logger.info(
-            f"Cover letter generated successfully ({len(result.get('cover_letter', ''))} chars)"
-        )
-        return result
+            logger.info(
+                f"Cover letter generated successfully ({len(result.get('cover_letter', ''))} chars)"
+            )
+            return result
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
+                logger.warning("AI service rate limit exceeded for cover letter generation")
+                # Return a basic fallback instead of retrying
+                return {
+                    "cover_letter": f"Dear Hiring Manager,\n\nI am writing to express my interest in the {job_data.get('position', 'position')} role at {job_data.get('company', 'Company')}. With my background and skills, I am confident I can contribute effectively to your team.\n\nPlease consider my application. I look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\n{candidate_data.get('name', 'Candidate')}",
+                    "word_count": 100,
+                    "tone": tone,
+                }
+            else:
+                logger.error(f"Error generating cover letter: {str(e)}")
+                return self._get_fallback_result(tone)
 
     def _format_achievements(self, achievements: List[str]) -> str:
         """Format achievements list for the prompt.

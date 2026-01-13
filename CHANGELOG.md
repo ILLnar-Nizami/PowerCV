@@ -1,8 +1,8 @@
-# Changelog - Comprehensive ATS & Cover Letter Fixes 2026-01-13
+# Changelog - Rate Limit Handling & Optimization Stability 2026-01-14
 
-Fixed ATS score not updating after optimization by enabling proper score recalculation. Corrected CV and cover letter download filenames to follow {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter generation by enabling generation flag and proper database storage. Enhanced PDF generation with data validation to prevent formatting issues.
+Fixed ATS score not updating after optimization by enabling proper score recalculation. Corrected CV and cover letter download filenames to follow {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter generation by enabling generation flag and proper database storage. Enhanced PDF generation with data validation to prevent formatting issues. Added comprehensive rate limit handling to prevent 429 errors and improve optimization stability.
 
-## Comprehensive ATS & Cover Letter Fixes (2026-01-13)
+## Rate Limit Handling & Optimization Stability (2026-01-14)
 
 ### Cover Letter Generation
 - **Enabled Generation**: Changed generate_cover_letter=False to generate_cover_letter=True in master optimization
@@ -24,13 +24,17 @@ Fixed ATS score not updating after optimization by enabling proper score recalcu
 - **Model Configuration**: Fixed model name and API base URL references
 - **Prompt Format**: Fixed cover letter prompt format syntax issues
 
-### Technical Implementation
-- **Backend Response**: Optimization endpoint returns resume_id, ats_score, matching_skills, missing_skills, improvements, and cover_letter
-- **Frontend Compatibility**: Updated transformOptimizationResponse to handle cover letter data
-- **Error Prevention**: Data validation prevents PDF generation failures
+### Rate Limit Handling
+- **AI Client**: Added specific handling for 429 HTTP errors with clear error messages
+- **Workflow Orchestrator**: Graceful fallback to original ATS score when rate limited on re-analysis
+- **Cover Letter Generation**: Fallback to basic cover letter when rate limited instead of retrying
+- **Comprehensive Optimizer**: Proper HTTP 429 status codes and user-friendly error messages
 
-### Impact
+### Optimization Stability
 - **User Experience**: Complete optimization workflow from analysis to working PDF download
+- **Reliability**: Reduced API failures due to rate limiting
+- **Error Handling**: Clear error messages when rate limits are exceeded
+- **Fallback Behavior**: Graceful degradation when AI services are rate limited
 - **Data Persistence**: Optimized resumes saved to database for future access and modifications
 - **Reliability**: No more "undefined" download URLs or empty optimization results
 - **Functionality**: All template types generate proper PDFs with optimized content

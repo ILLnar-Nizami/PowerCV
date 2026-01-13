@@ -5,6 +5,7 @@ including master optimization, ATS analysis, hidden achievements extraction,
 three-version creation, and iterative improvement.
 """
 
+import logging
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,6 +13,8 @@ from pydantic import BaseModel, Field
 
 from app.database.models.resume import Resume
 from app.database.repositories.resume_repository import ResumeRepository
+
+logger = logging.getLogger(__name__)
 from app.services.ai.comprehensive_optimizer import ComprehensiveResumeOptimizer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
@@ -81,12 +84,14 @@ async def master_optimization(
     """Execute the master optimization prompt with all tasks."""
     try:
         # Use workflow orchestrator for structured optimization
+        logger.info("Starting master optimization workflow")
         orchestrator = CVWorkflowOrchestrator()
         result = orchestrator.optimize_cv_for_job(
             cv_text=request.resume_text,
             jd_text=request.job_description,
             generate_cover_letter=True,  # Enable cover letter generation
         )
+        logger.info("Master optimization workflow completed")
 
         # Save optimized resume to database
         repo = ResumeRepository()
@@ -109,6 +114,7 @@ async def master_optimization(
         resume_id = await repo.create_resume(optimized_resume)
 
         # Return result with resume_id for download
+        logger.info(f"Returning optimization results with ATS score: {result['ats_score']}")
         return {
             "resume_id": resume_id,
             "optimized_resume": "Resume optimized successfully",  # Keep for compatibility
@@ -121,9 +127,16 @@ async def master_optimization(
     except Exception as e:
         error_detail = str(e)
         if "rate limit" in error_detail.lower() or "too many requests" in error_detail.lower():
+            logger.warning("AI service rate limit exceeded")
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=error_detail,
+                detail="AI service rate limit exceeded. Please wait a moment and try again.",
+            )
+        elif "429" in error_detail:
+            logger.warning("HTTP 429 rate limit exceeded")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many requests. Please wait and try again.",
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -68,11 +68,24 @@ class CVWorkflowOrchestrator:
         # Re-analyze optimized CV to get updated ATS score
         optimized_text = self._dict_to_text(optimized_data)
         logger.info(f"Re-analyzing optimized CV for ATS score calculation. Optimized text length: {len(optimized_text)}")
-        optimized_analysis = self.analyzer.analyze(optimized_text, jd_text)
-        optimized_ats_score = optimized_analysis.get("ats_score", analysis.get("ats_score", 0))
-        logger.info(f"ATS score before optimization: {analysis.get('ats_score', 'N/A')}")
-        logger.info(f"ATS score after optimization: {optimized_ats_score}")
-        logger.info(f"ATS score improvement: {optimized_ats_score - analysis.get('ats_score', 0)}")
+
+        # Try to get updated ATS score, but fall back to original if rate limited
+        try:
+            optimized_analysis = self.analyzer.analyze(optimized_text, jd_text)
+            optimized_ats_score = optimized_analysis.get("ats_score", analysis.get("ats_score", 0))
+            logger.info(f"ATS score before optimization: {analysis.get('ats_score', 'N/A')}")
+            logger.info(f"ATS score after optimization: {optimized_ats_score}")
+            logger.info(f"ATS score improvement: {optimized_ats_score - analysis.get('ats_score', 0)}")
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
+                logger.warning("Rate limit exceeded on ATS re-analysis, using original score")
+                optimized_ats_score = analysis.get("ats_score", 0)
+                optimized_analysis = analysis
+            else:
+                logger.error(f"Error during ATS re-analysis: {str(e)}")
+                optimized_ats_score = analysis.get("ats_score", 0)
+                optimized_analysis = analysis
 
         # Update skills from optimized analysis
         optimized_matching_skills = optimized_analysis.get("keyword_analysis", {}).get(
