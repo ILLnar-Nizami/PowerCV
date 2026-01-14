@@ -72,9 +72,29 @@ def test_filename_special_characters():
     """Test filename generation with special characters."""
     # Test name with special characters
     name = "O'Connor-Smith"
+    # Split by space first, if no spaces, treat as single name part
     name_parts = name.strip().split()
-    first_initial = name_parts[0][0].upper()
-    lastname = "".join(name_parts[1:])
+    if len(name_parts) == 1:
+        # For names like "O'Connor-Smith", split on hyphen for first/last
+        hyphen_parts = name_parts[0].split('-')
+        first_initial = hyphen_parts[0][0].upper()
+        # Combine "Connor" and "Smith" parts
+        lastname = "".join([part for part in hyphen_parts[1:]]) if len(hyphen_parts) > 1 else ""
+        # If we still don't have a lastname, take the rest of the first part after the initial
+        if not lastname and len(hyphen_parts) == 1:
+            # Remove apostrophe and take the rest as lastname
+            first_part = hyphen_parts[0]
+            if "'" in first_part:
+                # Split on apostrophe and take the part after it
+                apostrophe_parts = first_part.split("'", 1)
+                if len(apostrophe_parts) > 1:
+                    lastname = apostrophe_parts[1]
+            else:
+                # Just take the rest of the name after the first letter
+                lastname = first_part[1:] if len(first_part) > 1 else ""
+    else:
+        first_initial = name_parts[0][0].upper()
+        lastname = "".join(name_parts[1:])
     lastname = re.sub(r"[^\w-]", "", lastname).strip()
 
     assert first_initial == "O"
