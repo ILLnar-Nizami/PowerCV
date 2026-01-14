@@ -5,6 +5,7 @@ and handles application startup and shutdown events. It serves as the central
 coordination point for the entire application.
 """
 
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -20,7 +21,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers.comprehensive_optimizer import comprehensive_router
 from app.api.routers.cover_letter import cover_letter_router
-from app.api.routers.resume import ResumeRepository, resume_router
+from app.api.routers.resume.crud import ResumeRepository
+from app.api.routers.resume.router import resume_router
 from app.api.routers.token_usage import router as token_usage_router
 from app.config.logging_config import logger
 from app.config.settings import get_settings
@@ -166,6 +168,16 @@ async def shutdown_logic(app: FastAPI) -> None:
         logger.info("Shutting down background tasks.")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for FastAPI startup and shutdown."""
+    # Startup logic
+    await startup_logic(app)
+    yield
+    # Shutdown logic
+    await shutdown_logic(app)
+
+
 app = FastAPI(
     title="PowerCV API",
     summary="",
@@ -176,6 +188,7 @@ app = FastAPI(
     license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     version="2.0.0",
     docs_url=None,
+    lifespan=lifespan,
 )
 
 # Initialize rate limiting
@@ -186,67 +199,12 @@ settings = get_settings()
 setup_debugging_middleware(app, enable_debug=settings.debug)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Handle application startup and configuration validation."""
-    try:
-        # Test database connection (always required)
-        from app.database.connector import MongoConnectionManager
-
-        manager = MongoConnectionManager.get_instance()
-
-        # Check if AI provider is configured (optional for development)
-        from app.config import get_settings
-
-        settings = get_settings()
-        ai_provider_configured = bool(
-            settings.cerebras_api_key or settings.api_key or settings.openai_api_key
-        )
-
-        if ai_provider_configured:
-            # Test AI client configuration only if API keys are present
-            from app.services.ai_providers import AIClient
-
-            AIClient()
-            logger.info("Application startup completed successfully with AI providers")
-        else:
-            logger.warning(
-                "No AI provider API keys configured - AI features will be unavailable"
-            )
-            logger.info("Application startup completed (development mode)")
-
-    except (ConfigurationError, MissingApiKeyError) as e:
-        logger.error(f"Configuration error during startup: {e}")
-        error_msg = f"""
-{"=" * 60}
- CONFIGURATION ERROR
-{"=" * 60}
-Error: {e}
-
-Please check your environment configuration:
-"""
-        if hasattr(e, "config_key"):
-            error_msg += f"  - Missing or invalid: {e.config_key}\n"
-        if hasattr(e, "provider"):
-            error_msg += f"  - For AI provider: {e.provider}\n"
-        error_msg += "\nUpdate your .env file or environment variables.\n"
-        error_msg += "=" * 60
-
-        logger.error(error_msg)
-        # Re-raise as RuntimeError to cause startup failure
-        raise RuntimeError(f"Application configuration error: {e}") from e
-
-    except Exception as e:
-        logger.error(f"Unexpected error during startup: {e}")
-        logger.error("=" * 60)
-        logger.error(" STARTUP ERROR")
-        logger.error("=" * 60)
-        logger.error(f"Unexpected error: {e}")
-        logger.error("Check application logs for details.")
-        logger.error("=" * 60)
-        import sys
-
-        sys.exit(1)
+# DEPRECATED: @app.on_event("startup") is deprecated in FastAPI 0.100+
+# Replaced with lifespan context manager below
+# @app.on_event("startup")
+# async def startup_event():
+#     """Handle application startup and configuration validation."""
+#     # Startup logic moved to lifespan context manager
 
 
 # Global exception handler for security
@@ -667,7 +625,7 @@ async def generate_cover_letter(request: OptimizationRequest):
     "/api/v1/scrape", tags=["Scraping"], summary="Scrape job description from URL"
 )
 async def scrape_job_description(
-    url: str = Body(..., description="URL to job posting")
+    url: str = Body(..., description="URL to job posting"),
 ):
     """Scrape job description from a LinkedIn, Indeed, or other job board URL.
 
@@ -702,7 +660,7 @@ async def scrape_job_description(
 async def extract_keywords(
     jd_text: str = Body(
         ..., min_length=50, max_length=5000, description="Job description text"
-    )
+    ),
 ):
     """Extract skills and requirements from a job description.
 

@@ -1,0 +1,28 @@
+"""Main resume router that combines all sub-routers.
+
+This module creates the main APIRouter instance for resume operations
+by combining all specialized sub-routers for different resume functionalities.
+"""
+
+import logging
+
+from fastapi import APIRouter
+
+from . import crud, master_cv, optimization, templates
+
+logger = logging.getLogger(__name__)
+
+# Create main resume router
+resume_router = APIRouter(
+    prefix="/api/v1/resumes",
+    tags=["Resumes"],
+    responses={404: {"description": "Not found"}},
+)
+
+# Include sub-routers
+resume_router.include_router(crud.router, prefix="", tags=["CRUD"])
+resume_router.include_router(master_cv.router, prefix="", tags=["Master CV"])
+resume_router.include_router(optimization.router, prefix="", tags=["Optimization"])
+resume_router.include_router(templates.router, prefix="", tags=["Templates"])
+
+logger.info("Resume router initialized with all sub-routers")

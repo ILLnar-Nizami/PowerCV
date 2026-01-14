@@ -18,6 +18,68 @@ powercv = "app.cli.main:main"
 [tool.poetry.dependencies]
 python = "^3.12"
 
+# Core dependencies
+python-jose = {extras = ["cryptography"], version = "*"}
+passlib = {extras = ["bcrypt"], version = "*"}
+fastapi = {extras = ["standard"], version = "*"}
+uvicorn = {extras = ["standard"], version = "*"}
+motor = "3.6.0"
+redis = "4.5.5"
+charset-normalizer = "3.3.2"
+setuptools = "*"
+python-multipart = "*"
+authlib = "*"
+itsdangerous = "*"
+asyncio = "*"
+httpx = ">=0.25.0"
+websockets = "*"
+slowapi = "*"
+pandas = "*"
+fastapi-sso = "*"
+asgiref = "*"
+pymongo = "*"
+ruff = "*"
+jinja2 = "*"
+pyjwt = "*"
+markdown = "*"
+pytesseract = "*"
+pdf2image = "*"
+opencv-python = "*"
+psutil = "*"
+pypdf = "*"
+openai = "*"
+langchain-community = "*"
+langchain = "*"
+langchain-openai = "*"
+PyPDF2 = "*"
+scikit-learn = "*"
+sentence-transformers = "*"
+tiktoken = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+PyYAML = ">=6.0"
+python-dotenv = ">=1.0.0"
+requests = ">=2.31.0"
+pydantic = ">=2.0.0"
+langchain-ollama = "*"
+uvloop = "*"
+beautifulsoup4 = ">=4.12.0"
+lxml = ">=4.9.0"
+rich = ">=13.0.0"
+click = ">=8.0.0"
+pytest = ">=7.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-cov = ">=4.0.0"
+python-magic = ">=0.4.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest-mock = ">=3.12.0"
+black = ">=23.12.0"
+isort = ">=5.13.0"
+mypy = ">=1.8.0"
+pre-commit = ">=3.6.0"
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [

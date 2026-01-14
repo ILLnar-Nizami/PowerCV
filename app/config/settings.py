@@ -16,10 +16,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = False
 
-    # Security
-    secret_key: str = (
-        "development-secret-key-change-in-production"  # Must be set in environment for production
-    )
+    # Security - Use secure defaults
+    secret_key: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
 
@@ -67,33 +65,37 @@ class Settings(BaseSettings):
         if self.OPENAI_API_KEY_UPPER and not self.openai_api_key:
             self.openai_api_key = self.OPENAI_API_KEY_UPPER
 
+        # Validate required secrets in production
+        if self.environment == "production" and not self.secret_key:
+            raise ValueError("SECRET_KEY must be set in production environment")
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,  # Strict case-sensitive environment variables
         extra="ignore",  # Allow extra environment variables
+        # Fields that contain sensitive information
     )
-
-    # Fields that contain sensitive information
-    sensitive_fields: ClassVar[set] = {
-        "secret_key",
-        "api_key",
-        "cerebras_api_key",
-        "openai_api_key",
-        "CEREBRAS_API_KEY",
-        "API_KEY_UPPER",
-        "OPENAI_API_KEY_UPPER",
-        "mongodb_uri",
-        "redis_url",
-        "sentry_dsn",
-    }
 
     def __repr__(self):
         """Secure repr that doesn't expose sensitive data."""
         # Only show non-sensitive fields
+        safe_fields = {
+            "secret_key",
+            "api_key",
+            "cerebras_api_key",
+            "openai_api_key",
+            "CEREBRAS_API_KEY",
+            "API_KEY_UPPER",
+            "OPENAI_API_KEY_UPPER",
+            "mongodb_uri",
+            "redis_url",
+            "sentry_dsn",
+        }
+
         safe_attrs = {}
-        for field_name, field_info in self.__fields__.items():
-            if field_name not in self.Config.sensitive_fields:
+        for field_name, field_info in self.model_fields.items():
+            if field_name not in safe_fields:
                 safe_attrs[field_name] = getattr(self, field_name)
 
         attrs_str = ", ".join(f"{k}={v!r}" for k, v in safe_attrs.items())

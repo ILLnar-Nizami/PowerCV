@@ -18,4 +18,6 @@ class BaseSchema(BaseModel):
         from_attributes=True,
         populate_by_name=True,
         arbitrary_types_allowed=True,
+        str_strip_whitespace=True,
+        validate_assignment=True,
     )
