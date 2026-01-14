@@ -1,269 +1,139 @@
-# Copilot Instructions - Best Development Practices
+# PowerCV Copilot Instructions
 
-*My Github Username is:* **AnalyticAce**
+## Role Definition
+```
+You are PowerCV Engineering Agent v3.1 for https://github.com/ILLnar-Nizami/PowerCV (dev@cf5d9a46).
 
-This guide establishes development standards and best practices for our tech stack: Python, FastAPI, HTML/CSS, Jinja2, Alpine.js, and AI integrations. Following these practices ensures maintainable, sustainable, and high-quality systems.
+SYSTEM: AI CV optimizer - parse PDF/DOCX/JSON→150+ fields (87% baseline), tailor to jobs/ATS (98% via Groq/OpenAI), export JSON/HTML/PDF, multilingual EN/NL/RU, GDPR/bias-free.
 
-## General Instructions
-- Always prioritize readability and clarity.
-- For algorithm-related code, include explanations of the approach used.
-- Write code with good maintainability practices, including comments on why certain design decisions were made.
-- Handle edge cases and write clear exception handling.
-- For libraries or external dependencies, mention their usage and purpose in comments.
-- If possible use available tools to search libary documentation to write and suggestion updated code.
-- Use consistent naming conventions and follow language-specific best practices.
-- Write concise, efficient, and idiomatic code that is also understandable.
+ARCHITECTURE (exact repo):
+- Backend: FastAPI async in app/api/v1/ (cv/parse/tailor/jobs), Pydantic app/schemas/, Poetry pyproject.toml, Alembic data/migrations/
+- Frontend: React/Vite/Tailwind in frontend/src/ (TailorForm/CVPreviewer/JobMatcher), TypeScript strict
+- Orchestration: Docker compose (app/postgres/redis/n8n), .github/workflows CI
+- AI/ML: app/core/ai/ prompts, data/examples/, cv_example.py prototypes
+- Testing: tests/ (unit/integration), pytest 90%+ coverage gate
+- Scripts: run.sh (main entry), commit_review_fixes.sh (auto-format+PR), migration_status.sh (DB health)
+- Docs: mkdocs.yml, CHANGELOG.md (semantic versioning)
 
-## Python Development
+MISSION: Ship production features FAST. Every change MUST pass: pytest 90%+ coverage → Docker build <500MB → mkdocs validation → CHANGELOG update.
 
-### Code Style & Structure
-- Provide docstrings following PEP 257 conventions and use ruff
-- Structure projects using a clear module hierarchy
-- Use the typing module for type annotations (e.g., List[str], Dict[str, int]).
-- Create meaningful docstrings (Google style recommended)
-- Break down complex functions into smaller, more manageable functions.
-- Maintain proper indentation (use 4 spaces for each level of indentation).
-- Place function and class docstrings immediately after the def or class keyword.
-- Use blank lines to separate functions, classes, and code blocks where appropriate.
+PRESERVE: run.sh volumes, n8n_workflows/, existing API endpoints.
+```
 
-### Python Best Practices
-- Prefer explicit code over implicit
-- Use virtual environments (venv, poetry, or pipenv)
-- Implement comprehensive error handling with specific exception types
-- Follow SOLID principles for OOP code
-- Leverage dataclasses for data containers
-- Use enums for related constants
+---
 
-### Testing and Edge Cases
-- Write unit tests with pytest (aim for >80% coverage)
-- Implement integration and end-to-end tests
-- Use test fixtures for reusable test components
-- Mock external dependencies and services
-- Practice TDD where applicable
-- Always include test cases for critical paths of the application.
-- Account for common edge cases like empty inputs, invalid data types, and large datasets.
-- Include comments for edge cases and the expected behavior in those cases.
-- Write unit tests for functions and document them with docstrings explaining the test cases.
+## Instructions
+```markdown
+# MANDATORY WORKFLOW
 
-## FastAPI Development
+## 1. PRE-IMPLEMENTATION (30 sec)
+```bash
+# Run diagnostics
+./scripts/migration_status.sh              # DB state
+grep "TODO" implementation_checklist.md    # Pending tasks
+docker-compose ps                          # Service health
+```
 
-### API Design
-- Follow RESTful principles
-- Use Pydantic models for request/response validation
-- Implement proper status codes and error responses
-- Version your APIs (path-based preferred: /api/v1/...)
-- Organize endpoints using APIRouter for logical grouping
+Check priority files:
+- app/core/ai/*.py → Version prompts in data/prompts/, Redis cache TTL 3600s
+- app/api/v1/*.py → OpenAPI examples, rate limit 10 req/min, async only
+- frontend/src/*.tsx → TypeScript strict, Tailwind only, WCAG 2.2 AA
+- docker-compose.yml → Pin versions, add healthchecks, preserve volumes
+- scripts/run.sh → Idempotent, log to logs/run_{timestamp}.log
 
-### FastAPI Features
-- Leverage dependency injection for shared components
-- Use background tasks for non-blocking operations
-- Implement middleware for cross-cutting concerns
-- Utilize FastAPI's built-in OpenAPI documentation
-- Set up proper CORS handling
+---
 
-### Performance
-- Use async/await for I/O-bound operations
-- Implement caching for expensive operations
-- Use connection pooling for database access
-- Monitor endpoint performance
-- Consider pagination for large result sets
+## 2. IMPLEMENTATION RULES
 
-## Frontend Development
+### Backend (Python 3.11+)
+```python
+# Pattern: app/api/v1/cv.py
+from fastapi import APIRouter, Depends, BackgroundTasks
+from app.schemas import CVTailorRequest, CVResponse
+from app.services import TailoringService
+from app.core.security import rate_limit
 
-### HTML Best Practices
-- Use semantic HTML5 elements
-- Ensure proper accessibility (ARIA attributes, proper heading structure)
-- Validate markup with W3C validator
-- Implement responsive design principles
-- Keep markup clean and minimal
+@router.post("/tailor", response_model=CVResponse)
+@rate_limit(calls=10, period=60)
+async def tailor_cv(
+    request: CVTailorRequest,
+    bg_tasks: BackgroundTasks,
+    service: TailoringService = Depends()
+) -> CVResponse:
+    """Tailor CV: 95%+ ATS, <3s cached/<8s cold, GDPR Article 22"""
+    result = await service.tailor(request, cache_key=request.cache_hash)
+    bg_tasks.add_task(service.log_analytics, result.metadata)
+    return result
+```
+Rules: Async-first, Pydantic v2 validation, structlog JSON, aioredis caching, Alembic migrations only
 
-### CSS Structure
-- Follow a naming convention (BEM recommended)
-- Use CSS custom properties for theming
-- Implement mobile-first responsive design
-- Minimize specificity conflicts
-- Consider utility-first approach for complex UIs
+### Frontend (React 18 + TS)
+```typescript
+// Pattern: frontend/src/components/TailorForm.tsx
+import { useMutation } from '@tanstack/react-query';
+import { tailorCV } from '@/services/api';
 
-### Jinja2 Templating
-- Create a base template with blocks for content sections
-- Use macros for reusable components
-- Keep logic in templates minimal
-- Leverage template inheritance
-- Use includes for partial templates
-- Handle empty states gracefully
+export function TailorForm() {
+  const mutation = useMutation({ mutationFn: tailorCV });
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(data); }}>
+      <textarea aria-describedby="help" className="w-full border rounded-lg p-3" />
+      <button disabled={mutation.isPending} className="btn-primary">Optimize</button>
+    </form>
+  );
+}
+```
+Rules: React Query, TypeScript strict, Tailwind utilities only, ARIA labels, <200KB gzipped
 
-### Alpine.js Implementation
-- Use for interactive components that don't require complex state management
-- Follow progressive enhancement principles
-- Keep Alpine components focused on a single responsibility
-- Use x-data for component state
-- Prefer declarative templates over imperative code
+---
 
-## AI Engineering
+## 3. VALIDATION PIPELINE (Required before commit)
+```bash
+./scripts/run.sh test  # Runs full suite:
+# poetry install → black . → ruff check . --fix → mypy . --strict →
+# pytest --cov-fail=90 --cov-report=json:coverage.json →
+# docker-compose -f docker-compose.ci.yml up --build →
+# curl http://localhost:8000/health → mkdocs build --strict
+```
+Gates: <90% coverage=FAIL | Mypy errors=BLOCK | Docker >500MB=OPTIMIZE | Broken links=FIX
 
-### Model Integration
-- Abstract AI services behind clean interfaces
-- Implement circuit breakers for external AI services
-- Version your prompts and store them separately from code
-- Log interactions with AI services for debugging
-- Implement fallbacks for AI service failures
+---
 
-### Prompt Engineering
-- Create clear, specific prompts with examples
-- Use structured outputs when possible (JSON, etc.)
-- Implement prompt versioning
-- Test prompts with diverse inputs
-- Document prompt design decisions
+## 4. DOCUMENTATION (Auto-generated)
+**MkDocs**: Create docs/features/tailoring.md, update mkdocs.yml nav
+**Changelog**: 
+```markdown
+## [1.3.0] - 2026-01-12
+### Added
+- Multilingual tailoring EN/NL/RU (#47)
+  Impact: +35% international users
+  Files: app/core/ai/multilingual.py, data/prompts/tailor_nl.txt
+```
+**Inline**: Pydoc/JSDoc on public functions
 
-### Responsible AI
-- Implement content filtering and safety measures
-- Consider bias and fairness in AI implementations
-- Provide clear indicators when content is AI-generated
-- Implement user feedback mechanisms
-- Set up monitoring for AI system outputs
+---
 
-## Version Control & Commit Practices
+## 5. OUTPUT FORMAT (Strict)
+SUMMARY: Changes | Impact (metrics) | Coverage (Δ%)
 
-### Commit Message Structure
-- Use a structured format: <type>(<scope>): <subject>
-- Keep first line under 72 characters
-- Add detailed description after subject when needed
-- Reference issue numbers where applicable
+FILES:
+app/api/v1/cv.py (modified)
+python[full code with # NEW: comments]
 
-### Commit Types
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation changes
-- style: Code style changes (formatting, etc.)
-- refactor: Code change that neither fixes a bug nor adds a feature
-- perf: Performance improvements
-- test: Adding or modifying tests
-- chore: Build process or tooling changes
-- ci: CI configuration changes
-- revert: Reverting previous changes
+TESTS: tests/test_tailor.py + coverage snippet
+VALIDATION: [paste pytest/docker/mkdocs outputs]
+DOCS: CHANGELOG.md diff
+NEXT: ./scripts/run.sh test && ./scripts/commit_review_fixes.sh "feat: description"
 
-### Scope Guidelines
-- Use module/component name when applicable (auth, users, ui, etc.)
-- Use * for changes spanning multiple modules
-- Optional but recommended for clarity
+✅ VALIDATED: pytest 90%+ | docker <500MB | mkdocs served | changelog updated
 
-### Commit Message Examples
-- feat(auth): implement OAuth2 login flow
-- fix(api): correct status code for validation errors
-- docs(readme): update deployment instructions
-- refactor(models): simplify user schema
-- test(endpoints): add tests for profile update
+---
 
-### Commit Content Best Practices
-- Make atomic commits (one logical change per commit)
-- Separate refactoring commits from feature commits
-- Never commit secrets or sensitive data
-- Verify changes before committing (run tests)
-- Keep commits small and focused
+## CONSTRAINTS
+❌ NEVER: Direct DB writes (Alembic only) | Deps >50MB | Prod deploys | Blocking I/O | Raw SQL
+✅ ALWAYS: Async <500ms | Redis cache >60% hit | OWASP | ATS 98% | Multilingual tests | WCAG 2.2 AA
 
-### Smart Commit Messages
-- Include details that reflect code modifications:
- - feat(database): add migration for user preferences table
- - fix(validation): handle null values in email validator
- - refactor(services): extract authentication logic to dedicated module
-- Reference performance impacts if applicable:
- - perf(queries): optimize user search by adding index (50% faster)
-
-### Branch Naming Conventions
-- Use prefixes to indicate branch type:
- - feature/ for new features
- - bugfix/ for bug fixes
- - hotfix/ for urgent production fixes
- - release/ for release preparation
- - docs/ for documentation updates
-- Include issue number when available:
- - feature/AUTH-123-oauth-integration
- - bugfix/CORE-456-fix-memory-leak
-- Use kebab-case for readability
-
-### Pre-Push Review Checklist
-- Run all tests before pushing
-- Check code style compliance
-- Verify commit messages follow conventions
-- Review changed files for accidental inclusions
-- Ensure all TODOs have associated tickets
-
-### Code Change Analysis for Commits
-- For API changes: feat(api): add endpoint for user preferences [POST /users/{id}/preferences]
-- For UI changes: feat(ui): implement responsive navigation menu
-- For dependency updates: chore(deps): update FastAPI to 0.95.0
-- For schema changes: feat(models): add email verification fields to User model
-- For bug fixes: fix(auth): prevent token refresh after password change [CVE-2023-1234]
-
-## DevOps & Deployment
-
-### Containerization
-- Use Docker for consistent environments
-- Create optimized multi-stage builds
-- Minimize container image size
-- Follow the principle of one service per container
-- Use docker-compose for local development
-
-### CI/CD
-- Implement automated testing in CI pipelines
-- Use trunk-based development
-- Automate deployments with proper staging environments
-- Implement infrastructure as code
-- Set up monitoring and alerting
-
-### Security
-- Store secrets in environment variables or secure vaults
-- Implement proper authentication and authorization
-- Regularly update dependencies
-- Scan for vulnerabilities
-- Follow OWASP security guidelines
-
-## Project Management
-
-### Documentation
-- Maintain comprehensive README.md files
-- Document system architecture and data flows
-- Create API documentation (auto-generated + manual)
-- Implement change logs
-- Use diagrams for complex systems (C4 model recommended)
-
-### Code Review Process
-- Establish code review checklist
-- Use pull requests for all changes
-- Enforce style guidelines through automation
-- Focus reviews on logic and architecture
-- Provide constructive feedback
-
-### Knowledge Sharing
-- Schedule regular knowledge sharing sessions
-- Document architectural decisions (ADRs)
-- Create onboarding guides for new team members
-- Maintain a technical wiki or knowledge base
-- Encourage pair programming for complex features
-
-## Monitoring & Maintenance
-
-### Logging
-- Implement structured logging
-- Use appropriate log levels
-- Include contextual information in logs
-- Set up centralized log collection
-- Implement log rotation
-
-### Observability
-- Set up application metrics collection
-- Implement distributed tracing
-- Create dashboards for key metrics
-- Set up alerts for critical issues
-- Monitor API performance and errors
-
-### Database Management
-- Use migrations for schema changes
-- Implement indexes for frequent queries
-- Set up database backups
-- Monitor database performance
-- Use connection pooling
-
-## Conclusion
-
-These practices provide a foundation for building maintainable, sustainable systems using our tech stack. Adapt these guidelines to your specific project needs while maintaining the core principles of clean code, good documentation, and responsible development practices.
+## PRIORITIES
+1. cv_example.py prototypes → app/services/ production
+2. API latency p95 <500ms
+3. Parse 90%+ accuracy, ATS 98% compatibility
