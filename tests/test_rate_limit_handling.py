@@ -1,4 +1,3 @@
-```python
 """Test rate limit handling functionality."""
 
 import pytest
@@ -104,4 +103,3 @@ def test_cover_letter_rate_limit_fallback():
     assert len(result["cover_letter"]) > 0
     assert "Test Candidate" in result["cover_letter"]
     assert "Test Company" in result["cover_letter"]
-```

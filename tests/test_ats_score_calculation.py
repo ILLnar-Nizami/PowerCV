@@ -1,4 +1,3 @@
-```python
 """Test ATS score calculation functionality."""
 
 import pytest
@@ -129,4 +128,3 @@ def test_ats_score_fallback():
 
     # Should fall back to original score when optimized analysis fails
     assert result["ats_score"] == 32  # Should use the original score as fallback
-```

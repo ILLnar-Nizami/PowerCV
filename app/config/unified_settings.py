@@ -6,7 +6,7 @@ that replaces the duplicate config.py and config/settings.py files.
 
 import re
 from functools import lru_cache
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     # Application settings
     app_name: str = "PowerCV"
     app_version: str = "3.0.0-beta"
-    environment: str = Field(default="development", env="ENVIRONMENT")
-    debug: bool = Field(default=False, env="DEBUG")
+    environment: str = Field(default="development", validation_alias="ENVIRONMENT")
+    debug: bool = Field(default=False, validation_alias="DEBUG")
 
     @field_validator("debug", mode="before")
     @classmethod
@@ -48,121 +48,121 @@ class Settings(BaseSettings):
             "https://localhost:8080",
             "https://localhost:8000",
         ],
-        env="CORS_ORIGINS",
+        validation_alias="CORS_ORIGINS",
     )
 
     # Database settings
-    mongodb_uri: str = Field(default="mongodb://localhost:27017", env="MONGODB_URI")
-    mongodb_db: str = Field(default="powercv", env="MONGODB_DB")
-    mongodb_user: Optional[str] = Field(default=None, env="MONGODB_USER")
-    mongodb_password: Optional[str] = Field(default=None, env="MONGODB_PASSWORD")
+    mongodb_uri: str = Field(default="mongodb://localhost:27017", validation_alias="MONGODB_URI")
+    mongodb_db: str = Field(default="powercv", validation_alias="MONGODB_DB")
+    mongodb_user: Optional[str] = Field(default=None, validation_alias="MONGODB_USER")
+    mongodb_password: Optional[str] = Field(default=None, validation_alias="MONGODB_PASSWORD")
 
     # Redis settings (for caching and rate limiting)
-    redis_url: Optional[str] = Field(default=None, env="REDIS_URL")
-    redis_host: str = Field(default="localhost", env="REDIS_HOST")
-    redis_port: int = Field(default=6379, env="REDIS_PORT")
-    redis_db: int = Field(default=0, env="REDIS_DB")
-    redis_password: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
+    redis_url: Optional[str] = Field(default=None, validation_alias="REDIS_URL")
+    redis_host: str = Field(default="localhost", validation_alias="REDIS_HOST")
+    redis_port: int = Field(default=6379, validation_alias="REDIS_PORT")
+    redis_db: int = Field(default=0, validation_alias="REDIS_DB")
+    redis_password: Optional[str] = Field(default=None, validation_alias="REDIS_PASSWORD")
 
     # AI Provider settings
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
-        default=None, env=["CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"]
+        default=None, validation_alias="CEREBRAS_API_KEY"
     )
     cerebras_api_base: str = Field(
         default="https://api.cerebras.ai/v1",
-        env=["CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"],
+        validation_alias="CEREBRAS_API_BASE",
     )
-    cerebras_model: str = Field(default="gpt-oss-120b", env="CEREBRAS_MODEL")
+    cerebras_model: str = Field(default="gpt-oss-120b", validation_alias="CEREBRAS_MODEL")
 
     # OpenAI
     openai_api_key: Optional[str] = Field(
-        default=None, env=["OPENAI_API_KEY", "OPENAI_API_KEY_UPPER"]
+        default=None, validation_alias="OPENAI_API_KEY"
     )
     openai_api_base: str = Field(
-        default="https://api.openai.com/v1", env="OPENAI_API_BASE"
+        default="https://api.openai.com/v1", validation_alias="OPENAI_API_BASE"
     )
-    openai_model: str = Field(default="gpt-4", env="OPENAI_MODEL")
+    openai_model: str = Field(default="gpt-4", validation_alias="OPENAI_MODEL")
 
     # Deepseek
     deepseek_api_key: Optional[str] = Field(
-        default=None, env=["API_KEY", "API_KEY_UPPER", "DEEPSEEK_API_KEY"]
+        default=None, validation_alias="API_KEY"
     )
 
     # Ollama (local models)
     ollama_base_url: str = Field(
-        default="http://localhost:11434", env="OLLAMA_BASE_URL"
+        default="http://localhost:11434", validation_alias="OLLAMA_BASE_URL"
     )
-    ollama_model: str = Field(default="llama2", env="OLLAMA_MODEL")
+    ollama_model: str = Field(default="llama2", validation_alias="OLLAMA_MODEL")
 
     # Security settings
     secret_key: str = Field(
-        default="development-secret-key-change-in-production", env="SECRET_KEY"
+        default="development-secret-key-change-in-production", validation_alias="SECRET_KEY"
     )
-    algorithm: str = Field(default="HS256", env="ALGORITHM")
+    algorithm: str = Field(default="HS256", validation_alias="ALGORITHM")
     access_token_expire_minutes: int = Field(
-        default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES"
+        default=30, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
     )
 
     # Rate limiting
-    rate_limit_enabled: bool = Field(default=True, env="RATE_LIMIT_ENABLED")
+    rate_limit_enabled: bool = Field(default=True, validation_alias="RATE_LIMIT_ENABLED")
     rate_limit_requests_per_minute: int = Field(
-        default=100, env="RATE_LIMIT_REQUESTS_PER_MINUTE"
+        default=100, validation_alias="RATE_LIMIT_REQUESTS_PER_MINUTE"
     )
     rate_limit_requests_per_hour: int = Field(
-        default=1000, env="RATE_LIMIT_REQUESTS_PER_HOUR"
+        default=1000, validation_alias="RATE_LIMIT_REQUESTS_PER_HOUR"
     )
 
     # File upload settings
-    max_file_size: int = Field(default=10 * 1024 * 1024, env="MAX_FILE_SIZE")  # 10MB
+    max_file_size: int = Field(default=10 * 1024 * 1024, validation_alias="MAX_FILE_SIZE")  # 10MB
     allowed_file_types: List[str] = Field(
-        default=["pdf", "doc", "docx", "txt"], env="ALLOWED_FILE_TYPES"
+        default=["pdf", "doc", "docx", "txt"], validation_alias="ALLOWED_FILE_TYPES"
     )
-    upload_dir: str = Field(default="uploads", env="UPLOAD_DIR")
+    upload_dir: str = Field(default="uploads", validation_alias="UPLOAD_DIR")
 
     # Logging settings
-    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     log_format: str = Field(
-        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s", env="LOG_FORMAT"
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s", validation_alias="LOG_FORMAT"
     )
 
     # External services
     # SMTP settings for email notifications
-    smtp_host: Optional[str] = Field(default=None, env="SMTP_HOST")
-    smtp_port: int = Field(default=587, env="SMTP_PORT")
-    smtp_user: Optional[str] = Field(default=None, env="SMTP_USER")
-    smtp_password: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
-    smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
+    smtp_host: Optional[str] = Field(default=None, validation_alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, validation_alias="SMTP_PORT")
+    smtp_user: Optional[str] = Field(default=None, validation_alias="SMTP_USER")
+    smtp_password: Optional[str] = Field(default=None, validation_alias="SMTP_PASSWORD")
+    smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS")
 
     # n8n webhook settings
-    n8n_webhook_url: Optional[str] = Field(default=None, env="N8N_WEBHOOK_URL")
-    n8n_webhook_secret: Optional[str] = Field(default=None, env="N8N_WEBHOOK_SECRET")
-    n8n_api_key: Optional[str] = Field(default=None, env="N8N_API_KEY")
-    n8n_user: Optional[str] = Field(default=None, env="N8N_USER")
-    n8n_password: Optional[str] = Field(default=None, env="N8N_PASSWORD")
+    n8n_webhook_url: Optional[str] = Field(default=None, validation_alias="N8N_WEBHOOK_URL")
+    n8n_webhook_secret: Optional[str] = Field(default=None, validation_alias="N8N_WEBHOOK_SECRET")
+    n8n_api_key: Optional[str] = Field(default=None, validation_alias="N8N_API_KEY")
+    n8n_user: Optional[str] = Field(default=None, validation_alias="N8N_USER")
+    n8n_password: Optional[str] = Field(default=None, validation_alias="N8N_PASSWORD")
 
     # Sentry for error tracking
-    sentry_dsn: Optional[str] = Field(default=None, env="SENTRY_DSN")
+    sentry_dsn: Optional[str] = Field(default=None, validation_alias="SENTRY_DSN")
 
     # AI Model tiers configuration
-    fast_model: str = Field(default="gpt-oss-120b", env="FAST_MODEL")
-    balanced_model: str = Field(default="gpt-oss-120b", env="BALANCED_MODEL")
-    quality_model: str = Field(default="gpt-4", env="QUALITY_MODEL")
+    fast_model: str = Field(default="gpt-oss-120b", validation_alias="FAST_MODEL")
+    balanced_model: str = Field(default="gpt-oss-120b", validation_alias="BALANCED_MODEL")
+    quality_model: str = Field(default="gpt-4", validation_alias="QUALITY_MODEL")
 
     # Token tracking
-    enable_token_tracking: bool = Field(default=True, env="ENABLE_TOKEN_TRACKING")
+    enable_token_tracking: bool = Field(default=True, validation_alias="ENABLE_TOKEN_TRACKING")
     token_usage_limit_per_user: int = Field(
-        default=10000, env="TOKEN_USAGE_LIMIT_PER_USER"
+        default=10000, validation_alias="TOKEN_USAGE_LIMIT_PER_USER"
     )
 
     # Additional AI settings
-    llm_provider: str = Field(default="cerebras", env="LLM_PROVIDER")
-    ai_provider: str = Field(default="cerebras", env="AI_PROVIDER")
-    skip_ats_scoring: bool = Field(default=False, env="SKIP_ATS_SCORING")
-    use_fast_optimizer: bool = Field(default=False, env="USE_FAST_OPTIMIZER")
+    llm_provider: str = Field(default="cerebras", validation_alias="LLM_PROVIDER")
+    ai_provider: str = Field(default="cerebras", validation_alias="AI_PROVIDER")
+    skip_ats_scoring: bool = Field(default=False, validation_alias="SKIP_ATS_SCORING")
+    use_fast_optimizer: bool = Field(default=False, validation_alias="USE_FAST_OPTIMIZER")
 
     # Sensitive fields (never log these)
-    _sensitive_fields = {
+    _sensitive_fields: ClassVar[set] = {
         "secret_key",
         "cerebras_api_key",
         "openai_api_key",

@@ -1,8 +1,9 @@
 """Secure application settings configuration."""
 
 from functools import lru_cache
-from typing import Optional
+from typing import ClassVar, Optional
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -66,27 +67,26 @@ class Settings(BaseSettings):
         if self.OPENAI_API_KEY_UPPER and not self.openai_api_key:
             self.openai_api_key = self.OPENAI_API_KEY_UPPER
 
-    class Config:
-        """Pydantic configuration."""
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,  # Strict case-sensitive environment variables
+        extra="ignore",  # Allow extra environment variables
+    )
 
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True  # Strict case-sensitive environment variables
-        extra = "ignore"  # Allow extra environment variables
-
-        # Fields that contain sensitive information
-        sensitive_fields = {
-            "secret_key",
-            "api_key",
-            "cerebras_api_key",
-            "openai_api_key",
-            "CEREBRAS_API_KEY",
-            "API_KEY_UPPER",
-            "OPENAI_API_KEY_UPPER",
-            "mongodb_uri",
-            "redis_url",
-            "sentry_dsn",
-        }
+    # Fields that contain sensitive information
+    sensitive_fields: ClassVar[set] = {
+        "secret_key",
+        "api_key",
+        "cerebras_api_key",
+        "openai_api_key",
+        "CEREBRAS_API_KEY",
+        "API_KEY_UPPER",
+        "OPENAI_API_KEY_UPPER",
+        "mongodb_uri",
+        "redis_url",
+        "sentry_dsn",
+    }
 
     def __repr__(self):
         """Secure repr that doesn't expose sensitive data."""

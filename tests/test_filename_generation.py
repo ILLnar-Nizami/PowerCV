@@ -1,6 +1,7 @@
 """Test filename generation functionality."""
 
 import pytest
+import re
 from datetime import datetime
 from unittest.mock import MagicMock
 from app.api.routers.resume import download_resume
@@ -92,4 +93,3 @@ def test_filename_special_characters():
     position = re.sub(r"[-\s]+", "_", position).title()[:30]
 
     assert position == "AIMLEngineer"
-```

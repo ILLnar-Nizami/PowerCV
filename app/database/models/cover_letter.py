@@ -46,7 +46,7 @@ class CoverLetterData(BaseSchema):
     job_title: str
     job_reference: Optional[str] = None
     introduction: str
-    body_paragraphs: List[str] = Field(..., min_items=1, max_items=4)
+    body_paragraphs: List[str] = Field(..., min_length=1, max_length=4)
     closing: str
     signature: str
 
