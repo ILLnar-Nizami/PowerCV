@@ -13,10 +13,10 @@ from pydantic import BaseModel, Field
 
 from app.database.models.resume import Resume
 from app.database.repositories.resume_repository import ResumeRepository
-
-logger = logging.getLogger(__name__)
 from app.services.ai.comprehensive_optimizer import ComprehensiveResumeOptimizer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
+
+logger = logging.getLogger(__name__)
 
 
 # Pydantic models for request/response
