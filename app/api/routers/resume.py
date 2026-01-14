@@ -1948,6 +1948,24 @@ async def download_resume(
 
         if use_optimized:
             json_data = resume["optimized_data"]
+            if not json_data:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Optimized data is missing. Please optimize the resume first.",
+                )
+            # Ensure it's a dict or parse string
+            if isinstance(json_data, str):
+                if not json_data.strip():
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Optimized data is empty. Please re-optimize the resume.",
+                    )
+            elif isinstance(json_data, dict):
+                if not json_data.get("user_information"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Optimized data is incomplete. Please re-optimize the resume.",
+                    )
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -1998,14 +2016,14 @@ async def download_resume(
         company = resume.get("target_company", "")
         if company:
             company = re.sub(r"[^\w\s-]", "", company).strip()
-            company = re.sub(r"[-\s]+", "_", company).title()[:30]  # Title case
+            company = company.title()[:30]  # Title case, keep spaces
         else:
             company = "Company"
 
         position = resume.get("target_role", "")
         if position:
             position = re.sub(r"[^\w\s-]", "", position).strip()
-            position = re.sub(r"[-\s]+", "_", position).title()[:30]  # Title case
+            position = position.title()[:30]  # Title case, keep spaces
         else:
             position = "Role"
 

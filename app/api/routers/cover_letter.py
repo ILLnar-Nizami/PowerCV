@@ -504,18 +504,18 @@ async def download_cover_letter_pdf(
     # Prepare data for Typst
     typst_data = {
         "user_information": {
-            "name": content_data.sender_name,
-            "email": content_data.sender_email,
-            "phone": content_data.sender_phone,
-            "address": content_data.sender_location,
+            "name": str(content_data.sender_name or ""),
+            "email": str(content_data.sender_email or ""),
+            "phone": str(content_data.sender_phone or ""),
+            "address": str(content_data.sender_location or ""),
         },
-        # Join paragraphs for body
+        # Join paragraphs for body, ensure all are strings
         "cover_letter_content": "\n\n".join(
             [
-                content_data.introduction,
-                *content_data.body_paragraphs,
-                content_data.closing,
-                content_data.signature,
+                str(content_data.introduction or ""),
+                *[str(p or "") for p in content_data.body_paragraphs],
+                str(content_data.closing or ""),
+                str(content_data.signature or ""),
             ]
         ),
     }
@@ -563,14 +563,14 @@ async def download_cover_letter_pdf(
     company = cover_letter.get("target_company", "")
     if company:
         company = re.sub(r"[^\w\s-]", "", company).strip()
-        company = re.sub(r"[-\s]+", "_", company).title()[:30]
+        company = company.title()[:30]  # Title case, keep spaces
     else:
         company = "Company"
 
     position = cover_letter.get("target_role", "")
     if position:
         position = re.sub(r"[^\w\s-]", "", position).strip()
-        position = re.sub(r"[-\s]+", "_", position).title()[:30]
+        position = position.title()[:30]  # Title case, keep spaces
     else:
         position = "Role"
 

@@ -1,6 +1,30 @@
-# Changelog - Rate Limit Handling & Optimization Stability 2026-01-14
+# Changelog - CV/Cover Letter Download Fixes 2026-01-14
 
-Fixed ATS score not updating after optimization by enabling proper score recalculation. Corrected CV and cover letter download filenames to follow {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter generation by enabling generation flag and proper database storage. Enhanced PDF generation with data validation to prevent formatting issues. Added comprehensive rate limit handling to prevent 429 errors and improve optimization stability.
+Fixed CV PDF generation to ensure full content by adding validation for optimized data completeness. Updated filename convention for CV and cover letter downloads to properly format company and position names with spaces instead of underscores, matching the required {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter PDF generation by ensuring content fields are properly converted to strings, preventing '[object Object]' issues.
+
+## CV/Cover Letter Download Fixes (2026-01-14)
+
+### CV PDF Generation Validation
+- **Data Completeness Check**: Added validation in download_resume endpoint to ensure optimized_data exists and contains required user_information
+- **Error Messages**: Clear error messages when optimized data is missing or incomplete, prompting re-optimization
+- **Content Assurance**: Prevents generation of empty PDFs by validating data structure before Typst processing
+
+### Filename Convention Updates
+- **Space Preservation**: Modified company and position name processing to keep spaces instead of replacing with underscores
+- **Professional Formatting**: Company and position names now use title case with spaces, matching user requirements
+- **Consistent Application**: Applied to both CV and cover letter download endpoints
+
+### Cover Letter PDF Content Fixes
+- **String Conversion**: Ensured all content fields (introduction, body paragraphs, closing, signature) are converted to strings
+- **Object Handling**: Prevents '[object Object]' from appearing in PDFs by proper type conversion
+- **Data Structure Safety**: Added str() wrapping for user information fields in typst_data preparation
+
+### Files Modified
+- `app/api/routers/resume.py`: Added optimized data validation and updated filename generation
+- `app/api/routers/cover_letter.py`: Updated filename generation and added string conversion for content fields
+- `CHANGELOG.md`: Documented fixes and improvements
+
+---
 
 ## Rate Limit Handling & Optimization Stability (2026-01-14)
 
