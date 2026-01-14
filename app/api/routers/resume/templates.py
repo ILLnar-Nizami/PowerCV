@@ -231,6 +231,7 @@ async def get_typst_generator() -> TypstGenerator:
 
 @light_limit()
 async def get_templates(
+    request: Request,
     category: Optional[str] = Query(None, description="Filter by category"),
     style: Optional[str] = Query(None, description="Filter by style"),
     include_custom: bool = Query(True, description="Include custom templates"),
@@ -304,7 +305,9 @@ async def get_templates(
 
 @light_limit()
 async def get_template_by_id(
+    request: Request,
     template_id: str,
+    repository: ResumeRepository = Depends(get_resume_repository),
 ) -> TemplateResponse:
     """Get a specific template by ID.
 
@@ -363,7 +366,8 @@ async def get_template_by_id(
 
 @light_limit()
 async def create_custom_template(
-    request: TemplateRequest,
+    request: Request,
+    template_request: TemplateRequest,
 ) -> TemplateResponse:
     """Create a custom template.
 
@@ -413,8 +417,9 @@ async def create_custom_template(
 
 @light_limit()
 async def download_resume(
+    request: Request,
     resume_id: str,
-    request: DownloadRequest,
+    download_request: DownloadRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
     typst_generator: TypstGenerator = Depends(get_typst_generator),
 ) -> DownloadResponse:
@@ -546,6 +551,7 @@ async def download_resume(
 
 @light_limit()
 async def download_resume_file(
+    request: Request,
     file_name: str,
 ) -> FileResponse:
     """Serve a downloaded resume file.
@@ -597,6 +603,7 @@ async def download_resume_file(
 
 @light_limit()
 async def generate_pdf_preview(
+    request: Request,
     resume_id: str,
     template_id: Optional[str] = None,
     repository: ResumeRepository = Depends(get_resume_repository),

@@ -18,6 +18,18 @@ Comprehensive linting error resolution addressing all F401 (unused imports) and 
 - `app/config/settings.py`: Removed unused ClassVar import
 - `app/main.py`: Removed 2 unused exception imports
 
+### Rate Limiting Fixes (2026-01-14)
+- **Fixed Rate Limit Decorator Errors**: Added missing `Request` parameters to all functions decorated with `@light_limit()` and `@heavy_limit()`
+- **Function Signature Updates**: Updated 12 function signatures to include proper FastAPI Request parameter for rate limiting compatibility
+- **Import Issues Resolved**: Fixed function name conflicts and module import errors in `app/api/routers/resume/__init__.py`
+- **Test Collection Fixed**: Resolved pytest collection errors that were preventing test execution
+
+### Function Updates
+- `app/api/routers/resume/master_cv.py`: Updated 6 functions with Request parameters
+- `app/api/routers/resume/optimization.py`: Updated 3 functions with Request parameters  
+- `app/api/routers/resume/templates.py`: Updated 6 functions with Request parameters
+- `app/api/routers/resume/__init__.py`: Fixed import statements and function references
+
 ### Quality Improvements
 - **Code Cleanup**: Eliminated all unused imports for better maintainability
 - **Import Structure**: Ensured proper Python import ordering following PEP 8

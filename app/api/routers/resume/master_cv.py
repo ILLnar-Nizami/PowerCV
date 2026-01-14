@@ -186,6 +186,7 @@ async def get_file_validator() -> SecureFileValidator:
 
 @light_limit()
 async def upload_master_cv(
+    request: Request,
     file: UploadFile = File(...),
     user_id: str = Form(..., description="User ID"),
     title: str = Form(..., description="Master CV title"),
@@ -277,6 +278,7 @@ async def upload_master_cv(
 
 @light_limit()
 async def get_master_cvs(
+    request: Request,
     user_id: str,
     skip: int = Query(0, ge=0, description="Number of master CVs to skip"),
     limit: int = Query(
@@ -341,7 +343,8 @@ async def get_master_cvs(
 
 
 @light_limit()
-async def get_master_cv_by_id(
+async def get_master_cv(
+    request: Request,
     master_cv_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
 ) -> MasterCVResponse:
@@ -395,7 +398,8 @@ async def get_master_cv_by_id(
 
 
 @light_limit()
-async def replace_master_cv(
+async def delete_master_cv(
+    request: Request,
     master_cv_id: str,
     file: UploadFile = File(...),
     title: Optional[str] = Form(None, description="Updated title"),
@@ -500,7 +504,8 @@ async def replace_master_cv(
 
 
 @light_limit()
-async def delete_master_cv(
+async def update_master_cv(
+    request: Request,
     master_cv_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
 ) -> Dict[str, str]:
@@ -641,6 +646,7 @@ async def test_master_cv_endpoint(
 
 @light_limit()
 async def download_original_resume(
+    request: Request,
     master_cv_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
 ) -> FileResponse:
@@ -729,14 +735,14 @@ router.add_api_route(
 
 router.add_api_route(
     "/{master_cv_id}",
-    get_master_cv_by_id,
+    get_master_cv,
     methods=["GET"],
     response_model=MasterCVResponse,
 )
 
 router.add_api_route(
     "/{master_cv_id}/replace",
-    replace_master_cv,
+    update_master_cv,
     methods=["PUT"],
     response_model=MasterCVResponse,
 )

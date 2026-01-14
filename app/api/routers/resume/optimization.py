@@ -161,8 +161,9 @@ async def get_master_cv() -> MasterCV:
 
 @heavy_limit()
 async def optimize_resume(
+    request: Request,
     resume_id: str,
-    request: OptimizeResumeRequest,
+    optimize_request: OptimizeResumeRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
     orchestrator: CVWorkflowOrchestrator = Depends(get_orchestrator),
 ) -> OptimizeResponse:
@@ -246,8 +247,9 @@ async def optimize_resume(
 
 @light_limit()
 async def score_resume(
+    request: Request,
     resume_id: str,
-    request: ScoreResumeRequest,
+    score_request: ScoreResumeRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
     master_cv: MasterCV = Depends(get_master_cv),
 ) -> ScoreResponse:
@@ -318,8 +320,9 @@ async def score_resume(
 
 @heavy_limit()
 async def generate_cover_letter(
+    request: Request,
     resume_id: str,
-    request: CoverLetterRequest,
+    cover_request: CoverLetterRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
     orchestrator: CVWorkflowOrchestrator = Depends(get_orchestrator),
 ) -> CoverLetterResponse:

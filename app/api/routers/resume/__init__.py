@@ -15,10 +15,11 @@ from .crud import (
 )
 from .master_cv import (
     delete_master_cv,
-    get_master_cv_by_id,
+    download_original_resume,
+    get_master_cv,
     get_master_cvs,
-    replace_master_cv,
     test_master_cv_endpoint,
+    update_master_cv,
     upload_master_cv,
 )
 from .optimization import (
@@ -28,7 +29,6 @@ from .optimization import (
 )
 from .router import resume_router
 from .templates import (
-    download_original_resume,
     download_resume,
     get_templates,
 )
@@ -48,12 +48,12 @@ __all__ = [
     # Template operations
     "get_templates",
     "download_resume",
-    "download_original_resume",
     # Master CV operations
-    "replace_master_cv",
+    "download_original_resume",
+    "update_master_cv",
     "upload_master_cv",
     "get_master_cvs",
-    "get_master_cv_by_id",
+    "get_master_cv",
     "delete_master_cv",
     "test_master_cv_endpoint",
 ]
