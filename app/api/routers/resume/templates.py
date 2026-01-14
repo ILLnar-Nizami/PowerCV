@@ -7,27 +7,24 @@ resume files including PDF generation, template customization, and file serving.
 import logging
 import os
 import tempfile
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
-    Body,
+    APIRouter,
     Depends,
     HTTPException,
     Query,
     Request,
     status,
 )
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.config.templates import TemplateConfig
-from app.database.models.resume import Resume
 from app.database.repositories.resume_repository import ResumeRepository
 from app.middleware.rate_limit import light_limit
 from app.services.resume.typst_generator import TypstGenerator
-from app.services.resume.universal_scorer import UniversalResumeScorer
 
 logger = logging.getLogger(__name__)
 
@@ -675,10 +672,6 @@ async def generate_pdf_preview(
 # =============================================================================
 # Router Configuration
 # =============================================================================
-
-from datetime import timedelta
-
-from fastapi import APIRouter
 
 # Create router for templates and downloads
 router = APIRouter(

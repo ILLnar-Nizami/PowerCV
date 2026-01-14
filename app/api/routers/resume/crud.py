@@ -6,25 +6,22 @@ including validation, repository access, and proper error handling.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import (
-    Body,
+    APIRouter,
     Depends,
     HTTPException,
     Query,
     Request,
     status,
 )
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
-from app.database.models.resume import Resume
 from app.database.repositories.resume_repository import ResumeRepository
-from app.middleware.rate_limit import light_limit
-from app.services.file_validator import SecureFileValidator, store_file_securely
-from app.utils.file_handling import extract_text_from_file
+from app.services.file_validator import SecureFileValidator
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +132,6 @@ async def get_file_validator() -> SecureFileValidator:
 # =============================================================================
 
 
-@light_limit()
 async def create_resume(
     request: CreateResumeRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
@@ -194,7 +190,6 @@ async def create_resume(
         )
 
 
-@light_limit()
 async def get_resume(
     resume_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
@@ -247,7 +242,6 @@ async def get_resume(
         )
 
 
-@light_limit()
 async def get_user_resumes(
     user_id: str,
     skip: int = Query(0, ge=0, description="Number of resumes to skip"),
@@ -309,7 +303,6 @@ async def get_user_resumes(
         )
 
 
-@light_limit()
 async def update_resume(
     resume_id: str,
     request: UpdateResumeRequest,
@@ -385,7 +378,6 @@ async def update_resume(
         )
 
 
-@light_limit()
 async def delete_resume(
     resume_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
@@ -451,8 +443,6 @@ async def delete_resume(
 # =============================================================================
 # Router Configuration
 # =============================================================================
-
-from fastapi import APIRouter
 
 # Create router for CRUD operations
 router = APIRouter(

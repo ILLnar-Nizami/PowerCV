@@ -1,3 +1,37 @@
+# Changelog - CI Linting Fixes 2026-01-14
+
+Comprehensive linting error resolution addressing all F401 (unused imports) and E402 (module-level imports not at top) errors reported in CI pipeline. Fixed 28 total errors across 6 files while maintaining code functionality and following Python best practices.
+
+## CI Linting Fixes (2026-01-14)
+
+### Fixed Issues
+- **F401 Errors (22 fixed)**: Removed unused imports across all affected modules
+- **E402 Errors (6 fixed)**: Moved module-level imports to proper positions at top of files
+- **F821 Error (1 fixed)**: Added missing `pathlib.Path` import in master_cv.py
+- **Syntax Errors (1 fixed)**: Cleaned up invalid syntax in settings.py
+
+### Files Modified
+- `app/api/routers/resume/crud.py`: Removed 6 unused imports, moved APIRouter import
+- `app/api/routers/resume/master_cv.py`: Removed 5 unused imports, added missing Path import, moved APIRouter import  
+- `app/api/routers/resume/optimization.py`: Removed 3 unused imports, moved datetime and APIRouter imports
+- `app/api/routers/resume/templates.py`: Removed 5 unused imports, moved timedelta and APIRouter imports
+- `app/config/settings.py`: Removed unused ClassVar import
+- `app/main.py`: Removed 2 unused exception imports
+
+### Quality Improvements
+- **Code Cleanup**: Eliminated all unused imports for better maintainability
+- **Import Structure**: Ensured proper Python import ordering following PEP 8
+- **Functionality Preserved**: All fixes maintain existing code behavior
+- **Modern Standards**: Applied current Python best practices for imports
+
+### Verification
+- ✅ All 28 linting errors resolved
+- ✅ `ruff check .` passes with no errors
+- ✅ Python syntax validation successful
+- ✅ CI pipeline ready for successful execution
+
+---
+
 # Changelog - CV/Cover Letter Download Fixes 2026-01-14
 
 Fixed CV PDF generation to ensure full content by adding validation for optimized data completeness. Updated filename convention for CV and cover letter downloads to properly format company and position names with spaces instead of underscores, matching the required {cv|cover_letter}_{first_initial}.{lastname}_{company}_{position}_{dd.mm.yy} format. Fixed cover letter PDF generation by ensuring content fields are properly converted to strings, preventing '[object Object]' issues.

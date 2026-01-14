@@ -6,7 +6,6 @@ including upload, retrieval, replacement, and testing of master CVs.
 
 import logging
 import os
-import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -14,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import (
-    Body,
+    APIRouter,
     Depends,
     File,
     Form,
@@ -27,11 +26,9 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from app.database.models.resume import Resume, ResumeData
 from app.database.repositories.resume_repository import ResumeRepository
 from app.middleware.rate_limit import heavy_limit, light_limit
 from app.services.file_validator import SecureFileValidator, store_file_securely
-from app.services.resume.typst_generator import TypstGenerator
 from app.services.resume.universal_scorer import UniversalResumeScorer
 from app.utils.file_handling import extract_text_from_file
 
@@ -706,8 +703,6 @@ async def download_original_resume(
 # =============================================================================
 # Router Configuration
 # =============================================================================
-
-from fastapi import APIRouter
 
 # Create router for master CV operations
 router = APIRouter(

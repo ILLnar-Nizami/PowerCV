@@ -1,7 +1,7 @@
 """Secure application settings configuration."""
 
 from functools import lru_cache
-from typing import ClassVar, Optional
+from typing import Optional
 
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings

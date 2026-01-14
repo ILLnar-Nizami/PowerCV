@@ -5,19 +5,18 @@ including comprehensive ATS analysis, content optimization, and iterative improv
 """
 
 import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
-    Body,
+    APIRouter,
     Depends,
     HTTPException,
-    Query,
     Request,
     status,
 )
 from pydantic import BaseModel, Field
 
-from app.database.models.resume import Resume
 from app.database.repositories.resume_repository import ResumeRepository
 from app.middleware.rate_limit import heavy_limit, light_limit
 from app.services.master_cv import MasterCV
@@ -397,9 +396,6 @@ async def generate_cover_letter(
 # Router Configuration
 # =============================================================================
 
-from datetime import datetime
-
-from fastapi import APIRouter
 
 # Create router for optimization operations
 router = APIRouter(
