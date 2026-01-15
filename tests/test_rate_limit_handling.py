@@ -7,8 +7,14 @@ from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.services.cover_letter_gen import CoverLetterGenerator
 import requests.exceptions
 
-def test_ai_client_rate_limit():
+@patch('app.services.ai_providers.get_settings')
+def test_ai_client_rate_limit(mock_get_settings):
     """Test AI client handles rate limit errors properly."""
+    # Mock settings with API key
+    mock_settings = MagicMock()
+    mock_settings.cerebras_api_key = "test_key"
+    mock_get_settings.return_value = mock_settings
+
     # Create AI client
     client = AIClient("cerebras")
 

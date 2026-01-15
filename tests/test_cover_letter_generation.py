@@ -1,25 +1,23 @@
 """Test cover letter generation functionality."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from app.services.cover_letter.ai_generator import AICoverLetterGenerator
 from app.services.cover_letter_gen import CoverLetterGenerator
 
 @pytest.mark.asyncio
-async def test_ai_cover_letter_generation():
+@patch('app.services.cover_letter.ai_generator.OpenAI')
+async def test_ai_cover_letter_generation(mock_openai):
     """Test AI cover letter generation."""
     # Mock the OpenAI client
     mock_client = MagicMock()
-    mock_client.chat.completions.create = MagicMock(return_value=MagicMock(
+    mock_client.chat.completions.create = AsyncMock(return_value=MagicMock(
         choices=[MagicMock(message=MagicMock(content="Generated cover letter content"))]
     ))
-    mock_client.chat.completions.create = MagicMock(return_value=MagicMock(
-        choices=[MagicMock(message=MagicMock(content="Generated cover letter content"))]
-    ))
+    mock_openai.return_value = mock_client
 
     # Create generator with mocked client
     generator = AICoverLetterGenerator()
-    generator.client = mock_client
 
     # Test cover letter generation
     result = await generator.generate_cover_letter(

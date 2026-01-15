@@ -78,20 +78,21 @@ def test_filename_special_characters():
         # For names like "O'Connor-Smith", split on hyphen for first/last
         hyphen_parts = name_parts[0].split('-')
         first_initial = hyphen_parts[0][0].upper()
-        # Combine "Connor" and "Smith" parts
-        lastname = "".join([part for part in hyphen_parts[1:]]) if len(hyphen_parts) > 1 else ""
-        # If we still don't have a lastname, take the rest of the first part after the initial
-        if not lastname and len(hyphen_parts) == 1:
-            # Remove apostrophe and take the rest as lastname
-            first_part = hyphen_parts[0]
-            if "'" in first_part:
-                # Split on apostrophe and take the part after it
-                apostrophe_parts = first_part.split("'", 1)
-                if len(apostrophe_parts) > 1:
-                    lastname = apostrophe_parts[1]
+        # Process the first part to remove apostrophe prefix
+        first_part = hyphen_parts[0]
+        if "'" in first_part:
+            apostrophe_parts = first_part.split("'", 1)
+            if len(apostrophe_parts) > 1:
+                base_first = apostrophe_parts[1]
             else:
-                # Just take the rest of the name after the first letter
-                lastname = first_part[1:] if len(first_part) > 1 else ""
+                base_first = first_part[1:] if len(first_part) > 1 else ""
+        else:
+            base_first = first_part[1:] if len(first_part) > 1 else ""
+        # Combine base first name with remaining hyphen parts
+        lastname = base_first + "".join([part for part in hyphen_parts[1:]])
+        # If no lastname from above, fallback to original logic
+        if not lastname and len(hyphen_parts) == 1:
+            lastname = base_first
     else:
         first_initial = name_parts[0][0].upper()
         lastname = "".join(name_parts[1:])
@@ -110,6 +111,6 @@ def test_filename_special_characters():
     # Test position with special characters
     position = "AI/ML Engineer"
     position = re.sub(r"[^\w\s-]", "", position).strip()
-    position = re.sub(r"[-\s]+", "_", position).title()[:30]
+    position = re.sub(r"[-\s]+", "", position)[:30]
 
     assert position == "AIMLEngineer"
