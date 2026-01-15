@@ -135,8 +135,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 1. **Using Docker**:
 
-bash
+```bash
 docker run -d --name mongodb -p 27017:27017 mongo:latest
+```
 
 2. **Local Installation**:
  - [MongoDB Installation Guide](https://www.mongodb.com/docs/manual/installation/)
@@ -147,9 +148,10 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest
 
 1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
 2. Add to your.env file (or pass as env vars):
- env
- CEREBRAS_API_KEY=your_key_here
- CEREBRAS_MODEL=gpt-oss-120b
+```env
+CEREBRAS_API_KEY=your_key_here
+CEREBRAS_MODEL=gpt-oss-120b
+```
  
 
 ### Environment Variables
@@ -157,24 +159,26 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest
  **Security Note**: Never commit.env files to version control. The.env file is already ignored by.gitignore.
 
 1. Copy the environment template:
- bash
- cp env-template.txt.env
+```bash
+cp env-template.txt .env
+```
  
 
 2. Fill in your actual values in.env:
- env
- # AI Provider (required)
- CEREBRAS_API_KEY=your_actual_cerebras_key
+```env
+# AI Provider (required)
+CEREBRAS_API_KEY=your_actual_cerebras_key
 
- # Database (required)
- MONGODB_URI=mongodb://username:password@host:port/powercv
+# Database (required)
+MONGODB_URI=mongodb://username:password@host:port/powercv
 
- # Security (change in production!)
- SECRET_KEY=your_unique_secret_key
+# Security (change in production!)
+SECRET_KEY=your_unique_secret_key
 
- # Other services (as needed)
- N8N_API_KEY=your_n8n_key
- SENTRY_DSN=your_sentry_dsn
+# Other services (as needed)
+N8N_API_KEY=your_n8n_key
+SENTRY_DSN=your_sentry_dsn
+```
  
 
 3. All sensitive data should be stored in.env - never hardcoded in the codebase.
@@ -197,14 +201,15 @@ PowerCV supports multiple professional CV templates:
 
 Choose your template during CV optimization:
 
-json
+```json
 POST /api/optimize-resume
 {
- "cv_text": "Your CV content...",
- "jd_text": "Job description...",
- "template": "brilliant-cv/cv.typ",
- "generate_cover_letter": true
+  "cv_text": "Your CV content...",
+  "jd_text": "Job description...",
+  "template": "brilliant-cv/cv.typ",
+  "generate_cover_letter": true
 }
+```
 
 Available template options:
 - "resume.typ" (default)
@@ -224,35 +229,39 @@ Available template options:
 Before running Docker containers, ensure you have the required environment variables set:
 
 1. **Required for all containers**:
- bash
- # Copy and edit the template
- cp env-template.txt.env
- # Edit.env with your actual values
+```bash
+# Copy and edit the template
+cp env-template.txt .env
+# Edit .env with your actual values
+```
  
 
 2. **For local development** (optional):
- bash
- # Copy development overrides (provides safe defaults)
- cp docker-compose.override.yml docker-compose.override.yml
- # Edit with your preferred development passwords/keys
+```bash
+# Copy development overrides (provides safe defaults)
+cp docker-compose.override.yml docker-compose.override.yml
+# Edit with your preferred development passwords/keys
+```
  
 
 #### Starting Services
 
 Download the Docker image:
 
-bash
+```bash
 docker pull ghcr.io/analyticace/myresumo:latest
+```
 
 Run the container:
 
-bash
+```bash
 docker run -d --name myresumo \
- -p 8080:8080 \
- -e CEREBRAS_API_KEY=your_key_here \
- -e CEREBRAS_MODEL=gpt-oss-120b \
- -e MONGODB_URI=mongodb://username:password@host:port/ \
- ghcr.io/analyticace/myresumo:latest
+  -p 8080:8080 \
+  -e CEREBRAS_API_KEY=your_key_here \
+  -e CEREBRAS_MODEL=gpt-oss-120b \
+  -e MONGODB_URI=mongodb://username:password@host:port/ \
+  ghcr.io/analyticace/myresumo:latest
+```
 
 ## AI Models
 
@@ -283,12 +292,13 @@ CEREBRAS_MODEL=gpt-oss-120b
 
 #### Testing
 
-bash
+```bash
 # Run integration tests
 pytest app/tests/test_integration.py -v
 
 # Run specific test
 python app/tests/test_integration.py
+```
 
 Access the application at http://localhost:8080.
 
@@ -296,25 +306,29 @@ Access the application at http://localhost:8080.
 
 1. Clone the repository:
 
-bash
+```bash
 git clone https://github.com/AnalyticAce/PowerCV.git
 cd PowerCV
+```
 
 2. Create and activate a virtual environment:
 
-bash
+```bash
 uv venv
-source.venv/bin/activate
+source .venv/bin/activate
+```
 
 3. Install dependencies:
 
-bash
+```bash
 uv pip install -r requirements.txt
+```
 
 4. Run development server:
 
-bash
+```bash
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+```
 
 ## API Documentation
 
@@ -387,23 +401,27 @@ GitHub Actions runs Ruff on all Python files.
 #### Local Linting
 
 1. Install Ruff:
- bash
- pip install ruff
+```bash
+pip install ruff
+```
  
 
 2. Run the linter:
- bash
- ruff check.
+```bash
+ruff check .
+```
  
 
 3. Check formatting:
- bash
- ruff format --check.
+```bash
+ruff format --check .
+```
  
 
 4. Auto-format code:
- bash
- ruff format.
+```bash
+ruff format .
+```
  
 
 ## Contributing
