@@ -10,6 +10,7 @@ from .crud import (
     create_resume,
     delete_resume,
     get_resume,
+    get_resume_repository,
     get_user_resumes,
     update_resume,
 )
@@ -38,6 +39,7 @@ __all__ = [
     # CRUD operations
     "create_resume",
     "get_resume",
+    "get_resume_repository",
     "get_user_resumes",
     "update_resume",
     "delete_resume",
