@@ -4,7 +4,7 @@ This directory contains n8n workflow templates and instructions for integrating 
 
 ## Quick Start
 
-1. **Access n8n**: Open http://localhost:5678 in your browser
+1. **Access n8n**: Open <n8n-url> in your browser
 2. **Login**: Use credentials from.env file (admin/secure_n8n_password_123!)
 3. **Import Workflow**: Either create a new workflow from scratch using the instructions below, or import the provided JSON workflow files directly
 
@@ -98,12 +98,12 @@ json
  - Response Mode: Respond immediately
 
 2. **HTTP Request Node** (Analyze CV)
- - URL: http://powercv-api:8080/api/n8n/analyze
- - Method: POST
- - Authentication: Header Auth
- - Headers:
- - X-API-Key: n8n_sec_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
- - Content-Type: application/json
+  - URL: <powercv-api-url>/api/n8n/analyze
+  - Method: POST
+  - Authentication: Header Auth
+  - Headers:
+  - X-API-Key: n8n_sec_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+  - Content-Type: application/json
  - Body JSON:
  json
  {
@@ -125,8 +125,8 @@ Add these nodes after the analysis:
  - Condition: {{ $node['Analyze CV'].json.success }} == true
 
 5. **HTTP Request Node** (Optimize CV)
- - URL: http://powercv-api:8080/api/n8n/optimize
- - Same authentication as analyze
+  - URL: <powercv-api-url>/api/n8n/optimize
+  - Same authentication as analyze
  - Body JSON:
  json
  {
@@ -208,9 +208,9 @@ json
 
 ## Docker Services
 
-- **PowerCV API**: http://localhost:8080
-- **n8n Interface**: http://localhost:5678
-- **MongoDB**: mongodb://localhost:27018/powercv
+- **PowerCV API**: <powercv-api-url>
+- **n8n Interface**: <n8n-url>
+- **MongoDB**: <mongodb-url>
 
 ## Environment Variables
 
@@ -229,19 +229,19 @@ Use curl to test endpoints directly:
 bash
 # Health check
 curl -H "X-API-Key: n8n_sec_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2" \
- http://localhost:8080/api/n8n/health
+ <powercv-api-url>/api/n8n/health
 
 # Analyze CV
 curl -X POST -H "Content-Type: application/json" \
  -H "X-API-Key: n8n_sec_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2" \
  -d '{"cv_text":"Python Developer...","jd_text":"Looking for...","user_id":"test"}' \
- http://localhost:8080/api/n8n/analyze
+ <powercv-api-url>/api/n8n/analyze
 
 # Scrape job posting
 curl -X POST -H "Content-Type: application/json" \
  -H "X-API-Key: n8n_sec_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2" \
  -d '{"url":"https://example.com/job/12345","extract_company":true}' \
- http://localhost:8080/api/v1/scrape
+ <powercv-api-url>/api/v1/scrape
 
 ## Workflow Best Practices
 
@@ -278,7 +278,7 @@ The PowerCV API exposes a health check endpoint at /api/n8n/health. Configure n8
 
 yaml
 health_check:
- endpoint: http://powercv-api:8080/api/n8n/health
+ endpoint: <powercv-api-url>/api/n8n/health
  interval: 30s
  timeout: 5s
  retries: 3

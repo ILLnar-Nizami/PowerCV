@@ -7,6 +7,7 @@ coordination point for the entire application.
 
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
@@ -42,7 +43,7 @@ load_dotenv(override=True)
 
 
 # Initialize Jinja2 templates for HTML rendering
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # Initialize orchestrator
 orchestrator = CVWorkflowOrchestrator()
@@ -354,8 +355,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/templates", StaticFiles(directory="app/templates"), name="templates")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/templates", StaticFiles(directory=str(Path(__file__).parent / "templates")), name="templates")
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
 
 @app.get("/docs", include_in_schema=False)

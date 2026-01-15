@@ -71,10 +71,10 @@ PowerCV is a platform for resume customization that adapts professional profiles
 
 ```bash
 # Navigate to project root
-cd /home/illnar/Projects/PowerCV
+cd $HOME/Projects/PowerCV
 
 # Start FastAPI backend
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ### 2. Start the Frontend Development Server
 
@@ -91,8 +91,8 @@ npm run dev
 ### 3. Access Your Application
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+- **Backend API**: http://localhost:8080
+- **API Documentation**: http://localhost:8080/docs
 
 ### 4. Environment Configuration
 
@@ -309,7 +309,7 @@ uv pip install -r requirements.txt
 4. Run development server:
 
 bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ## API Documentation
 
