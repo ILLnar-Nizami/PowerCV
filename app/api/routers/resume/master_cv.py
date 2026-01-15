@@ -398,7 +398,7 @@ async def get_master_cv(
 
 
 @light_limit()
-async def delete_master_cv(
+async def replace_master_cv(
     request: Request,
     master_cv_id: str,
     file: UploadFile = File(...),
@@ -504,7 +504,7 @@ async def delete_master_cv(
 
 
 @light_limit()
-async def update_master_cv(
+async def delete_master_cv(
     request: Request,
     master_cv_id: str,
     repository: ResumeRepository = Depends(get_resume_repository),
@@ -567,8 +567,9 @@ async def update_master_cv(
 
 @heavy_limit()
 async def test_master_cv_endpoint(
+    request: Request,
     master_cv_id: str,
-    request: MasterCVTestRequest,
+    test_request: MasterCVTestRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
     universal_scorer: UniversalResumeScorer = Depends(),
 ) -> MasterCVTestResponse:
@@ -611,12 +612,12 @@ async def test_master_cv_endpoint(
         # Perform scoring using universal scorer
         scoring_result = await universal_scorer.score_resume(
             resume_text=content,
-            job_description=request.job_description,
+            job_description=test_request.job_description,
         )
 
         # Generate optimized sections (simplified version)
         optimized_sections = {
-            "summary": f"Experienced professional seeking {request.target_role or 'new opportunities'} at {request.target_company or 'target company'}",
+            "summary": f"Experienced professional seeking {test_request.target_role or 'new opportunities'} at {test_request.target_company or 'target company'}",
             "experience": "Optimized experience section would go here",
             "skills": "Optimized skills section would go here",
         }
@@ -742,7 +743,7 @@ router.add_api_route(
 
 router.add_api_route(
     "/{master_cv_id}/replace",
-    update_master_cv,
+    replace_master_cv,
     methods=["PUT"],
     response_model=MasterCVResponse,
 )

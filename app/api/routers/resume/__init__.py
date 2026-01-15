@@ -18,8 +18,8 @@ from .master_cv import (
     download_original_resume,
     get_master_cv,
     get_master_cvs,
+    replace_master_cv,
     test_master_cv_endpoint,
-    update_master_cv,
     upload_master_cv,
 )
 from .optimization import (
@@ -50,7 +50,7 @@ __all__ = [
     "download_resume",
     # Master CV operations
     "download_original_resume",
-    "update_master_cv",
+    "replace_master_cv",
     "upload_master_cv",
     "get_master_cvs",
     "get_master_cv",
