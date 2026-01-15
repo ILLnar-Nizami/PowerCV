@@ -70,11 +70,13 @@ PowerCV is a platform for resume customization that adapts professional profiles
 ### 1. Start the Backend API
 
 ```bash
-# Navigate to project root
-cd $HOME/Projects/PowerCV
+# Navigate to project root (replace with your actual path)
+cd /path/to/PowerCV
 
 # Start FastAPI backend
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+
+```
 
 ### 2. Start the Frontend Development Server
 
@@ -87,6 +89,8 @@ npm install
 
 # Start development server
 npm run dev
+
+```
 
 ### 3. Access Your Application
 
@@ -119,12 +123,13 @@ Environment variables are automatically validated on startup.
 
 uv is a fast Python package manager:
 
-bash
+```bash
 # Install uv using pip
 pip install uv
 
 # Or using the installer script
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 #### Setup MongoDB
 
