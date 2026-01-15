@@ -141,7 +141,6 @@ class PowerCVCLI:
         jd_path = Path(args.jd) if args.jd else None
         jd_url = args.url
         output = Path(args.output) if args.output else None
-        tone = args.tone
 
         if not cv_path.exists():
             logger.error(f"CV file not found: {cv_path}")

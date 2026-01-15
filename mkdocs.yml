@@ -141,6 +141,7 @@ nav:
   - Home: index.md
   - Overview: overview.md
   - Setup Guide: setup.md
+  - Automation Guide: AUTOMATION_GUIDE.md
   - Contributing: contributing.md
   - Business Logic: business_logic.md
   - AI Integration: ai_integration.md

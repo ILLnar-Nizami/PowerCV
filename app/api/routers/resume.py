@@ -869,9 +869,6 @@ async def get_templates(
         HTTPException: If template retrieval fails
     """
     try:
-        template_dir = "data/sample_latex_templates"
-        templates = []
-
         available_templates = [
             {
                 "filename": "resume.typ",
@@ -1148,7 +1145,7 @@ async def get_user_resumes(
                         continue
 
                     filtered_resumes.append(r)
-                except:
+                except Exception:
                     pass
         formatted_resumes = filtered_resumes
 
@@ -2038,7 +2035,7 @@ async def download_resume(
                         resume["updated_at"].replace("Z", "+00:00")
                     )
                     date_str = date_obj.strftime("%d.%m.%y")
-                except:
+                except Exception:
                     date_str = datetime.now().strftime("%d.%m.%y")
         else:
             date_str = datetime.now().strftime("%d.%m.%y")
