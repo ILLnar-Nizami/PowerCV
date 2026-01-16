@@ -169,6 +169,16 @@ class JSONParser:
             else:
                 logger.debug("Cleaned response not available")
 
+            # Attempt to repair truncated JSON
+            try:
+                repaired = JSONParser.repair_json(cleaned)
+                parsed = json.loads(repaired)
+                logger.debug("Successfully parsed JSON after repair")
+                return parsed
+            except json.JSONDecodeError as repair_e:
+                logger.error(f"Repair also failed: {str(repair_e)}")
+                logger.debug(f"Repaired response (first 1000 chars):\n{repaired[:1000]}")
+
             if fallback_structure is not None:
                 logger.warning(
                     f"Using fallback structure due to JSON parse error: {type(fallback_structure).__name__}"

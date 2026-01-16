@@ -25,6 +25,13 @@ from app.api.routers.cover_letter import cover_letter_router
 from app.api.routers.resume.crud import ResumeRepository
 from app.api.routers.resume.router import resume_router
 from app.api.routers.token_usage import router as token_usage_router
+
+# Import the old resume router from resume.py
+import importlib.util
+spec = importlib.util.spec_from_file_location("old_resume_router", "app/api/routers/resume.py")
+old_resume_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(old_resume_module)
+old_resume_router = old_resume_module.resume_router
 from app.config.logging_config import logger
 from app.config.settings import get_settings
 from app.config.templates import TemplateConfig
@@ -743,6 +750,7 @@ async def optimize_structured_cv(
 
 # Include routers - These must come BEFORE the catch-all route
 app.include_router(resume_router)
+app.include_router(old_resume_router)
 app.include_router(cover_letter_router)
 # Add token usage tracking API endpoints
 app.include_router(token_usage_router)

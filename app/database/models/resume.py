@@ -88,7 +88,7 @@ class UserInformation(BaseSchema):
     name: str
     main_job_title: str
     profile_description: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     location: Optional[str] = None
     address: Optional[str] = None

@@ -35,7 +35,7 @@ async def test_cover_letter_generator():
     """Test cover letter generator."""
     # Mock the AI client
     mock_client = MagicMock()
-    mock_client.chat_completion = MagicMock(return_value='{"cover_letter": "Test cover letter"}')
+    mock_client.chat_completion = MagicMock(return_value='=== FINAL COVER LETTER ===\nTest cover letter\n=== KEYWORD COVERAGE ===')
 
     # Create generator with mocked client
     generator = CoverLetterGenerator()

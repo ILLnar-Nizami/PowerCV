@@ -93,6 +93,14 @@ async def master_optimization(
         )
         logger.info("Master optimization workflow completed")
 
+        # Clean optimized_data to handle empty email
+        optimized_data = result["optimized_cv"]
+        if (
+            "user_information" in optimized_data
+            and optimized_data["user_information"].get("email") == ""
+        ):
+            optimized_data["user_information"]["email"] = None
+
         # Save optimized resume to database
         repo = ResumeRepository()
         optimized_resume = Resume(
@@ -103,7 +111,7 @@ async def master_optimization(
             master_content=request.resume_text,  # Keep original as master
             target_company=request.target_company,
             target_role=request.target_role,
-            optimized_data=result["optimized_cv"],
+            optimized_data=optimized_data,
             matching_score=result["ats_score"],
             matching_skills=result["matching_skills"],
             missing_skills=result["missing_skills"],

@@ -79,9 +79,8 @@ Requirements: {', '.join(job_data.get('requirements', []))}
                 max_tokens=1500,
             )
 
-            # Parse JSON response with fallback
-            fallback_result = self._get_fallback_result(tone)
-            result = JSONParser.safe_json_parse(response, fallback_result)
+            # Parse text response with sections
+            result = self._parse_cover_letter_response(response, tone)
 
             logger.info(
                 f"Cover letter generated successfully ({len(result.get('cover_letter', ''))} chars)"
@@ -198,6 +197,45 @@ Generate the complete cover letter text:
             logger.error(f"Error generating cover letter: {str(e)}")
             # Return a basic fallback cover letter
             return f"Dear Hiring Manager,\n\nI am excited to apply for the {position} position at {company}. My background and skills make me a strong candidate for this role.\n\nI would welcome the opportunity to discuss how I can contribute to your team.\n\nBest regards,\n[Your Name]"
+
+    def _parse_cover_letter_response(self, response: str, tone: str) -> Dict:
+        """Parse the cover letter response text into structured format.
+
+        Args:
+            response: Raw response from AI
+            tone: Requested tone
+
+        Returns:
+            dict: Parsed cover letter data
+        """
+        try:
+            # Extract cover letter from between markers
+            cover_letter_match = re.search(
+                r"=== FINAL COVER LETTER ===(.*?)(?:===|$)",
+                response,
+                re.DOTALL | re.IGNORECASE
+            )
+
+            if cover_letter_match:
+                cover_letter = cover_letter_match.group(1).strip()
+                # Clean up any extra markers
+                cover_letter = re.sub(r"=== .*? ===", "", cover_letter, flags=re.IGNORECASE).strip()
+            else:
+                # Fallback: use the whole response as cover letter
+                cover_letter = response.strip()
+
+            # Count words (rough estimate)
+            word_count = len(cover_letter.split())
+
+            return {
+                "cover_letter": cover_letter,
+                "word_count": word_count,
+                "tone": tone,
+            }
+
+        except Exception as e:
+            logger.error(f"Error parsing cover letter response: {str(e)}")
+            return self._get_fallback_result(tone)
 
     def _get_fallback_result(self, tone: str) -> Dict:
         """Get fallback result structure.
