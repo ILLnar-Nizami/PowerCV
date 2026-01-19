@@ -117,6 +117,9 @@ class TypstGenerator:
             template = self.env.get_template(template_name)
             typst_content = template.render(data=self.json_data)
 
+            # Add automatic page breaks for very long content
+            typst_content = self._add_page_break_handling(typst_content)
+
             # Write temporary .typ file
             temp_typ_path = output_path.replace(".pdf", ".typ")
             with open(temp_typ_path, "w", encoding="utf-8") as f:
@@ -223,6 +226,35 @@ class TypstGenerator:
         except Exception as e:
             logger.error(f"Data validation error: {str(e)}")
             return False
+
+    def _add_page_break_handling(self, typst_content: str) -> str:
+        """Add page break hints for better content distribution."""
+        try:
+            # Add page break hint after major sections to allow natural flow
+            # Typst handles page breaks automatically, but we can add hints
+            # Replace section headers with page break hints if content is long
+            import re
+
+            # Add page break hint after profile section if followed by experience
+            typst_content = re.sub(
+                r'(= Profile.*?)(= Work Experience)',
+                r'\1\n#pagebreak(weak: true)\n\2',
+                typst_content,
+                flags=re.DOTALL
+            )
+
+            # Add page break hint after experience if followed by education/projects
+            typst_content = re.sub(
+                r'(= Work Experience.*?)(= (Education|Projects))',
+                r'\1\n#pagebreak(weak: true)\n\2',
+                typst_content,
+                flags=re.DOTALL
+            )
+
+        except Exception as e:
+            logger.warning(f"Page break handling warning: {e}")
+
+        return typst_content
 
     @staticmethod
     def format_date(date_str) -> str:

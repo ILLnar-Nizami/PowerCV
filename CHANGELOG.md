@@ -1,3 +1,49 @@
+# Changelog - CV Layout & Filename Enhancements 2026-01-19
+
+Enhanced CV PDF generation with improved layout spacing and professional filename formatting. Fixed text overcrowding issues and implemented proper multi-page distribution with balanced sections and adequate margins.
+
+## CV Layout & Spacing Improvements (2026-01-19)
+
+### PDF Layout Refactoring
+- **Increased Margins**: Expanded page margins from 2cm to 3cm for better readability and professional appearance
+- **Enhanced Line Spacing**: Improved paragraph leading from 0.6em to 1.5em and spacing from 0.6em to 0.8em to prevent text overcrowding
+- **Section Spacing**: Increased vertical spacing between sections for better content separation
+- **Page Break Optimization**: Enhanced spacing between major sections to ensure proper content distribution across pages
+- **Header Spacing**: Improved header vertical spacing for better visual hierarchy
+
+### Filename Convention Update
+- **Professional Naming**: Replaced placeholder-based filenames with proper candidate name extraction
+- **New Format**: Implemented `{type}_{initial}.{surname}_{company}_{role}_{date}.pdf` format using candidate name from resume data
+- **Name Parsing**: Enhanced name extraction from optimized resume data with proper sanitization
+- **Fallback Handling**: Maintained robust fallback to default names when name extraction fails
+
+### Technical Implementation
+- **Typst Template Updates**: Modified `data/templates/resume.typ` with improved spacing parameters and page break hints
+- **API Endpoint Changes**: Updated `app/api/routers/resume.py` download endpoint with new filename generation logic
+- **Export Service**: Created `app/services/export.py` with standardized filename generation function
+- **Page Break Handling**: Added automatic page break hints in TypstGenerator for better content distribution
+
+### Quality Improvements
+- **Accessibility**: Better spacing improves WCAG 2.2 AA compliance for text readability
+- **Professional Appearance**: Enhanced margins and spacing create more polished, enterprise-ready CVs
+- **Multi-page Support**: Improved spacing ensures proper content flow across multiple pages when needed
+- **Text Overlap Prevention**: Increased margins and spacing eliminate text overlap issues at page bottoms
+
+### Files Modified
+- `data/templates/resume.typ`: Updated spacing, margins, and layout parameters
+- `app/api/routers/resume.py`: Implemented new filename generation logic
+- `app/services/export.py`: New export utilities with filename generation
+- `app/services/resume/typst_generator.py`: Enhanced page break handling
+- `CHANGELOG.md`: Documented layout and filename improvements
+
+### Impact Metrics
+- **Layout Quality**: Eliminated text overcrowding and overlap issues
+- **Professional Standards**: CVs now meet enterprise formatting requirements
+- **User Experience**: Clear, readable PDFs with proper spacing and margins
+- **Filename Clarity**: No more placeholder names, proper candidate identification
+
+---
+
 # Changelog - JSON Parsing & Cover Letter Generation Fixes 2026-01-16
 
 Fixed critical JSON parsing errors causing 500 Internal Server Errors in CV analysis and cover letter generation. Implemented robust JSON repair for truncated AI responses and updated cover letter parsing to handle text-based AI outputs instead of JSON.

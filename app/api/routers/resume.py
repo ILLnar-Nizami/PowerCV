@@ -36,6 +36,7 @@ from app.config.templates import TemplateConfig
 from app.database.models.resume import Resume, ResumeData
 from app.database.repositories.resume_repository import ResumeRepository
 from app.middleware.rate_limit import heavy_limit, light_limit
+from app.services.export import generate_filename
 from app.services.file_validator import SecureFileValidator, store_file_securely
 from app.services.resume.typst_generator import TypstGenerator
 from app.services.resume.universal_scorer import UniversalResumeScorer
@@ -1987,12 +1988,10 @@ async def download_resume(
         # We need to return the file path for FileResponse
         pdf_path = output_path
 
-        # Generate filename in format: cv_FirstInitial.Lastname_Company_Role_dd.mm.yy
-        import re
-
+        # Generate filename using the standard naming convention
         # Extract name from optimized data
-        first_initial = "J"
-        lastname = "Doe"
+        first_name = "John"
+        last_name = "Doe"
         if json_data and isinstance(json_data, dict):
             user_info = json_data.get("user_information", {})
             if isinstance(user_info, dict):
@@ -2001,46 +2000,16 @@ async def download_resume(
                     # Split name into parts
                     name_parts = name_str.strip().split()
                     if len(name_parts) >= 2:
-                        first_initial = name_parts[0][0].upper()  # First letter of first name
-                        lastname = "".join(name_parts[1:])  # Rest as lastname
-                        # Sanitize lastname for filename
-                        lastname = re.sub(r"[^\w-]", "", lastname).strip()
+                        first_name = name_parts[0]
+                        last_name = "".join(name_parts[1:])
                     elif len(name_parts) == 1:
-                        first_initial = name_parts[0][0].upper()
-                        lastname = name_parts[0][1:] or "Doe"  # Rest of single name or default
+                        first_name = name_parts[0]
+                        last_name = "Doe"
 
-        # Get company and position from resume metadata
-        company = resume.get("target_company", "")
-        if company:
-            company = re.sub(r"[^\w\s-]", "", company).strip()
-            company = company.title()[:30]  # Title case, keep spaces
-        else:
-            company = "Company"
+        company = resume.get("target_company", "company")
+        role = resume.get("target_role", "role")
 
-        position = resume.get("target_role", "")
-        if position:
-            position = re.sub(r"[^\w\s-]", "", position).strip()
-            position = position.title()[:30]  # Title case, keep spaces
-        else:
-            position = "Role"
-
-        # Get date in dd.mm.yy format (use updated_at or current date)
-        date_str = ""
-        if resume.get("updated_at"):
-            if isinstance(resume["updated_at"], datetime):
-                date_str = resume["updated_at"].strftime("%d.%m.%y")
-            elif isinstance(resume["updated_at"], str):
-                try:
-                    date_obj = datetime.fromisoformat(
-                        resume["updated_at"].replace("Z", "+00:00")
-                    )
-                    date_str = date_obj.strftime("%d.%m.%y")
-                except Exception:
-                    date_str = datetime.now().strftime("%d.%m.%y")
-        else:
-            date_str = datetime.now().strftime("%d.%m.%y")
-
-        filename = f"cv_{first_initial}.{lastname}_{company}_{position}_{date_str}.pdf"
+        filename = generate_filename("cv", first_name, last_name, company, role)
         return FileResponse(
             path=pdf_path,
             filename=filename,

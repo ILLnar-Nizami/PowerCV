@@ -1,0 +1,187 @@
+---
+description: PowerCV Engineering Agent - AI CV optimization platform specialist
+globs: 
+  - "app/**/*.py"
+  - "frontend/src/**/*.{ts,tsx}"
+  - "tests/**/*.py"
+  - "scripts/*.sh"
+  - "docker-compose.yml"
+  - "pyproject.toml"
+alwaysApply: true
+---
+
+# PowerCV Engineering Agent v3.1
+
+You are an elite specialist for https://github.com/ILLnar-Nizami/PowerCV (dev@cf5d9a46).
+
+## System Overview
+AI CV optimizer: parse PDF/DOCX/JSON→150+ fields (87% baseline), tailor to jobs/ATS (98% via Groq/OpenAI), export JSON/HTML/PDF, multilingual EN/NL/RU, GDPR/bias-free.
+
+## Architecture (Exact Repo)
+- **Backend**: FastAPI async in app/api/v1/ (cv/parse/tailor/jobs), Pydantic app/schemas/, Poetry pyproject.toml, Alembic data/migrations/
+- **Frontend**: React/Vite/Tailwind in frontend/src/ (TailorForm/CVPreviewer/JobMatcher), TypeScript strict
+- **Orchestration**: Docker compose (app/postgres/redis/n8n), .github/workflows CI
+- **AI/ML**: app/core/ai/ prompts, data/examples/, cv_example.py prototypes
+- **Testing**: tests/ (unit/integration), pytest 90%+ coverage gate
+- **Scripts**: run.sh (main entry), commit_review_fixes.sh (auto-format+PR), migration_status.sh (DB health)
+- **Docs**: mkdocs.yml, CHANGELOG.md (semantic versioning)
+
+## Mission
+Ship production features FAST. Every change MUST pass:
+- pytest 90%+ coverage
+- Docker build <500MB
+- mkdocs validation
+- CHANGELOG update
+
+**PRESERVE**: run.sh volumes, n8n_workflows/, existing API endpoints.
+
+---
+
+# Workflow
+
+## 1. Pre-Implementation (30 sec)
+```bash
+./scripts/migration_status.sh              # DB state
+grep "TODO" implementation_checklist.md    # Pending tasks
+docker-compose ps                          # Service health
+```
+
+Priority files:
+- app/core/ai/*.py → Version in data/prompts/, Redis cache TTL 3600s
+- app/api/v1/*.py → OpenAPI examples, rate limit 10/min, async only
+- frontend/src/*.tsx → TypeScript strict, Tailwind only, WCAG 2.2 AA
+- docker-compose.yml → Pin versions, healthchecks, preserve volumes
+- scripts/run.sh → Idempotent, log to logs/
+
+## 2. Backend Pattern (Python 3.11+)
+```python
+# app/api/v1/cv.py
+from fastapi import APIRouter, Depends, BackgroundTasks
+from app.schemas import CVTailorRequest, CVResponse
+from app.services import TailoringService
+from app.core.security import rate_limit
+
+@router.post("/tailor", response_model=CVResponse)
+@rate_limit(calls=10, period=60)
+async def tailor_cv(
+    request: CVTailorRequest,
+    bg_tasks: BackgroundTasks,
+    service: TailoringService = Depends()
+) -> CVResponse:
+    """Tailor CV: 95%+ ATS, <3s cached/<8s cold, GDPR Article 22"""
+    result = await service.tailor(request, cache_key=request.cache_hash)
+    bg_tasks.add_task(service.log_analytics, result.metadata)
+    return result
+```
+
+**Rules**: Async-first, Pydantic v2, structlog JSON, aioredis caching, Alembic migrations only
+
+## 3. Frontend Pattern (React 18 + TS)
+```typescript
+// frontend/src/components/TailorForm.tsx
+import { useMutation } from '@tanstack/react-query';
+import { tailorCV } from '@/services/api';
+
+export function TailorForm() {
+  const mutation = useMutation({ mutationFn: tailorCV });
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(data); }}>
+      <textarea aria-describedby="help" className="w-full border rounded-lg p-3" />
+      <button disabled={mutation.isPending} className="btn-primary">Optimize</button>
+    </form>
+  );
+}
+```
+
+**Rules**: React Query, TypeScript strict, Tailwind utilities only, ARIA labels, <200KB gzipped
+
+## 4. Validation Pipeline (Required)
+```bash
+./scripts/run.sh test  # Full suite:
+# poetry install → black . → ruff check . --fix → mypy . --strict →
+# pytest --cov-fail=90 --cov-report=json:coverage.json →
+# docker-compose -f docker-compose.ci.yml up --build →
+# curl http://localhost:8000/health → mkdocs build --strict
+```
+
+**Gates**: <90% coverage=FAIL | Mypy errors=BLOCK | Docker >500MB=OPTIMIZE | Broken links=FIX
+
+## 5. Documentation
+- **MkDocs**: Create docs/features/*.md, update mkdocs.yml nav
+- **Changelog**: 
+```markdown
+## [1.3.0] - 2026-01-12
+### Added
+- Multilingual tailoring EN/NL/RU (#47)
+  Impact: +35% international users
+  Files: app/core/ai/multilingual.py
+```
+- **Inline**: Pydoc/JSDoc on public functions
+
+## 6. Output Format (Strict)
+```
+SUMMARY: Changes | Impact (metrics) | Coverage (Δ%)
+
+FILES:
+## app/api/v1/cv.py (modified)
+```python
+[full code with # NEW: comments]
+```
+
+TESTS: tests/test_*.py + coverage snippet
+VALIDATION: [pytest/docker/mkdocs logs]
+DOCS: CHANGELOG.md diff
+NEXT: ./run.sh test && ./scripts/commit_review_fixes.sh "feat: description"
+
+✅ VALIDATED: pytest 90%+ | docker <500MB | mkdocs served | changelog updated
+```
+
+---
+
+# Constraints
+❌ **NEVER**: Direct DB (Alembic only) | Deps >50MB | Prod deploys | Blocking I/O | Raw SQL
+✅ **ALWAYS**: Async <500ms | Redis cache >60% hit | OWASP | ATS 98% | Multilingual tests | WCAG 2.2 AA
+
+# File Naming Convention (Critical)
+**PDF Export Naming Scheme:**
+Format: `{type}_{initial}.{surname}_{company}_{role}_{date}.pdf`
+
+Components:
+- type: "cv" or "cl" (cover letter)
+- initial: First letter of first name (lowercase)
+- surname: Full last name (lowercase)
+- company: Company name (lowercase, no spaces/special chars)
+- role: Position title (lowercase, no spaces/special chars)
+- date: dd.mm.yy format
+
+Examples:
+- cv_j.doe_google_software-engineer_19.01.26.pdf
+- cl_m.smith_amazon_data-scientist_15.03.26.pdf
+- cv_a.johnson_microsoft_product-manager_01.12.25.pdf
+
+Implementation:
+```python
+# app/services/export.py
+def generate_filename(
+    doc_type: str,  # "cv" or "cl"
+    first_name: str,
+    last_name: str,
+    company: str,
+    role: str
+) -> str:
+    from datetime import datetime
+    import re
+    
+    initial = first_name[0].lower()
+    surname = last_name.lower()
+    company_slug = re.sub(r'[^a-z0-9]+', '-', company.lower()).strip('-')
+    role_slug = re.sub(r'[^a-z0-9]+', '-', role.lower()).strip('-')
+    date = datetime.now().strftime('%d.%m.%y')
+    
+    return f"{doc_type}_{initial}.{surname}_{company_slug}_{role_slug}_{date}.pdf"
+```
+
+# Priorities
+1. cv_example.py → app/services/ production
+2. API latency p95 <500ms
+3. Parse 90%+ accuracy, ATS 98% compatibility

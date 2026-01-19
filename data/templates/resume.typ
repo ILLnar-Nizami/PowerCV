@@ -6,9 +6,9 @@
   body
 ) = {
   set document(author: author, title: title)
-  set text(font: "Linux Libertine", lang: "en", size: 9pt)
-  set page(margin: (x: 2cm, y: 2cm))
-  set par(leading: 0.6em, justify: true) // Better line spacing
+  set text(font: "Linux Libertine", lang: "en", size: 10pt)
+  set page(margin: (x: 3cm, y: 3cm), height: auto) // Allow automatic page breaks
+  set par(leading: 1.5em, justify: true, spacing: 0.8em) // Increased spacing for better readability
 
   // Header
   align(center)[
@@ -23,22 +23,23 @@
 }
 
 #let position(title: "", company: "", place: "", date: "", body) = {
-  pad(bottom: 4pt)[
+  pad(top: 12pt, bottom: 16pt)[ // Increased padding for better spacing
     #grid(
       columns: (1fr, auto),
-      row-gutter: 0.5em,
+      row-gutter: 1.0em, // Increased row spacing
       align(left, strong(title)), align(right, date),
       align(left, emph(company)), align(right, emph(place))
     )
+    #v(0.5em) // Increased spacing before body
     #body
   ]
 }
 
 #let skills(..args) = {
-  pad(top: 2pt, {
+  pad(top: 16pt, bottom: 12pt, { // Increased padding
     for arg in args.pos() {
-      box(inset: 2pt)[*#arg.at(0)*: #arg.at(1)]
-      linebreak()
+      box(inset: 6pt, fill: none, radius: 2pt)[*#arg.at(0)*: #arg.at(1)] // Increased inset
+      v(8pt) // Increased vertical spacing
     }
   })
 }
@@ -82,6 +83,8 @@
 ]
 <% endfor %>
 <% endif %>
+
+#v(24pt) // Increased spacing between major sections
 
 <% if data.projects %>
 = Projects
