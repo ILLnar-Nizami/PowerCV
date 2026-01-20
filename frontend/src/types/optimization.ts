@@ -33,6 +33,7 @@ export interface OptimizationResult {
   coverLetterUrl?: string
   coverLetter?: string
   ats_score?: number
+  original_ats_score?: number
   matching_skills?: string[]
   missing_skills?: string[]
   analysisResult?: AnalysisResult

@@ -39,7 +39,7 @@ export function MasterCVPage() {
   const { data: masterCVsData, isLoading, error } = useQuery({
     queryKey: ['master-cvs'],
     queryFn: async () => {
-      const { data } = await apiClient.get<MasterCVFromAPI[]>('/resume/master-cvs')
+      const { data } = await apiClient.get<MasterCVFromAPI[]>('/v1/resumes/master-cv/user/local-user')
       return data
     },
   })
@@ -50,7 +50,7 @@ export function MasterCVPage() {
     userId: 'local-user',
     filename: cv.master_filename || cv.title,
     originalFilename: cv.master_filename || cv.title,
-    fileUrl: `/api/resume/master-cv/${cv.id}`,
+    fileUrl: `/api/v1/resumes/master-cv/${cv.id}/download`,
     uploadedAt: cv.master_updated_at || new Date().toISOString(),
     usageCount: 0,
     lastUsed: cv.master_updated_at,
@@ -64,7 +64,7 @@ export function MasterCVPage() {
   const handlePreview = async (cv: MasterCV) => {
     // Fetch full content for preview
     try {
-      const { data } = await apiClient.get<MasterCVFromAPI>(`/resume/master-cv/${cv.id}`)
+      const { data } = await apiClient.get<MasterCVFromAPI>(`/v1/resumes/master-cv/${cv.id}`)
       setPreviewCV({
         ...cv,
         content: data.master_content,
@@ -91,7 +91,7 @@ export function MasterCVPage() {
       formData.append('title', file.name.replace(/\.[^/.]+$/, ''))
       formData.append('user_id', 'local-user')
 
-      await apiClient.post('/resume/master-cv', formData, {
+      await apiClient.post('/v1/resumes/master-cv/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 

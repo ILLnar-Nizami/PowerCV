@@ -84,13 +84,19 @@ class BaseRepository:
             return []
 
     async def find_many(
-        self, query: Dict, sort: Optional[List[tuple]] = None
+        self,
+        query: Dict,
+        sort: Optional[List[tuple]] = None,
+        skip: int = 0,
+        limit: Optional[int] = None,
     ) -> List[Dict]:
-        """Find multiple documents matching the query with optional sorting.
+        """Find multiple documents matching the query with optional sorting and pagination.
 
         Args:
             query (Dict): The query to match documents.
             sort (Optional[List[tuple]]): Sorting criteria.
+            skip (int): Number of documents to skip.
+            limit (Optional[int]): Maximum number of documents to return.
 
         Returns:
         -------
@@ -103,6 +109,10 @@ class BaseRepository:
                 cursor = collection.find(query)
                 if sort:
                     cursor.sort(sort)
+                if skip:
+                    cursor.skip(skip)
+                if limit:
+                    cursor.limit(limit)
                 documents = await cursor.to_list(length=None)
                 if documents is None:
                     return []
@@ -173,3 +183,82 @@ class BaseRepository:
         except Exception as e:
             print(f"Error deleting document: {e}")
             return False
+
+    # =========================================================================
+    # Convenience Methods (aliases for cleaner API)
+    # =========================================================================
+
+    async def create(self, document: Dict) -> str:
+        """Create a new document (alias for insert_one).
+
+        Args:
+            document: Document to insert.
+
+        Returns:
+            str: ID of the inserted document.
+        """
+        return await self.insert_one(document)
+
+    async def get_by_id(self, id) -> Optional[Dict]:
+        """Get a document by its ID.
+
+        Args:
+            id: Document ID (string or ObjectId).
+
+        Returns:
+            Optional[Dict]: The document or None if not found.
+        """
+        from bson import ObjectId as BsonObjectId
+
+        # Convert string ID to ObjectId if necessary
+        if isinstance(id, str):
+            try:
+                id = BsonObjectId(id)
+            except Exception:
+                return None
+
+        return await self.find_one({"_id": id})
+
+    async def update(self, id, update_data: Dict) -> Optional[Dict]:
+        """Update a document by ID and return the updated document.
+
+        Args:
+            id: Document ID (string or ObjectId).
+            update_data: Fields to update.
+
+        Returns:
+            Optional[Dict]: Updated document or None if update failed.
+        """
+        from bson import ObjectId as BsonObjectId
+
+        # Convert string ID to ObjectId if necessary
+        if isinstance(id, str):
+            try:
+                id = BsonObjectId(id)
+            except Exception:
+                return None
+
+        success = await self.update_one({"_id": id}, {"$set": update_data})
+        if success:
+            return await self.find_one({"_id": id})
+        return None
+
+    async def delete(self, id) -> bool:
+        """Delete a document by ID.
+
+        Args:
+            id: Document ID (string or ObjectId).
+
+        Returns:
+            bool: True if deletion was successful.
+        """
+        from bson import ObjectId as BsonObjectId
+
+        # Convert string ID to ObjectId if necessary
+        if isinstance(id, str):
+            try:
+                id = BsonObjectId(id)
+            except Exception:
+                return False
+
+        return await self.delete_one({"_id": id})

@@ -52,11 +52,22 @@ export function useDeleteResume() {
 export function useDownloadResume() {
   return useMutation({
     mutationFn: (id: string) => resumesAPI.downloadResume(id),
-    onSuccess: (blob, id) => {
+    onSuccess: (response, id) => {
+      const blob = response.data
+      const contentDisposition = response.headers['content-disposition']
+      let filename = `resume_optimized_${id}.pdf`
+      
+      if (contentDisposition) {
+        const customFilename = contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
+        if (customFilename) {
+          filename = customFilename
+        }
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `resume_optimized_${id}.pdf`
+      a.download = filename
       a.click()
       window.URL.revokeObjectURL(url)
       toast.success('Optimized resume downloaded successfully')

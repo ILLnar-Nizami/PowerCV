@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.services.cv_analyzer import CVAnalyzer
 
+
 def test_ats_score_calculation():
     """Test ATS score calculation in workflow orchestrator."""
     # Create mock analyzer
@@ -15,8 +16,12 @@ def test_ats_score_calculation():
         "ats_score": 32,
         "keyword_analysis": {
             "matched_keywords": [{"keyword": "Python"}, {"keyword": "Teamwork"}],
-            "missing_critical": [{"keyword": "Kubernetes"}, {"keyword": "Docker"}, {"keyword": "AWS"}]
-        }
+            "missing_critical": [
+                {"keyword": "Kubernetes"},
+                {"keyword": "Docker"},
+                {"keyword": "AWS"},
+            ],
+        },
     }
 
     # Second analysis (after optimization) - higher score
@@ -28,10 +33,10 @@ def test_ats_score_calculation():
                 {"keyword": "Teamwork"},
                 {"keyword": "Docker"},
                 {"keyword": "AWS"},
-                {"keyword": "Microservices"}
+                {"keyword": "Microservices"},
             ],
-            "missing_critical": [{"keyword": "Kubernetes"}]
-        }
+            "missing_critical": [{"keyword": "Kubernetes"}],
+        },
     }
 
     # Mock the analyzer to return different results
@@ -43,37 +48,43 @@ def test_ats_score_calculation():
 
     # Mock optimizer to return simple optimized data
     mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = MagicMock(return_value={
-        "user_information": {
-            "name": "Test Candidate",
-            "email": "test@example.com",
-            "profile_description": "Experienced developer",
-            "experiences": [{
-                "job_title": "Developer",
-                "company": "Test Company",
-                "start_date": "2020-01-01",
-                "end_date": "Present",
-                "four_tasks": ["Task 1", "Task 2", "Task 3", "Task 4"]
-            }],
-            "education": [{
-                "degree": "Bachelor's",
-                "institution": "Test University",
-                "start_date": "2015-09-01",
-                "end_date": "2019-06-01"
-            }],
-            "skills": {
-                "hard_skills": ["Python", "Docker", "AWS"],
-                "soft_skills": ["Teamwork", "Communication"]
+    mock_optimizer.optimize_comprehensive = MagicMock(
+        return_value={
+            "user_information": {
+                "name": "Test Candidate",
+                "email": "test@example.com",
+                "profile_description": "Experienced developer",
+                "experiences": [
+                    {
+                        "job_title": "Developer",
+                        "company": "Test Company",
+                        "start_date": "2020-01-01",
+                        "end_date": "Present",
+                        "four_tasks": ["Task 1", "Task 2", "Task 3", "Task 4"],
+                    }
+                ],
+                "education": [
+                    {
+                        "degree": "Bachelor's",
+                        "institution": "Test University",
+                        "start_date": "2015-09-01",
+                        "end_date": "2019-06-01",
+                    }
+                ],
+                "skills": {
+                    "hard_skills": ["Python", "Docker", "AWS"],
+                    "soft_skills": ["Teamwork", "Communication"],
+                },
             }
         }
-    })
+    )
     orchestrator.optimizer = mock_optimizer
 
     # Test the optimization workflow
     result = orchestrator.optimize_cv_for_job(
         cv_text="Original CV content",
         jd_text="Job description text",
-        generate_cover_letter=False
+        generate_cover_letter=False,
     )
 
     # Verify ATS score was updated
@@ -88,6 +99,7 @@ def test_ats_score_calculation():
     assert "missing_skills" in result
     assert len(result["missing_skills"]) == 1  # Should have 1 missing skill
 
+
 def test_ats_score_fallback():
     """Test ATS score calculation with fallback when optimized analysis fails."""
     # Create mock analyzer
@@ -98,8 +110,8 @@ def test_ats_score_fallback():
         "ats_score": 32,
         "keyword_analysis": {
             "matched_keywords": [{"keyword": "Python"}],
-            "missing_critical": [{"keyword": "Kubernetes"}]
-        }
+            "missing_critical": [{"keyword": "Kubernetes"}],
+        },
     }
 
     # Second analysis fails - return empty
@@ -111,19 +123,18 @@ def test_ats_score_fallback():
 
     # Mock optimizer
     mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = MagicMock(return_value={
-        "user_information": {
-            "name": "Test Candidate",
-            "email": "test@example.com"
+    mock_optimizer.optimize_comprehensive = MagicMock(
+        return_value={
+            "user_information": {"name": "Test Candidate", "email": "test@example.com"}
         }
-    })
+    )
     orchestrator.optimizer = mock_optimizer
 
     # Test the optimization workflow
     result = orchestrator.optimize_cv_for_job(
         cv_text="Original CV content",
         jd_text="Job description text",
-        generate_cover_letter=False
+        generate_cover_letter=False,
     )
 
     # Should fall back to original score when optimized analysis fails

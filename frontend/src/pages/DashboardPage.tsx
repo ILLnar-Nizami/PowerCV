@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ResumeCard } from '@/components/dashboard/ResumeCard'
-import { Plus, Search, Loader2, FileText, LayoutGrid, List, ArrowUpDown } from 'lucide-react'
+import { Trash2, Plus, Search, Loader2, FileText, LayoutGrid, List, ArrowUpDown } from 'lucide-react'
 import { ResumeStatus, ResumeFormat, TemplateType } from '@/types'
 import { Resume } from '@/types/resume'
 import { apiClient } from '@/api/client'
 import { toast } from 'sonner'
+import { useDeleteResume } from '@/hooks/useResumes'
 
 interface ResumeFromAPI {
   id: string
@@ -53,6 +54,7 @@ function mapStatusToAPI(status: ResumeStatus): string {
 export function DashboardPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const deleteResume = useDeleteResume()
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem('dashboard-view-mode')
@@ -84,7 +86,7 @@ export function DashboardPage() {
   const { data: resumesData, isLoading, error } = useQuery({
     queryKey: ['resumes', 'local-user'],
     queryFn: async () => {
-      const { data } = await apiClient.get<ResumeFromAPI[]>('/resume/user/local-user')
+      const { data } = await apiClient.get<ResumeFromAPI[]>('/v1/resumes/user/local-user')
       return data
     },
   })
@@ -92,7 +94,7 @@ export function DashboardPage() {
   // Status update mutation
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await apiClient.patch(`/resume/${id}/status`, { application_status: status })
+      await apiClient.patch(`/v1/resumes/${id}/status`, { application_status: status })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resumes'] })
@@ -313,9 +315,22 @@ export function DashboardPage() {
                   <td className="p-3 text-muted-foreground text-sm">
                     {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="p-3">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/resume/${resume.id}`)}>
-                      View
+                  <td className="p-3 flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/resume/${resume.id}`)} title="View">
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        if (globalThis.confirm('Are you sure you want to delete this resume?')) {
+                          deleteResume.mutate(resume.id)
+                        }
+                      }}
+                      className="text-destructive hover:text-destructive"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </td>
                 </tr>

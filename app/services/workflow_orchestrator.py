@@ -67,19 +67,33 @@ class CVWorkflowOrchestrator:
 
         # Re-analyze optimized CV to get updated ATS score
         optimized_text = self._dict_to_text(optimized_data)
-        logger.info(f"Re-analyzing optimized CV for ATS score calculation. Optimized text length: {len(optimized_text)}")
+        logger.info(
+            f"Re-analyzing optimized CV for ATS score calculation. Optimized text length: {len(optimized_text)}"
+        )
 
         # Try to get updated ATS score, but fall back to original if rate limited
         try:
             optimized_analysis = self.analyzer.analyze(optimized_text, jd_text)
-            optimized_ats_score = optimized_analysis.get("ats_score", analysis.get("ats_score", 0))
-            logger.info(f"ATS score before optimization: {analysis.get('ats_score', 'N/A')}")
+            optimized_ats_score = optimized_analysis.get(
+                "ats_score", analysis.get("ats_score", 0)
+            )
+            logger.info(
+                f"ATS score before optimization: {analysis.get('ats_score', 'N/A')}"
+            )
             logger.info(f"ATS score after optimization: {optimized_ats_score}")
-            logger.info(f"ATS score improvement: {optimized_ats_score - analysis.get('ats_score', 0)}")
+            logger.info(
+                f"ATS score improvement: {optimized_ats_score - analysis.get('ats_score', 0)}"
+            )
         except Exception as e:
             error_msg = str(e).lower()
-            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
-                logger.warning("Rate limit exceeded on ATS re-analysis, using original score")
+            if (
+                "429" in error_msg
+                or "too many requests" in error_msg
+                or "rate limit" in error_msg
+            ):
+                logger.warning(
+                    "Rate limit exceeded on ATS re-analysis, using original score"
+                )
                 optimized_ats_score = analysis.get("ats_score", 0)
                 optimized_analysis = analysis
             else:
@@ -100,13 +114,17 @@ class CVWorkflowOrchestrator:
             "optimized_cv": optimized_data,  # Now returns the full dict structure
             "cover_letter": cover_letter,
             "ats_score": optimized_ats_score,  # Updated score after optimization
+            # Original score
+            "original_ats_score": analysis.get("ats_score", 0),
             "matching_skills": [
                 k.get("keyword") for k in optimized_matching_skills if k.get("keyword")
             ],
             "missing_skills": [
                 k.get("keyword") for k in optimized_missing_skills if k.get("keyword")
             ],
-            "recommendation": optimized_analysis.get("summary", analysis.get("summary", "")),
+            "recommendation": optimized_analysis.get(
+                "summary", analysis.get("summary", "")
+            ),
         }
 
         logger.info(f"Workflow completed. ATS Score: {result['ats_score']}")
@@ -151,7 +169,8 @@ class CVWorkflowOrchestrator:
 
         # Extract and optimize experience section
         experience_section = TextProcessor.extract_section(
-            cv_text, ["EXPERIENCE", "WORK EXPERIENCE", "PROFESSIONAL EXPERIENCE"]
+            cv_text, ["EXPERIENCE", "WORK EXPERIENCE",
+                      "PROFESSIONAL EXPERIENCE"]
         )
         if experience_section:
             optimized_experience = self.optimizer.optimize_section(
@@ -297,7 +316,8 @@ class CVWorkflowOrchestrator:
         """Extract candidate name from analysis."""
         # Try to find name in experience analysis or other sections
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get(
+                "relevant_roles", [])
             if relevant_roles:
                 return relevant_roles[0].get("title", "").split(" - ")[0] or "Candidate"
         return "Candidate"
@@ -305,7 +325,8 @@ class CVWorkflowOrchestrator:
     def _extract_current_title_from_analysis(self, analysis: Dict) -> str:
         """Extract current job title from analysis."""
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get(
+                "relevant_roles", [])
             if relevant_roles:
                 return relevant_roles[0].get("title", "Professional")
         return "Professional"
@@ -319,7 +340,8 @@ class CVWorkflowOrchestrator:
         """Extract years of experience from analysis."""
         # This is a rough estimate based on roles
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get(
+                "relevant_roles", [])
             if len(relevant_roles) >= 2:
                 return "3+ years"
             elif len(relevant_roles) >= 1:
@@ -331,14 +353,16 @@ class CVWorkflowOrchestrator:
         skills = []
         if "keyword_analysis" in analysis:
             matched = analysis["keyword_analysis"].get("matched_keywords", [])
-            skills = [k.get("keyword", "") for k in matched[:8] if k.get("keyword")]
+            skills = [k.get("keyword", "")
+                      for k in matched[:8] if k.get("keyword")]
         return skills
 
     def _extract_achievements_from_analysis(self, analysis: Dict) -> List[str]:
         """Extract achievements from analysis."""
         achievements = []
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get(
+                "relevant_roles", [])
             for role in relevant_roles:
                 role_achievements = role.get("key_achievements", [])
                 if isinstance(role_achievements, str):
@@ -425,7 +449,8 @@ class CVWorkflowOrchestrator:
         )
         if req_match:
             req_text = req_match.group(1)
-            bullets = re.findall(r"(?:^|\n)\s*[•\-\*]\s*(.*?)(?=\n|$)", req_text)
+            bullets = re.findall(
+                r"(?:^|\n)\s*[•\-\*]\s*(.*?)(?=\n|$)", req_text)
             if bullets:
                 requirements.extend([b.strip() for b in bullets[:5]])
 
@@ -455,24 +480,31 @@ class CVWorkflowOrchestrator:
         # User information
         ui = cv_dict.get("user_information", {})
         if ui:
-            lines.append(ui.get("name", "Candidate"))
+            name = ui.get("name", "Candidate")
+            lines.append(name.upper())
             lines.append(ui.get("email", ""))
             lines.append(ui.get("phone", ""))
+            lines.append(ui.get("address", ""))
             lines.append("")
 
-            lines.append("PROFESSIONAL SUMMARY")
-            lines.append(ui.get("profile_description", ""))
-            lines.append("")
+            profile = ui.get("profile_description") or ui.get("summary")
+            if profile:
+                lines.append("PROFESSIONAL SUMMARY")
+                lines.append(profile)
+                lines.append("")
 
         # Skills
-        skills = ui.get("skills", {})
-        if skills:
+        skills_data = ui.get("skills", {})
+        if skills_data:
             lines.append("SKILLS")
-            hard_skills = skills.get("hard_skills", [])
-            soft_skills = skills.get("soft_skills", [])
-            all_skills = hard_skills + soft_skills
-            if all_skills:
-                lines.append(", ".join(all_skills))
+            if isinstance(skills_data, dict):
+                hard_skills = skills_data.get("hard_skills", [])
+                soft_skills = skills_data.get("soft_skills", [])
+                all_skills = hard_skills + soft_skills
+                if all_skills:
+                    lines.append(", ".join(all_skills))
+            elif isinstance(skills_data, list):
+                lines.append(", ".join(skills_data))
             lines.append("")
 
         # Experience
@@ -482,13 +514,44 @@ class CVWorkflowOrchestrator:
             for exp in experiences:
                 title = exp.get("job_title", "")
                 company = exp.get("company", "")
+                location = exp.get("location", "")
                 start = exp.get("start_date", "")
                 end = exp.get("end_date", "")
-                lines.append(f"{title} - {company}")
-                lines.append(f"{start} - {end}")
-                tasks = exp.get("four_tasks", [])
-                for task in tasks:
-                    lines.append(f"- {task}")
+
+                header = f"{title}"
+                if company:
+                    header += f" | {company}"
+                if location:
+                    header += f" | {location}"
+                lines.append(header)
+
+                if start or end:
+                    lines.append(f"{start} - {end}")
+
+                tasks = exp.get("four_tasks", []) or exp.get(
+                    "tasks", []) or exp.get("achievements", [])
+                if isinstance(tasks, list):
+                    for task in tasks:
+                        if task:
+                            lines.append(f"- {task}")
+                elif isinstance(tasks, str):
+                    lines.append(tasks)
+                lines.append("")
+
+        # Projects
+        projects = ui.get("projects", [])
+        if projects:
+            lines.append("PROJECTS")
+            for proj in projects:
+                name = proj.get("name", "")
+                description = proj.get("description", "")
+                tech = proj.get("technologies", [])
+
+                lines.append(name)
+                if description:
+                    lines.append(description)
+                if tech:
+                    lines.append(f"Technologies: {', '.join(tech)}")
                 lines.append("")
 
         # Education
@@ -498,10 +561,49 @@ class CVWorkflowOrchestrator:
             for edu in education:
                 institution = edu.get("institution", "")
                 degree = edu.get("degree", "")
+                location = edu.get("location", "")
                 start = edu.get("start_date", "")
                 end = edu.get("end_date", "")
-                lines.append(f"{degree} - {institution}")
-                lines.append(f"{start} - {end}")
+
+                header = f"{degree}"
+                if institution:
+                    header += f" | {institution}"
+                lines.append(header)
+                if location:
+                    lines.append(location)
+                if start or end:
+                    lines.append(f"{start} - {end}")
+                lines.append("")
+
+        # Certifications
+        certs = ui.get("certifications", [])
+        if certs:
+            lines.append("CERTIFICATIONS")
+            for cert in certs:
+                if isinstance(cert, dict):
+                    name = cert.get("name", "")
+                    issuer = cert.get("issuer", "")
+                    date = cert.get("date", "")
+                    lines.append(f"{name} - {issuer} ({date})")
+                else:
+                    lines.append(str(cert))
+            lines.append("")
+
+        # Languages
+        langs = ui.get("languages", [])
+        if langs:
+            lines.append("LANGUAGES")
+            if isinstance(langs, list):
+                lang_strings = []
+                for lang in langs:
+                    if isinstance(lang, dict):
+                        name = lang.get("language", lang.get("name", ""))
+                        level = lang.get("proficiency", lang.get("level", ""))
+                        lang_strings.append(
+                            f"{name} ({level})" if level else name)
+                    else:
+                        lang_strings.append(str(lang))
+                lines.append(", ".join(lang_strings))
             lines.append("")
 
         return "\n".join(lines)

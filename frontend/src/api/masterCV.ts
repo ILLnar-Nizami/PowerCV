@@ -3,7 +3,7 @@ import { MasterCV } from '@/types/resume'
 
 export const masterCVAPI = {
   getAll: async () => {
-    const { data } = await apiClient.get<MasterCV[]>('/resume/master-cvs')
+    const { data } = await apiClient.get<MasterCV[]>('/v1/resumes/master-cv/user/local-user')
     return data
   },
 
@@ -12,7 +12,7 @@ export const masterCVAPI = {
     formData.append('file', file)
 
     const { data } = await apiClient.post<Record<string, string>>(
-      '/resume/master-cv',
+      '/v1/resumes/master-cv/upload',
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -22,16 +22,16 @@ export const masterCVAPI = {
   },
 
   delete: async (id: string) => {
-    await apiClient.delete(`/resume/master-cv/${id}`)
+    await apiClient.delete(`/v1/resumes/master-cv/${id}`)
   },
 
   getById: async (id: string) => {
-    const { data } = await apiClient.get<MasterCV>(`/resume/master-cv/${id}`)
+    const { data } = await apiClient.get<MasterCV>(`/v1/resumes/master-cv/${id}`)
     return data
   },
 
   download: async (id: string) => {
-    const { data } = await apiClient.get<Blob>(`/resume/master-cv/${id}/download`, {
+    const { data } = await apiClient.get<Blob>(`/v1/resumes/master-cv/${id}/download`, {
       responseType: 'blob',
     })
     return data

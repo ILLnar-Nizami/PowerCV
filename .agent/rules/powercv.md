@@ -17,13 +17,16 @@ trigger: always_on
 - Realistic ATS scores: 60-95 range (not inflated)
 
 ## Architecture (Actual Repo - v3.2)
-- **Backend**: FastAPI async in app/api/routers/ (v2 endpoints), app/services/ (workflow orchestrator), Motor (MongoDB async driver), Redis caching
+- **Backend**: FastAPI async in app/api/routers/ (v2 endpoints, comprehensive endpoints), app/services/ (workflow orchestrator + comprehensive optimizer), Motor (MongoDB async driver), Redis caching
 - **Frontend**: React 19 + TypeScript strict in frontend/src/, Vite bundler, Tailwind CSS, Zustand state, TanStack Query
 - **Database**: MongoDB (port 27017) with models in app/database/models/, repositories pattern for data access
 - **Cache/Queue**: Redis (port 6379) for rate limiting and response caching
 - **Orchestration**: Docker Compose with 4 services (powercv, mongodb, redis, n8n), GitHub Actions CI/CD
 - **PDF Generation**: Typst templating engine (data/templates/*.typ), dynamic filename generation
-- **AI/ML**: Prompts in app/prompts/ (or loaded from services), cerebras_client wrapper, structured JSON responses
+- **AI/ML**: 
+  - **Main pipeline**: Cerebras API (gpt-oss-120b) with fallbacks to OpenAI/Deepseek via `CVWorkflowOrchestrator` (v2 API, 3-stage: analyze → optimize → generate)
+  - **Advanced system**: LangChain-based `ComprehensiveResumeOptimizer` (app/services/ai/comprehensive_optimizer.py, 643 lines) with role prompting, chain-of-thought, EU 2025 skills focus
+  - **File parsing**: New `/api/parser/parse` endpoint for CV extraction from PDF/DOCX
 - **Testing**: pytest 90%+ coverage gate, Vitest for frontend, integration tests
 - **Scripts**: run.sh (dev server), docker-compose.yml (production), scripts/ (utilities)
 - **Docs**: mkdocs.yml with mkdocs-material, CHANGELOG.md (semantic versioning)

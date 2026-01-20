@@ -23,7 +23,8 @@ class AICoverLetterGenerator:
         unified_settings = UnifiedSettings()
         self.model_name = model_name or unified_settings.quality_model
         self.client = OpenAI(
-            base_url=unified_settings.cerebras_api_base, api_key=unified_settings.cerebras_api_key
+            base_url=unified_settings.cerebras_api_base,
+            api_key=unified_settings.cerebras_api_key,
         )
 
     async def generate_cover_letter(
@@ -51,7 +52,9 @@ class AICoverLetterGenerator:
             Generated cover letter text
         """
         # Handle empty additional instructions
-        instructions = additional_instructions if additional_instructions else "None provided"
+        instructions = (
+            additional_instructions if additional_instructions else "None provided"
+        )
 
         # Format the prompt with the provided information
         prompt = COVER_LETTER_PROMPT.format(

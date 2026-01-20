@@ -123,10 +123,8 @@ class AIClient:
             )
 
         except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code if e.response else 'Unknown'
-            logger.error(
-                f"{self.provider} API HTTP error: {status_code}"
-            )
+            status_code = e.response.status_code if e.response else "Unknown"
+            logger.error(f"{self.provider} API HTTP error: {status_code}")
             if e.response and e.response.status_code == 429:
                 logger.warning(f"{self.provider} API rate limit exceeded")
                 raise requests.exceptions.RequestException(

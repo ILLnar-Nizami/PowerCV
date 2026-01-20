@@ -28,6 +28,8 @@ document.addEventListener('alpine:init', () => {
         filterDateTo: '',
         showDeleteModal: false,
         resumeToDelete: null,
+        showDeleteCoverLetterModal: false,
+        coverLetterToDelete: null,
         showScoreModal: false,
         resumeToScore: null,
         jobDescription: '',
@@ -224,6 +226,12 @@ document.addEventListener('alpine:init', () => {
             this.resumeToDelete = resumeId;
             this.showDeleteModal = true;
         },
+
+        // Show delete confirmation modal for cover letter
+        confirmDeleteCoverLetter(coverLetterId) {
+            this.coverLetterToDelete = coverLetterId;
+            this.showDeleteCoverLetterModal = true;
+        },
         
         // View a resume
         viewResume(resumeId) {
@@ -353,6 +361,50 @@ document.addEventListener('alpine:init', () => {
                 // Reset state
                 this.showDeleteModal = false;
                 this.resumeToDelete = null;
+            }
+        },
+
+        // Delete a cover letter with confirmation and error handling
+        async deleteCoverLetter() {
+            if (!this.coverLetterToDelete) {
+                console.error('No cover letter selected for deletion');
+                this.showNotification('Error: No cover letter selected for deletion', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cover-letter/${this.coverLetterToDelete}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                });
+
+                const responseData = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    // Remove the deleted cover letter from the local state
+                    this.coverLetters = this.coverLetters.filter(cl => cl.id !== this.coverLetterToDelete && cl._id !== this.coverLetterToDelete);
+                    this.updateCoverLetterStats();
+                    this.showNotification('Cover letter deleted successfully', 'success');
+                } else {
+                    console.error('Failed to delete cover letter:', responseData);
+                    this.showNotification(
+                        responseData.detail || 'Failed to delete cover letter. Please try again.',
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Error deleting cover letter:', error);
+                this.showNotification(
+                    error.message || 'Error connecting to server. Please try again.',
+                    'error'
+                );
+            } finally {
+                // Reset state
+                this.showDeleteCoverLetterModal = false;
+                this.coverLetterToDelete = null;
             }
         },
         

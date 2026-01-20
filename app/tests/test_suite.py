@@ -177,7 +177,9 @@ def create_mock_ai_client_async(response: Dict[str, Any]):
 class TestCVAnalyzer:
     """Tests for CV Analyzer service."""
 
-    def test_analyze_structure(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
+    def test_analyze_structure(
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
+    ):
         """Test that analyzer returns proper structure."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -194,7 +196,9 @@ class TestCVAnalyzer:
             assert "experience_analysis" in result
             assert "skill_gaps" in result
 
-    def test_ats_score_range(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
+    def test_ats_score_range(
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
+    ):
         """Test that ATS score is within valid range."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -225,7 +229,9 @@ class TestCVAnalyzer:
             assert "missing_critical" in keyword_analysis
             assert "missing_nice_to_have" in keyword_analysis
 
-    def test_ai_client_called(self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
+    def test_ai_client_called(
+        self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
+    ):
         """Test that AI client is called with correct parameters."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -246,7 +252,9 @@ class TestCVAnalyzer:
             assert sample_cv_text in call_args.kwargs["user_message"]
             assert sample_jd_text in call_args.kwargs["user_message"]
 
-    def test_empty_cv_handling(self, sample_jd_text: str, mock_ai_response: Dict[str, Any]):
+    def test_empty_cv_handling(
+        self, sample_jd_text: str, mock_ai_response: Dict[str, Any]
+    ):
         """Test that empty CV is handled gracefully."""
         with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
@@ -318,7 +326,9 @@ class TestJobScraper:
     """Tests for Job Description Scraper service."""
 
     @pytest.mark.asyncio
-    async def test_linkedin_scraper_extracts_data(self, mock_scraper_response: Dict[str, Any]):
+    async def test_linkedin_scraper_extracts_data(
+        self, mock_scraper_response: Dict[str, Any]
+    ):
         """Test LinkedIn scraper extracts required fields."""
         with patch("app.services.scraper.LinkedInScraper.fetch") as mock_fetch:
             mock_fetch.return_value = mock_scraper_response
@@ -334,7 +344,9 @@ class TestJobScraper:
             assert result["source"] == "linkedin"
 
     @pytest.mark.asyncio
-    async def test_indeed_scraper_extracts_data(self, mock_scraper_response: Dict[str, Any]):
+    async def test_indeed_scraper_extracts_data(
+        self, mock_scraper_response: Dict[str, Any]
+    ):
         """Test Indeed scraper extracts required fields."""
         with patch("app.services.scraper.IndeedScraper.fetch") as mock_fetch:
             mock_fetch.return_value = {**mock_scraper_response, "source": "indeed"}

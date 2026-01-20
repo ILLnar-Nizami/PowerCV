@@ -31,7 +31,8 @@ class JSONParser:
 
         # Remove ```json and ``` markers
         if "```" in response:
-            match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response, re.DOTALL)
+            match = re.search(
+                r"```(?:json)?\s*([\s\S]*?)\s*```", response, re.DOTALL)
             if match:
                 response = match.group(1)
             else:
@@ -55,13 +56,18 @@ class JSONParser:
             end_char = "]"
             start_idx = array_start
 
-        json_end = response.rfind(end_char)
-
-        if start_idx == -1 or json_end == -1 or json_end <= start_idx:
+        if start_idx == -1:
             # If no structure found, return as is (might be raw string)
             return response.strip()
 
-        response = response[start_idx : json_end + 1]
+        json_end = response.rfind(end_char)
+
+        if json_end == -1 or json_end <= start_idx:
+            # Case of truncated JSON (no closing brace/bracket found)
+            response = response[start_idx:]
+        else:
+            response = response[start_idx: json_end + 1]
+
         response = response.strip()
 
         # Fix common JSON issues safely
@@ -70,12 +76,13 @@ class JSONParser:
         response = re.sub(r",\s*\]", "]", response)
 
         # 2. Fix missing commas between key-value pairs (handles string, number, bool, null values)
-        response = re.sub(r'([0-9]|"|true|false|null)\s*\n\s*"', r'\1, "', response)
+        response = re.sub(
+            r'([0-9]|"|true|false|null)\s+(?=")', r'\1, ', response)
 
         # 3. Fix missing commas between closing brace and next key
         response = re.sub(r'\}\s*\n?\s*"([^"]+)"\s*:', r'}, "\1":', response)
 
-        # 4. Remove potential single-line comments // or # (risky but common in AI output)
+        # 4. Remove potential single-line comments // or #
         response = re.sub(r"^\s*//.*$", "", response, flags=re.MULTILINE)
         response = re.sub(r"^\s*#.*$", "", response, flags=re.MULTILINE)
 
@@ -91,22 +98,46 @@ class JSONParser:
         Returns:
             str: Repaired JSON string
         """
-        # Count open braces/brackets
-        open_braces = json_str.count("{") - json_str.count("}")  # noqa: F841
+        if not json_str:
+            return "{}"
 
-        # Determine last open char to decide closing order (heuristic)
-        # This is a simple stack-based approach
+        # 1. Basic balancing check and cleanup of trailing partial keys/values
+        json_str = json_str.strip()
+
+        # If it ends with a comma, remove it
+        if json_str.endswith(","):
+            json_str = json_str[:-1].strip()
+
+        # If it ends with a colon (truncated key), append null value
+        if json_str.endswith(":"):
+            json_str += " null"
+
+        # 2. Handle truncated string values
+        # Count quotes to see if we're in an unclosed string
+        quote_count = 0
+        escaped = False
+        for char in json_str:
+            if char == '"' and not escaped:
+                quote_count += 1
+            if char == "\\" and not escaped:
+                escaped = True
+            else:
+                escaped = False
+
+        if quote_count % 2 != 0:
+            json_str += '"'
+
+        # 3. Use stack to track unclosed brackets and braces
         stack = []
         in_string = False
         escape = False
 
-        # Re-scan to build closing stack correctly
         for char in json_str:
             if char == '"' and not escape:
                 in_string = not in_string
             elif char == "\\" and in_string:
                 escape = not escape
-                continue  # Skip next char check
+                continue
             elif not in_string:
                 if char == "{":
                     stack.append("}")
@@ -118,15 +149,9 @@ class JSONParser:
                 elif char == "]":
                     if stack and stack[-1] == "]":
                         stack.pop()
-
             escape = False
 
-        # Perform repair
-        if in_string:
-            # Close the open string first
-            json_str += '"'
-
-        # Append needed closing characters in reverse order
+        # Close any open structures in reverse order
         while stack:
             json_str += stack.pop()
 
@@ -161,7 +186,8 @@ class JSONParser:
             logger.error(f"Failed to parse JSON response: {str(e)}")
             logger.error(f"Error location: Line {e.lineno}, Column {e.colno}")
             logger.error(f"Error details: {e.msg}")
-            logger.error(f"Raw response (first 2000 chars):\n{response[:2000]}")
+            logger.error(
+                f"Raw response (first 2000 chars):\n{response[:2000]}")
             if "cleaned" in locals():
                 logger.debug(
                     f"Cleaned response attempt (first 1000 chars):\n{cleaned[:1000]}"
@@ -177,7 +203,9 @@ class JSONParser:
                 return parsed
             except json.JSONDecodeError as repair_e:
                 logger.error(f"Repair also failed: {str(repair_e)}")
-                logger.debug(f"Repaired response (first 1000 chars):\n{repaired[:1000]}")
+                logger.debug(
+                    f"Repaired response (first 1000 chars):\n{repaired[:1000]}"
+                )
 
             if fallback_structure is not None:
                 logger.warning(
@@ -202,7 +230,8 @@ class JSONParser:
                 f"Unexpected error during JSON parsing: {type(e).__name__}: {str(e)}"
             )
             if fallback_structure is not None:
-                logger.warning("Using fallback structure due to unexpected error")
+                logger.warning(
+                    "Using fallback structure due to unexpected error")
                 return (
                     fallback_structure.copy()
                     if hasattr(fallback_structure, "copy")
@@ -286,7 +315,8 @@ class TextProcessor:
             line_stripped = line.strip()
 
             # Check if this line matches any of our section headers
-            is_header = any(header in line_stripped.upper() for header in upper_headers)
+            is_header = any(header in line_stripped.upper()
+                            for header in upper_headers)
 
             # Additional check: header should be reasonably short and likely a standalone line or bold
             if is_header and len(line_stripped) < 50:

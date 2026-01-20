@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_file: Optional[str] = None
 
+    # User identity settings
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
+    USER_FIRST_NAME: Optional[str] = None
+    USER_LAST_NAME: Optional[str] = None
+
     def model_post_init(self, __context):
         """Normalize API key variants after initialization."""
         # Merge uppercase variants into lowercase ones for backward compatibility
@@ -65,9 +71,16 @@ class Settings(BaseSettings):
         if self.OPENAI_API_KEY_UPPER and not self.openai_api_key:
             self.openai_api_key = self.OPENAI_API_KEY_UPPER
 
+        # Normalize user identity
+        if self.USER_FIRST_NAME and not self.user_first_name:
+            self.user_first_name = self.USER_FIRST_NAME
+        if self.USER_LAST_NAME and not self.user_last_name:
+            self.user_last_name = self.USER_LAST_NAME
+
         # Validate required secrets in production
         if self.environment == "production" and not self.secret_key:
-            raise ValueError("SECRET_KEY must be set in production environment")
+            raise ValueError(
+                "SECRET_KEY must be set in production environment")
 
     model_config = ConfigDict(
         env_file=".env",

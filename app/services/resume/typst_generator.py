@@ -40,7 +40,8 @@ class TypstGenerator:
             if os.path.exists(local_bin):
                 self.typst_bin = local_bin
             else:
-                logger.warning("Typst binary not found. PDF generation will fail.")
+                logger.warning(
+                    "Typst binary not found. PDF generation will fail.")
 
     def setup_jinja_environment(self) -> None:
         """Set up Jinja2 environment with Typst-friendly delimiters."""
@@ -118,7 +119,7 @@ class TypstGenerator:
             typst_content = template.render(data=self.json_data)
 
             # Add automatic page breaks for very long content
-            typst_content = self._add_page_break_handling(typst_content)
+            # typst_content = self._add_page_break_handling(typst_content)
 
             # Write temporary .typ file
             temp_typ_path = output_path.replace(".pdf", ".typ")
@@ -129,7 +130,8 @@ class TypstGenerator:
             cmd = [self.typst_bin, "compile", temp_typ_path, output_path]
             logger.info(f"Running typst: {' '.join(cmd)}")
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=False)
 
             # Cleanup temp file
             if os.path.exists(temp_typ_path):
@@ -152,6 +154,9 @@ class TypstGenerator:
         if not isinstance(text, str):
             return str(text)
 
+        # Escape backslash first to avoid double escaping other replacements
+        text = text.replace("\\", "\\\\")
+
         # Typst uses #, *, _, ` as special chars
         replacements = {
             "#": "\\#",
@@ -162,6 +167,7 @@ class TypstGenerator:
             "[": "\\[",
             "]": "\\]",
             "@": "\\@",
+            '"': '\\"',
         }
         for char, repl in replacements.items():
             text = text.replace(char, repl)
@@ -237,18 +243,18 @@ class TypstGenerator:
 
             # Add page break hint after profile section if followed by experience
             typst_content = re.sub(
-                r'(= Profile.*?)(= Work Experience)',
-                r'\1\n#pagebreak(weak: true)\n\2',
+                r"(= Profile.*?)(= Work Experience)",
+                r"\1\n#pagebreak(weak: true)\n\2",
                 typst_content,
-                flags=re.DOTALL
+                flags=re.DOTALL,
             )
 
             # Add page break hint after experience if followed by education/projects
             typst_content = re.sub(
-                r'(= Work Experience.*?)(= (Education|Projects))',
-                r'\1\n#pagebreak(weak: true)\n\2',
+                r"(= Work Experience.*?)(= (Education|Projects))",
+                r"\1\n#pagebreak(weak: true)\n\2",
                 typst_content,
-                flags=re.DOTALL
+                flags=re.DOTALL,
             )
 
         except Exception as e:

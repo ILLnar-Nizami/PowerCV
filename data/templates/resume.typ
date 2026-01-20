@@ -7,7 +7,7 @@
 ) = {
   set document(author: author, title: title)
   set text(font: "Linux Libertine", lang: "en", size: 10pt)
-  set page(margin: (x: 3cm, y: 3cm), height: auto) // Allow automatic page breaks
+  set page(paper: "a4", margin: (x: 2cm, y: 2cm))
   set par(leading: 1.5em, justify: true, spacing: 0.8em) // Increased spacing for better readability
 
   // Header

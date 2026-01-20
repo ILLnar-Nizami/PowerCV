@@ -5,6 +5,8 @@ including validation, repository access, and proper error handling.
 """
 
 import logging
+import os
+import tempfile
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -18,10 +20,13 @@ from fastapi import (
     Request,
     status,
 )
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.database.repositories.resume_repository import ResumeRepository
+from app.middleware.rate_limit import light_limit
 from app.services.file_validator import SecureFileValidator
+from app.services.resume.typst_generator import TypstGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +44,8 @@ class CreateResumeRequest(BaseModel):
 
     user_id: str = Field(..., description="Unique identifier for the user")
     title: str = Field(..., description="Title of the resume")
-    original_content: str = Field(..., description="Original content of the resume")
+    original_content: str = Field(...,
+                                  description="Original content of the resume")
     job_description: str = Field(
         ..., description="Job description to tailor the resume for"
     )
@@ -48,9 +54,12 @@ class CreateResumeRequest(BaseModel):
 class UpdateResumeRequest(BaseModel):
     """Schema for updating an existing resume."""
 
-    title: Optional[str] = Field(None, description="Updated title of the resume")
-    content: Optional[str] = Field(None, description="Updated content of the resume")
-    job_description: Optional[str] = Field(None, description="Updated job description")
+    title: Optional[str] = Field(
+        None, description="Updated title of the resume")
+    content: Optional[str] = Field(
+        None, description="Updated content of the resume")
+    job_description: Optional[str] = Field(
+        None, description="Updated job description")
 
 
 class ResumeResponse(BaseModel):
@@ -68,8 +77,10 @@ class ResumeResponse(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     file_path: Optional[str] = Field(None, description="Path to uploaded file")
-    ats_score: Optional[float] = Field(None, description="ATS compatibility score")
-    keywords_matched: Optional[List[str]] = Field(None, description="Matched keywords")
+    ats_score: Optional[float] = Field(
+        None, description="ATS compatibility score")
+    keywords_matched: Optional[List[str]] = Field(
+        None, description="Matched keywords")
 
 
 # =============================================================================
@@ -170,16 +181,25 @@ async def create_resume(
         logger.info(f"Resume created successfully: {resume_id}")
 
         # Return created resume
+        # Return created resume
         created_resume = await repository.get_by_id(resume_id)
+        if not created_resume:
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve created resume")
+
+        # Ensure proper ID handling
+        c_resume_id = str(created_resume.get(
+            "_id", "")) if "_id" in created_resume else str(created_resume.get("id", ""))
+
         return ResumeResponse(
-            id=str(created_resume.id),
-            user_id=created_resume.user_id,
-            title=created_resume.title,
-            original_content=created_resume.original_content,
-            job_description=created_resume.job_description,
-            status=created_resume.status,
-            created_at=created_resume.created_at,
-            updated_at=created_resume.updated_at,
+            id=c_resume_id,
+            user_id=created_resume.get("user_id", ""),
+            title=created_resume.get("title", "Untitled"),
+            original_content=created_resume.get("original_content", ""),
+            job_description=created_resume.get("job_description", ""),
+            status=created_resume.get("status") or "created",
+            created_at=created_resume.get("created_at") or datetime.utcnow(),
+            updated_at=created_resume.get("updated_at") or datetime.utcnow(),
         )
 
     except Exception as e:
@@ -217,19 +237,23 @@ async def get_resume(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
+        # Ensure proper ID handling
+        c_resume_id = str(resume.get("_id", "")) if "_id" in resume else str(
+            resume.get("id", ""))
+
         return ResumeResponse(
-            id=str(resume.id),
-            user_id=resume.user_id,
-            title=resume.title,
-            original_content=resume.original_content,
-            optimized_content=resume.optimized_content,
-            job_description=resume.job_description,
-            status=resume.status,
-            created_at=resume.created_at,
-            updated_at=resume.updated_at,
-            file_path=resume.file_path,
-            ats_score=resume.ats_score,
-            keywords_matched=resume.keywords_matched,
+            id=c_resume_id,
+            user_id=resume.get("user_id", ""),
+            title=resume.get("title", "Untitled"),
+            original_content=resume.get("original_content", ""),
+            optimized_content=resume.get("optimized_content"),
+            job_description=resume.get("job_description", ""),
+            status=resume.get("status") or "created",
+            created_at=resume.get("created_at") or datetime.utcnow(),
+            updated_at=resume.get("updated_at") or datetime.utcnow(),
+            file_path=resume.get("file_path"),
+            ats_score=resume.get("ats_score"),
+            keywords_matched=resume.get("keywords_matched"),
         )
 
     except HTTPException:
@@ -275,24 +299,29 @@ async def get_user_resumes(
         # Convert to response format
         response_list = []
         for resume in resumes:
+            # Ensure proper ID handling
+            resume_id = str(resume.get("_id", "")) if "_id" in resume else str(
+                resume.get("id", ""))
+
             response_list.append(
                 ResumeResponse(
-                    id=str(resume.id),
-                    user_id=resume.user_id,
-                    title=resume.title,
-                    original_content=resume.original_content,
-                    optimized_content=resume.optimized_content,
-                    job_description=resume.job_description,
-                    status=resume.status,
-                    created_at=resume.created_at,
-                    updated_at=resume.updated_at,
-                    file_path=resume.file_path,
-                    ats_score=resume.ats_score,
-                    keywords_matched=resume.keywords_matched,
+                    id=resume_id,
+                    user_id=resume.get("user_id", ""),
+                    title=resume.get("title", "Untitled"),
+                    original_content=resume.get("original_content", ""),
+                    optimized_content=resume.get("optimized_content"),
+                    job_description=resume.get("job_description", ""),
+                    status=resume.get("status") or "created",
+                    created_at=resume.get("created_at") or datetime.utcnow(),
+                    updated_at=resume.get("updated_at") or datetime.utcnow(),
+                    file_path=resume.get("file_path"),
+                    ats_score=resume.get("ats_score"),
+                    keywords_matched=resume.get("keywords_matched"),
                 )
             )
 
-        logger.info(f"Retrieved {len(response_list)} resumes for user {user_id}")
+        logger.info(
+            f"Retrieved {len(response_list)} resumes for user {user_id}")
         return response_list
 
     except Exception as e:
@@ -353,19 +382,23 @@ async def update_resume(
 
         logger.info(f"Resume {resume_id} updated successfully")
 
+        # Ensure proper ID handling
+        c_resume_id = str(updated_resume.get(
+            "_id", "")) if "_id" in updated_resume else str(updated_resume.get("id", ""))
+
         return ResumeResponse(
-            id=str(updated_resume.id),
-            user_id=updated_resume.user_id,
-            title=updated_resume.title,
-            original_content=updated_resume.original_content,
-            optimized_content=updated_resume.optimized_content,
-            job_description=updated_resume.job_description,
-            status=updated_resume.status,
-            created_at=updated_resume.created_at,
-            updated_at=updated_resume.updated_at,
-            file_path=updated_resume.file_path,
-            ats_score=updated_resume.ats_score,
-            keywords_matched=updated_resume.keywords_matched,
+            id=c_resume_id,
+            user_id=updated_resume.get("user_id", ""),
+            title=updated_resume.get("title", "Untitled"),
+            original_content=updated_resume.get("original_content", ""),
+            optimized_content=updated_resume.get("optimized_content"),
+            job_description=updated_resume.get("job_description", ""),
+            status=updated_resume.get("status") or "created",
+            created_at=updated_resume.get("created_at") or datetime.utcnow(),
+            updated_at=updated_resume.get("updated_at") or datetime.utcnow(),
+            file_path=updated_resume.get("file_path"),
+            ats_score=updated_resume.get("ats_score"),
+            keywords_matched=updated_resume.get("keywords_matched"),
         )
 
     except HTTPException:
@@ -440,13 +473,97 @@ async def delete_resume(
         )
 
 
+@light_limit()
+async def download_resume_pdf(
+    request: Request,
+    resume_id: str,
+    template: str = Query(
+        "modern.typ", description="Template to use for PDF generation"),
+    repository: ResumeRepository = Depends(get_resume_repository),
+) -> FileResponse:
+    """Download a resume as PDF using specified template.
+
+    Args:
+        resume_id: Resume identifier
+        template: Template filename (e.g., 'modern.typ', 'resume.typ')
+        repository: Resume repository instance
+
+    Returns:
+        FileResponse: PDF file download
+
+    Raises:
+        HTTPException: If resume not found or generation fails
+    """
+    try:
+        logger.info(f"Downloading resume {resume_id} with template {template}")
+
+        # Validate and convert ID
+        object_id = validate_object_id(resume_id)
+
+        # Retrieve resume
+        resume = await repository.get_by_id(object_id)
+        if not resume:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
+            )
+
+        # Get optimized data for PDF generation
+        optimized_data = resume.get("optimized_data")
+        if not optimized_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Resume has not been optimized yet. Please optimize first.",
+            )
+
+        # Initialize Typst generator
+        generator = TypstGenerator()
+
+        # Load the optimized data into the generator
+        if isinstance(optimized_data, str):
+            generator.parse_json_from_string(optimized_data)
+        else:
+            generator.json_data = optimized_data
+
+        # Create temp file for PDF output
+        temp_dir = tempfile.gettempdir()
+        title = resume.get("title", "resume").replace(" ", "_")
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        pdf_filename = f"{title}_{timestamp}.pdf"
+        pdf_path = os.path.join(temp_dir, pdf_filename)
+
+        # Generate PDF
+        success = generator.generate_pdf(template, pdf_path)
+        if not success or not os.path.exists(pdf_path):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to generate PDF. Check server logs for details.",
+            )
+
+        logger.info(f"Resume {resume_id} downloaded as PDF: {pdf_filename}")
+
+        return FileResponse(
+            path=pdf_path,
+            filename=pdf_filename,
+            media_type="application/pdf",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to download resume: {str(e)}",
+        )
+
+
 # =============================================================================
 # Router Configuration
 # =============================================================================
 
 # Create router for CRUD operations
 router = APIRouter(
-    prefix="/crud",
+    prefix="",
     tags=["Resume CRUD"],
     responses={404: {"description": "Not found"}},
 )
@@ -486,6 +603,13 @@ router.add_api_route(
     delete_resume,
     methods=["DELETE"],
     responses={200: {"description": "Success"}},
+)
+
+router.add_api_route(
+    "/{resume_id}/download",
+    download_resume_pdf,
+    methods=["GET"],
+    responses={200: {"description": "PDF file download"}},
 )
 
 logger.info("Resume CRUD router initialized")

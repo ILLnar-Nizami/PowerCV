@@ -48,7 +48,8 @@ class MasterCVRequest(BaseModel):
 
     user_id: str = Field(..., description="Unique identifier for the user")
     title: str = Field(..., description="Title of the master CV")
-    description: Optional[str] = Field(None, description="Description of the master CV")
+    description: Optional[str] = Field(
+        None, description="Description of the master CV")
     tags: Optional[List[str]] = Field(
         None, description="Tags for categorizing the master CV"
     )
@@ -60,7 +61,8 @@ class MasterCVResponse(BaseModel):
     id: str = Field(..., description="Master CV ID")
     user_id: str = Field(..., description="User ID")
     title: str = Field(..., description="Master CV title")
-    description: Optional[str] = Field(None, description="Master CV description")
+    description: Optional[str] = Field(
+        None, description="Master CV description")
     content: str = Field(..., description="Master CV content")
     file_path: Optional[str] = Field(None, description="Path to uploaded file")
     file_size: Optional[int] = Field(None, description="File size in bytes")
@@ -68,15 +70,18 @@ class MasterCVResponse(BaseModel):
     tags: Optional[List[str]] = Field(None, description="Tags")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
-    is_active: bool = Field(..., description="Whether this is the active master CV")
+    is_active: bool = Field(...,
+                            description="Whether this is the active master CV")
     usage_count: int = Field(0, description="Number of times used")
 
 
 class MasterCVTestRequest(BaseModel):
     """Schema for testing Master CV."""
 
-    job_description: str = Field(..., description="Job description to test against")
-    target_role: Optional[str] = Field(None, description="Target role for testing")
+    job_description: str = Field(...,
+                                 description="Job description to test against")
+    target_role: Optional[str] = Field(
+        None, description="Target role for testing")
     target_company: Optional[str] = Field(
         None, description="Target company for testing"
     )
@@ -90,7 +95,8 @@ class MasterCVTestResponse(BaseModel):
     readability_score: float = Field(..., description="Readability score")
     strengths: List[str] = Field(..., description="Identified strengths")
     weaknesses: List[str] = Field(..., description="Identified weaknesses")
-    recommendations: List[str] = Field(..., description="Improvement recommendations")
+    recommendations: List[str] = Field(...,
+                                       description="Improvement recommendations")
     keyword_analysis: Dict[str, Any] = Field(
         ..., description="Keyword analysis results"
     )
@@ -190,7 +196,8 @@ async def upload_master_cv(
     file: UploadFile = File(...),
     user_id: str = Form(..., description="User ID"),
     title: str = Form(..., description="Master CV title"),
-    description: Optional[str] = Form(None, description="Master CV description"),
+    description: Optional[str] = Form(
+        None, description="Master CV description"),
     tags: Optional[str] = Form(None, description="Tags (comma-separated)"),
     repository: ResumeRepository = Depends(get_resume_repository),
     file_validator: SecureFileValidator = Depends(get_file_validator),
@@ -218,16 +225,22 @@ async def upload_master_cv(
         # Validate file
         validate_master_cv_file(file)
 
+        # Store file securely
+        file_path = await store_file_securely(file, "master_cvs")
+
         # Extract content from file
-        content = await extract_text_from_file(file)
+        file_extension = Path(file.filename).suffix.lower()
+        if not file_extension:
+            # Fallback if no extension
+            file_extension = ".txt"
+
+        # Note: extract_text_from_file is synchronous and expects a string path
+        content = extract_text_from_file(str(file_path), file_extension)
 
         # Process tags
         tag_list = None
         if tags:
             tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
-
-        # Store file securely
-        file_path = await store_file_securely(file, "master_cvs")
 
         # Prepare master CV data
         master_cv_data = {
@@ -235,6 +248,7 @@ async def upload_master_cv(
             "title": title,
             "description": description,
             "content": content,
+            "document_type": "master_cv",  # Distinguish from regular resumes
             "file_path": str(file_path) if file_path else None,
             "file_size": file.size,
             "file_type": file.content_type,
@@ -303,35 +317,39 @@ async def get_master_cvs(
     try:
         logger.info(f"Retrieving master CVs for user {user_id}")
 
-        # Get master CVs from repository (you might need to add this method)
-        master_cvs = await repository.get_by_user_id(
-            user_id=user_id, skip=skip, limit=limit
+        # Get master CVs from repository - filter by document_type
+        master_cvs = await repository.find_many(
+            {"user_id": user_id, "document_type": "master_cv"},
+            sort=[("created_at", -1)],
+            skip=skip,
+            limit=limit,
         )
 
         # Convert to response format
         response_list = []
         for master_cv in master_cvs:
-            # Only include documents that are master CVs (you might need to add a type field)
-            if hasattr(master_cv, "file_path") or hasattr(master_cv, "content"):
-                response_list.append(
-                    MasterCVResponse(
-                        id=str(master_cv.id),
-                        user_id=master_cv.user_id,
-                        title=master_cv.title,
-                        description=getattr(master_cv, "description", None),
-                        content=getattr(master_cv, "content", ""),
-                        file_path=getattr(master_cv, "file_path", None),
-                        file_size=getattr(master_cv, "file_size", None),
-                        file_type=getattr(master_cv, "file_type", None),
-                        tags=getattr(master_cv, "tags", None),
-                        created_at=master_cv.created_at,
-                        updated_at=master_cv.updated_at,
-                        is_active=getattr(master_cv, "is_active", False),
-                        usage_count=getattr(master_cv, "usage_count", 0),
-                    )
+            # Handle both dict and object access patterns
+            cv_id = master_cv.get("_id") or master_cv.get("id", "")
+            response_list.append(
+                MasterCVResponse(
+                    id=str(cv_id),
+                    user_id=master_cv.get("user_id", user_id),
+                    title=master_cv.get("title", "Untitled"),
+                    description=master_cv.get("description"),
+                    content=master_cv.get("content", ""),
+                    file_path=master_cv.get("file_path"),
+                    file_size=master_cv.get("file_size"),
+                    file_type=master_cv.get("file_type"),
+                    tags=master_cv.get("tags"),
+                    created_at=master_cv.get("created_at", datetime.utcnow()),
+                    updated_at=master_cv.get("updated_at", datetime.utcnow()),
+                    is_active=master_cv.get("is_active", False),
+                    usage_count=master_cv.get("usage_count", 0),
                 )
+            )
 
-        logger.info(f"Retrieved {len(response_list)} master CVs for user {user_id}")
+        logger.info(
+            f"Retrieved {len(response_list)} master CVs for user {user_id}")
         return response_list
 
     except Exception as e:
@@ -404,7 +422,8 @@ async def replace_master_cv(
     file: UploadFile = File(...),
     title: Optional[str] = Form(None, description="Updated title"),
     description: Optional[str] = Form(None, description="Updated description"),
-    tags: Optional[str] = Form(None, description="Updated tags (comma-separated)"),
+    tags: Optional[str] = Form(
+        None, description="Updated tags (comma-separated)"),
     repository: ResumeRepository = Depends(get_resume_repository),
     file_validator: SecureFileValidator = Depends(get_file_validator),
 ) -> MasterCVResponse:
@@ -439,11 +458,15 @@ async def replace_master_cv(
         # Validate new file
         validate_master_cv_file(file)
 
-        # Extract content from new file
-        content = await extract_text_from_file(file)
-
-        # Store new file securely
+        # Store new file securely first
         file_path = await store_file_securely(file, "master_cvs")
+
+        # Extract content from stored file
+        file_extension = Path(file.filename).suffix.lower()
+        if not file_extension:
+            file_extension = ".txt"
+        # Note: extract_text_from_file is synchronous and expects a string path
+        content = extract_text_from_file(str(file_path), file_extension)
 
         # Process tags
         tag_list = None
@@ -684,7 +707,8 @@ async def download_original_resume(
 
         # Update usage count
         await repository.update(
-            object_id, {"usage_count": getattr(master_cv, "usage_count", 0) + 1}
+            object_id, {"usage_count": getattr(
+                master_cv, "usage_count", 0) + 1}
         )
 
         logger.info(f"Master CV {master_cv_id} file downloaded")

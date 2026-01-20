@@ -20,18 +20,16 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routers.comprehensive_optimizer import comprehensive_router
+from app.api.routers import comprehensive_optimizer
+# Add parser router import comprehensive_router
+from app.api.routers import parser
 from app.api.routers.cover_letter import cover_letter_router
 from app.api.routers.resume.crud import ResumeRepository
 from app.api.routers.resume.router import resume_router
 from app.api.routers.token_usage import router as token_usage_router
 
 # Import the old resume router from resume.py
-import importlib.util
-spec = importlib.util.spec_from_file_location("old_resume_router", "app/api/routers/resume.py")
-old_resume_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(old_resume_module)
-old_resume_router = old_resume_module.resume_router
+
 from app.config.logging_config import logger
 from app.config.settings import get_settings
 from app.config.templates import TemplateConfig
@@ -153,6 +151,10 @@ async def startup_logic(app: FastAPI) -> None:
     try:
         connection_manager = MongoConnectionManager.get_instance()
         app.state.mongo = connection_manager
+
+        # Initialize repositories
+        app.state.resume_repo = ResumeRepository()
+        logger.info("Resume repository initialized")
     except Exception as e:
         logger.error(f"Error during startup: {e}")
         raise
@@ -192,7 +194,8 @@ app = FastAPI(
     PowerCV is a resume generation system that adapts resumes to specific job descriptions.
     It leverages AI to provide customized resume content based on user input.
     """,
-    license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
+    license_info={"name": "MIT License",
+                  "url": "https://opensource.org/licenses/MIT"},
     version="2.0.0",
     docs_url=None,
     lifespan=lifespan,
@@ -227,7 +230,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         JSON response with sanitized error
     """
     # Log the full error securely (sensitive data is filtered by SensitiveDataFilter)
-    logger.error(f"Unhandled exception on {request.url.path}: {type(exc).__name__}")
+    logger.error(
+        f"Unhandled exception on {request.url.path}: {type(exc).__name__}")
 
     # NEVER expose internal error details in production
     return JSONResponse(
@@ -275,7 +279,8 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     # For other errors on web routes, show a simple error page
     return templates.TemplateResponse(
         "404.html",
-        {"request": request, "status_code": exc.status_code, "detail": str(exc.detail)},
+        {"request": request, "status_code": exc.status_code,
+            "detail": str(exc.detail)},
         status_code=exc.status_code,
     )
 
@@ -362,8 +367,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/templates", StaticFiles(directory=str(Path(__file__).parent / "templates")), name="templates")
-app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
+app.mount(
+    "/templates",
+    StaticFiles(directory=str(Path(__file__).parent / "templates")),
+    name="templates",
+)
+app.mount(
+    "/static",
+    StaticFiles(directory=str(Path(__file__).parent / "static")),
+    name="static",
+)
 
 
 @app.get("/docs", include_in_schema=False)
@@ -406,7 +419,8 @@ async def health_check():
         JSONResponse: Status information about the application.
     """
     return JSONResponse(
-        content={"status": "healthy", "version": app.version, "service": "PowerCV"}
+        content={"status": "healthy",
+                 "version": app.version, "service": "PowerCV"}
     )
 
 
@@ -491,7 +505,8 @@ async def optimize_cv_v2(
                 if resume_id:
                     # Add resume_id to the result
                     result["resume_id"] = resume_id
-                    logger.info(f"Created optimized resume with ID: {resume_id}")
+                    logger.info(
+                        f"Created optimized resume with ID: {resume_id}")
 
             return result
     except Exception as e:
@@ -517,10 +532,12 @@ async def analyze_cv_v2(request: OptimizationRequest):
     try:
         with ErrorContext(
             "cv_analysis_v2",
-            {"cv_length": len(request.cv_text), "jd_length": len(request.jd_text)},
+            {"cv_length": len(request.cv_text),
+             "jd_length": len(request.jd_text)},
         ):
             orchestrator = get_orchestrator()
-            analysis = orchestrator.analyzer.analyze(request.cv_text, request.jd_text)
+            analysis = orchestrator.analyzer.analyze(
+                request.cv_text, request.jd_text)
             return analysis
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}", exc_info=True)
@@ -602,7 +619,8 @@ async def analyze_cv(request: OptimizationRequest):
     """Standalone endpoint for CV analysis only."""
     try:
         orchestrator = get_orchestrator()
-        analysis = orchestrator.analyzer.analyze(request.cv_text, request.jd_text)
+        analysis = orchestrator.analyzer.analyze(
+            request.cv_text, request.jd_text)
         return {"success": True, "analysis": analysis}
     except Exception as e:
         logger.error(f"Error in analyze_cv: {str(e)}")
@@ -618,7 +636,8 @@ async def generate_cover_letter(request: OptimizationRequest):
         candidate_data = {"name": "Candidate", "top_skills": []}
         job_data = {"position": "Professional", "requirements": []}
 
-        result = orchestrator.cover_letter_gen.generate(candidate_data, job_data)
+        result = orchestrator.cover_letter_gen.generate(
+            candidate_data, job_data)
         return {"success": True, "cover_letter": result}
     except Exception as e:
         logger.error(f"Error in generate_cover_letter: {str(e)}")
@@ -750,12 +769,13 @@ async def optimize_structured_cv(
 
 # Include routers - These must come BEFORE the catch-all route
 app.include_router(resume_router)
-app.include_router(old_resume_router)
+
 app.include_router(cover_letter_router)
 # Add token usage tracking API endpoints
 app.include_router(token_usage_router)
 # Add comprehensive optimizer API endpoints
-app.include_router(comprehensive_router)
+app.include_router(comprehensive_optimizer.comprehensive_router)
+app.include_router(parser.router)  # Register parser router
 # Add n8n integration endpoints
 app.include_router(n8n_router)
 
@@ -777,5 +797,6 @@ async def catch_all(request: Request, path: str):
     """
     return JSONResponse(
         status_code=404,
-        content={"detail": f"Path '/{path}' not found. API endpoints are under /api/"},
+        content={
+            "detail": f"Path '/{path}' not found. API endpoints are under /api/"},
     )

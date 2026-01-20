@@ -49,7 +49,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-cover_letter_router = APIRouter(prefix="/api/cover-letter", tags=["Cover Letter"])
+cover_letter_router = APIRouter(
+    prefix="/api/cover-letter", tags=["Cover Letter"])
 
 
 def get_ai_generator() -> AICoverLetterGenerator:
@@ -115,7 +116,8 @@ async def generate_cover_letter_with_ai(
         )
 
     except Exception as e:
-        logger.error(f"AI cover letter generation failed: {str(e)}", exc_info=True)
+        logger.error(
+            f"AI cover letter generation failed: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate cover letter: {str(e)}",
@@ -254,7 +256,8 @@ async def generate_cover_letter(
             )
 
         # Create CoverLetterData from existing data and new content
-        existing_content_data = CoverLetterData(**cover_letter.get("content_data", {}))
+        existing_content_data = CoverLetterData(
+            **cover_letter.get("content_data", {}))
 
         # Update with new generation data
         existing_content_data.introduction = generation_data.introduction
@@ -274,7 +277,8 @@ async def generate_cover_letter(
             )
 
         # Generate formatted content using template generator
-        template_name = cover_letter.get("template_name", "professional_template")
+        template_name = cover_letter.get(
+            "template_name", "professional_template")
         generated_content = template_generator.generate_cover_letter(
             existing_content_data, template_name
         )
@@ -539,58 +543,31 @@ async def download_cover_letter_pdf(
 
     pdf_path = output_path
 
-    # Generate filename in format: cover_letter_FirstInitial.Lastname_Company_Role_dd.mm.yy
-    import re
-    from datetime import datetime
+    from app.services.export import generate_filename
 
-    # Extract name from cover letter data
-    first_initial = "J"
-    lastname = "Doe"
+    # Extract name parts
     content_data = cover_letter.get("content_data", {})
-    if isinstance(content_data, dict):
-        sender_name = content_data.get("sender_name", "")
-        if sender_name:
-            name_parts = sender_name.strip().split()
-            if len(name_parts) >= 2:
-                first_initial = name_parts[0][0].upper()
-                lastname = "".join(name_parts[1:])
-                lastname = re.sub(r"[^\w-]", "", lastname).strip()
-            elif len(name_parts) == 1:
-                first_initial = name_parts[0][0].upper()
-                lastname = name_parts[0][1:] or "Doe"
+    sender_name = content_data.get("sender_name", "Candidate")
+    # Quick parse if needed, but generate_filename handles basic splitting if we pass first/last
+    # Ideally reuse parse_name_from_cv_text logic or simple split
+    first_name = "Candidate"
+    last_name = ""
+    if sender_name:
+        parts = sender_name.strip().split()
+        if len(parts) >= 1:
+            first_name = parts[0]
+            last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
 
-    # Get company and position from cover letter metadata
-    company = cover_letter.get("target_company", "")
-    if company:
-        company = re.sub(r"[^\w\s-]", "", company).strip()
-        company = company.title()[:30]  # Title case, keep spaces
-    else:
-        company = "Company"
+    company = cover_letter.get("target_company", "Company")
+    role = cover_letter.get("target_role", "Role")
 
-    position = cover_letter.get("target_role", "")
-    if position:
-        position = re.sub(r"[^\w\s-]", "", position).strip()
-        position = position.title()[:30]  # Title case, keep spaces
-    else:
-        position = "Role"
-
-    # Get date in dd.mm.yy format
-    date_str = ""
-    if cover_letter.get("updated_at"):
-        if isinstance(cover_letter["updated_at"], datetime):
-            date_str = cover_letter["updated_at"].strftime("%d.%m.%y")
-        elif isinstance(cover_letter["updated_at"], str):
-            try:
-                date_obj = datetime.fromisoformat(
-                    cover_letter["updated_at"].replace("Z", "+00:00")
-                )
-                date_str = date_obj.strftime("%d.%m.%y")
-            except:
-                date_str = datetime.now().strftime("%d.%m.%y")
-    else:
-        date_str = datetime.now().strftime("%d.%m.%y")
-
-    filename = f"cover_letter_{first_initial}.{lastname}_{company}_{position}_{date_str}.pdf"
+    filename = generate_filename(
+        "cl",
+        first_name,
+        last_name,
+        company,
+        role
+    )
     return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
 
 
@@ -735,7 +712,8 @@ async def preview_cover_letter(
             )
 
         content_data = CoverLetterData(**cover_letter.get("content_data", {}))
-        template_name = cover_letter.get("template_name", "professional_template")
+        template_name = cover_letter.get(
+            "template_name", "professional_template")
 
         template_generator = CoverLetterTemplateGenerator()
         preview_info = template_generator.preview_cover_letter(

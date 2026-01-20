@@ -63,17 +63,30 @@ class ResumeRepository(BaseRepository):
         except Exception:
             return None
 
-    async def get_resumes_by_user_id(self, user_id: str) -> List[Dict]:
+    async def get_resumes_by_user_id(
+        self, user_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Dict]:
         """Retrieve all resumes belonging to a specific user.
 
         Args:
             user_id (str): ID of the user whose resumes to retrieve.
+            skip (int): Number of resumes to skip.
+            limit (int): Maximum number of resumes to return.
 
         Returns:
         -------
             List[Dict]: List of resume documents, or empty list if none found.
         """
-        return await self.find_many({"user_id": user_id}, [("created_at", -1)])
+        return await self.find_many(
+            {"user_id": user_id}, sort=[("created_at", -1)], skip=skip, limit=limit
+        )
+
+    # Alias for compatibility with callers expecting get_by_user_id
+    async def get_by_user_id(
+        self, user_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Dict]:
+        """Alias for get_resumes_by_user_id."""
+        return await self.get_resumes_by_user_id(user_id, skip, limit)
 
     async def update_resume(self, resume_id: str, update_data: Dict) -> bool:
         """Update a resume document.

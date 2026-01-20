@@ -32,7 +32,7 @@ export function OptimizePage() {
   const { data: masterCVs = [] } = useQuery({
     queryKey: ['master-cvs'],
     queryFn: async () => {
-      const { data } = await apiClient.get<MasterCVFromAPI[]>('/resume/master-cvs')
+      const { data } = await apiClient.get<MasterCVFromAPI[]>('/v1/resumes/master-cv/user/local-user')
       return data
     },
   })
@@ -161,7 +161,7 @@ export function OptimizePage() {
                     </SelectTrigger>
                     <SelectContent>
                       {masterCVs.length === 0 ? (
-                        <SelectItem value="" disabled>No Master CVs found - upload one first</SelectItem>
+                        <SelectItem value="no-cvs" disabled>No Master CVs found - upload one first</SelectItem>
                       ) : (
                         masterCVs.map((cv) => (
                           <SelectItem key={cv.id} value={cv.id}>

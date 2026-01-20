@@ -49,13 +49,17 @@ export function useDeleteMasterCV() {
 
 export function useDownloadMasterCV() {
   return useMutation({
-    mutationFn: (id: string) => masterCVAPI.getById(id).then(cv => {
-      // TODO: Implement actual download functionality
-      console.log('Download Master CV:', cv)
-      return cv
-    }),
-    onSuccess: () => {
-      // TODO: Implement actual download
+    mutationFn: async (id: string) => {
+      const response = await masterCVAPI.download(id)
+      return response
+    },
+    onSuccess: (data, id) => {
+      const url = window.URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `master_cv_${id}` // Fallback name, ideally get from headers if possible
+      a.click()
+      window.URL.revokeObjectURL(url)
       toast.success('Master CV downloaded successfully')
     },
     onError: () => {

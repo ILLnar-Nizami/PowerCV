@@ -44,14 +44,16 @@ function extractKeyword(item: KeywordItem | string): string {
 // Helper to get CV text from request
 async function getCvText(request: OptimizationRequest): Promise<string> {
   if (request.sourceType === 'upload' && request.uploadedFile) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = (e) => resolve(e.target?.result as string)
-      reader.onerror = reject
-      reader.readAsText(request.uploadedFile as File)
+    const formData = new FormData()
+    formData.append('file', request.uploadedFile)
+    const { data } = await apiClient.post<{ text: string }>('/parser/parse', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     })
+    return data.text
   } else if (request.sourceType === 'master_cv' && request.sourceId) {
-    const { data } = await apiClient.get(`/resume/master-cv/${request.sourceId}`)
+    const { data } = await apiClient.get(`/v1/resumes/master-cv/${request.sourceId}`)
     return data.master_content || ''
   }
   throw new Error('Invalid request: missing CV source')

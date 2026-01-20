@@ -122,7 +122,9 @@ async def master_optimization(
         resume_id = await repo.create_resume(optimized_resume)
 
         # Return result with resume_id for download
-        logger.info(f"Returning optimization results with ATS score: {result['ats_score']}")
+        logger.info(
+            f"Returning optimization results with ATS score: {result['ats_score']}"
+        )
         return {
             "resume_id": resume_id,
             "optimized_resume": "Resume optimized successfully",  # Keep for compatibility
@@ -130,11 +132,16 @@ async def master_optimization(
             "matching_skills": result["matching_skills"],
             "missing_skills": result["missing_skills"],
             "improvements": ["Resume optimized successfully"],  # Add improvements
-            "cover_letter": result.get("cover_letter", "Cover letter not available"),  # Include cover letter in response
+            "cover_letter": result.get(
+                "cover_letter", "Cover letter not available"
+            ),  # Include cover letter in response
         }
     except Exception as e:
         error_detail = str(e)
-        if "rate limit" in error_detail.lower() or "too many requests" in error_detail.lower():
+        if (
+            "rate limit" in error_detail.lower()
+            or "too many requests" in error_detail.lower()
+        ):
             logger.warning("AI service rate limit exceeded")
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,

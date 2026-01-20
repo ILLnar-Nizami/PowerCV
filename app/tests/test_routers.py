@@ -73,8 +73,8 @@ def override_deps(mock_resume_repo, mock_cl_repo, mock_comp_optimizer, mock_ai_g
     app.state.resume_repo = mock_resume_repo
     yield
     app.dependency_overrides.clear()
-    if hasattr(app.state, 'resume_repo'):
-        delattr(app.state, 'resume_repo')
+    if hasattr(app.state, "resume_repo"):
+        delattr(app.state, "resume_repo")
 
 
 # === RESUME TESTS ===
@@ -89,7 +89,8 @@ def test_resume_upload(override_deps, mock_resume_repo):
     ), patch(
         "app.services.file_validator.store_file_securely", return_value="/t.pdf"
     ), patch(
-        "app.utils.file_handling.extract_text_from_file", AsyncMock(side_effect=lambda *args, **kwargs: "E")
+        "app.utils.file_handling.extract_text_from_file",
+        AsyncMock(side_effect=lambda *args, **kwargs: "E"),
     ):
         response = client.post(
             "/api/v1/resumes/master-cv/upload",
@@ -270,7 +271,9 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
     mock_comp_optimizer.iterative_improvement.return_value = {"improved": True}
 
     # Mock the workflow orchestrator used by the master optimization endpoint
-    with patch("app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator") as mock_orch:
+    with patch(
+        "app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator"
+    ) as mock_orch:
         mock_instance = MagicMock()
         mock_instance.optimize_cv_for_job.return_value = {
             "optimized_cv": {"user_information": {"name": "Test"}},

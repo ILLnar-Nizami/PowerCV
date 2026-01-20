@@ -52,17 +52,23 @@ class Settings(BaseSettings):
     )
 
     # Database settings
-    mongodb_uri: str = Field(default="mongodb://localhost:27017", validation_alias="MONGODB_URI")
+    mongodb_uri: str = Field(
+        default="mongodb://localhost:27017", validation_alias="MONGODB_URI"
+    )
     mongodb_db: str = Field(default="powercv", validation_alias="MONGODB_DB")
     mongodb_user: Optional[str] = Field(default=None, validation_alias="MONGODB_USER")
-    mongodb_password: Optional[str] = Field(default=None, validation_alias="MONGODB_PASSWORD")
+    mongodb_password: Optional[str] = Field(
+        default=None, validation_alias="MONGODB_PASSWORD"
+    )
 
     # Redis settings (for caching and rate limiting)
     redis_url: Optional[str] = Field(default=None, validation_alias="REDIS_URL")
     redis_host: str = Field(default="localhost", validation_alias="REDIS_HOST")
     redis_port: int = Field(default=6379, validation_alias="REDIS_PORT")
     redis_db: int = Field(default=0, validation_alias="REDIS_DB")
-    redis_password: Optional[str] = Field(default=None, validation_alias="REDIS_PASSWORD")
+    redis_password: Optional[str] = Field(
+        default=None, validation_alias="REDIS_PASSWORD"
+    )
 
     # AI Provider settings
     # Cerebras AI
@@ -73,7 +79,9 @@ class Settings(BaseSettings):
         default="https://api.cerebras.ai/v1",
         validation_alias="CEREBRAS_API_BASE",
     )
-    cerebras_model: str = Field(default="gpt-oss-120b", validation_alias="CEREBRAS_MODEL")
+    cerebras_model: str = Field(
+        default="gpt-oss-120b", validation_alias="CEREBRAS_MODEL"
+    )
 
     # OpenAI
     openai_api_key: Optional[str] = Field(
@@ -85,9 +93,7 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-4", validation_alias="OPENAI_MODEL")
 
     # Deepseek
-    deepseek_api_key: Optional[str] = Field(
-        default=None, validation_alias="API_KEY"
-    )
+    deepseek_api_key: Optional[str] = Field(default=None, validation_alias="API_KEY")
 
     # Ollama (local models)
     ollama_base_url: str = Field(
@@ -97,7 +103,8 @@ class Settings(BaseSettings):
 
     # Security settings
     secret_key: str = Field(
-        default="development-secret-key-change-in-production", validation_alias="SECRET_KEY"
+        default="development-secret-key-change-in-production",
+        validation_alias="SECRET_KEY",
     )
     algorithm: str = Field(default="HS256", validation_alias="ALGORITHM")
     access_token_expire_minutes: int = Field(
@@ -105,7 +112,9 @@ class Settings(BaseSettings):
     )
 
     # Rate limiting
-    rate_limit_enabled: bool = Field(default=True, validation_alias="RATE_LIMIT_ENABLED")
+    rate_limit_enabled: bool = Field(
+        default=True, validation_alias="RATE_LIMIT_ENABLED"
+    )
     rate_limit_requests_per_minute: int = Field(
         default=100, validation_alias="RATE_LIMIT_REQUESTS_PER_MINUTE"
     )
@@ -114,7 +123,9 @@ class Settings(BaseSettings):
     )
 
     # File upload settings
-    max_file_size: int = Field(default=10 * 1024 * 1024, validation_alias="MAX_FILE_SIZE")  # 10MB
+    max_file_size: int = Field(
+        default=10 * 1024 * 1024, validation_alias="MAX_FILE_SIZE"
+    )  # 10MB
     allowed_file_types: List[str] = Field(
         default=["pdf", "doc", "docx", "txt"], validation_alias="ALLOWED_FILE_TYPES"
     )
@@ -123,7 +134,8 @@ class Settings(BaseSettings):
     # Logging settings
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     log_format: str = Field(
-        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s", validation_alias="LOG_FORMAT"
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        validation_alias="LOG_FORMAT",
     )
 
     # External services
@@ -135,8 +147,12 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS")
 
     # n8n webhook settings
-    n8n_webhook_url: Optional[str] = Field(default=None, validation_alias="N8N_WEBHOOK_URL")
-    n8n_webhook_secret: Optional[str] = Field(default=None, validation_alias="N8N_WEBHOOK_SECRET")
+    n8n_webhook_url: Optional[str] = Field(
+        default=None, validation_alias="N8N_WEBHOOK_URL"
+    )
+    n8n_webhook_secret: Optional[str] = Field(
+        default=None, validation_alias="N8N_WEBHOOK_SECRET"
+    )
     n8n_api_key: Optional[str] = Field(default=None, validation_alias="N8N_API_KEY")
     n8n_user: Optional[str] = Field(default=None, validation_alias="N8N_USER")
     n8n_password: Optional[str] = Field(default=None, validation_alias="N8N_PASSWORD")
@@ -146,11 +162,15 @@ class Settings(BaseSettings):
 
     # AI Model tiers configuration
     fast_model: str = Field(default="gpt-oss-120b", validation_alias="FAST_MODEL")
-    balanced_model: str = Field(default="gpt-oss-120b", validation_alias="BALANCED_MODEL")
+    balanced_model: str = Field(
+        default="gpt-oss-120b", validation_alias="BALANCED_MODEL"
+    )
     quality_model: str = Field(default="gpt-4", validation_alias="QUALITY_MODEL")
 
     # Token tracking
-    enable_token_tracking: bool = Field(default=True, validation_alias="ENABLE_TOKEN_TRACKING")
+    enable_token_tracking: bool = Field(
+        default=True, validation_alias="ENABLE_TOKEN_TRACKING"
+    )
     token_usage_limit_per_user: int = Field(
         default=10000, validation_alias="TOKEN_USAGE_LIMIT_PER_USER"
     )
@@ -159,7 +179,9 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="cerebras", validation_alias="LLM_PROVIDER")
     ai_provider: str = Field(default="cerebras", validation_alias="AI_PROVIDER")
     skip_ats_scoring: bool = Field(default=False, validation_alias="SKIP_ATS_SCORING")
-    use_fast_optimizer: bool = Field(default=False, validation_alias="USE_FAST_OPTIMIZER")
+    use_fast_optimizer: bool = Field(
+        default=False, validation_alias="USE_FAST_OPTIMIZER"
+    )
 
     # Sensitive fields (never log these)
     _sensitive_fields: ClassVar[set] = {

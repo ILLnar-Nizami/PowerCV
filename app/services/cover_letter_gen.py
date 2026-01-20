@@ -6,7 +6,6 @@ import re
 from typing import Dict, List
 
 from ..prompts.prompt_loader import PromptLoader
-from ..utils.shared_utils import JSONParser
 from .ai_client import get_ai_client
 
 logger = logging.getLogger(__name__)
@@ -89,8 +88,14 @@ Requirements: {', '.join(job_data.get('requirements', []))}
 
         except Exception as e:
             error_msg = str(e).lower()
-            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
-                logger.warning("AI service rate limit exceeded for cover letter generation")
+            if (
+                "429" in error_msg
+                or "too many requests" in error_msg
+                or "rate limit" in error_msg
+            ):
+                logger.warning(
+                    "AI service rate limit exceeded for cover letter generation"
+                )
                 # Return a basic fallback instead of retrying
                 return {
                     "cover_letter": f"Dear Hiring Manager,\n\nI am writing to express my interest in the {job_data.get('position', 'position')} role at {job_data.get('company', 'Company')}. With my background and skills, I am confident I can contribute effectively to your team.\n\nPlease consider my application. I look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\n{candidate_data.get('name', 'Candidate')}",
@@ -213,13 +218,15 @@ Generate the complete cover letter text:
             cover_letter_match = re.search(
                 r"=== FINAL COVER LETTER ===(.*?)(?:===|$)",
                 response,
-                re.DOTALL | re.IGNORECASE
+                re.DOTALL | re.IGNORECASE,
             )
 
             if cover_letter_match:
                 cover_letter = cover_letter_match.group(1).strip()
                 # Clean up any extra markers
-                cover_letter = re.sub(r"=== .*? ===", "", cover_letter, flags=re.IGNORECASE).strip()
+                cover_letter = re.sub(
+                    r"=== .*? ===", "", cover_letter, flags=re.IGNORECASE
+                ).strip()
             else:
                 # Fallback: use the whole response as cover letter
                 cover_letter = response.strip()

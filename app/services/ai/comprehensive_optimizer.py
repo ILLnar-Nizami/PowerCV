@@ -81,8 +81,12 @@ Languages: English (Highly proficient), Russian (Native), Tatar (Native)"""
             user_id: User ID for tracking
         """
         self.model_name = model_name or os.getenv("API_MODEL_NAME", "gpt-oss-120b")
-        self.api_key = api_key or os.getenv("CEREBRAS_API_KEY") or os.getenv("OPENAI_API_KEY")
-        self.api_base = api_base or os.getenv("CEREBRAS_API_BASE") or os.getenv("OPENAI_API_BASE")
+        self.api_key = (
+            api_key or os.getenv("CEREBRAS_API_KEY") or os.getenv("OPENAI_API_KEY")
+        )
+        self.api_base = (
+            api_base or os.getenv("CEREBRAS_API_BASE") or os.getenv("OPENAI_API_BASE")
+        )
         self.user_id = user_id
         self.llm = self._get_openai_model()
         self.output_parser = JsonOutputParser()
@@ -332,22 +336,26 @@ Top 3 weaknesses → targeted rewrites → new scores
             )
 
             # Extract content from AIMessage
-            content = (
-                result.content
-                if hasattr(result, "content")
-                else str(result)
-            )
+            content = result.content if hasattr(result, "content") else str(result)
 
             return {"optimized_resume": content}
 
         except Exception as e:
             error_msg = str(e).lower()
-            if "429" in error_msg or "too many requests" in error_msg or "rate limit" in error_msg:
-                raise Exception("AI service rate limit exceeded. Please wait a moment and try again.")
+            if (
+                "429" in error_msg
+                or "too many requests" in error_msg
+                or "rate limit" in error_msg
+            ):
+                raise Exception(
+                    "AI service rate limit exceeded. Please wait a moment and try again."
+                )
             elif "timeout" in error_msg:
                 raise Exception("AI service request timed out. Please try again.")
             elif "connection" in error_msg:
-                raise Exception("Unable to connect to AI service. Please check your connection and try again.")
+                raise Exception(
+                    "Unable to connect to AI service. Please check your connection and try again."
+                )
             else:
                 raise Exception(f"Master optimization failed: {str(e)}")
 
@@ -473,7 +481,9 @@ Top 3 weaknesses → targeted rewrites → new scores
                 "matched_keywords": data.get("matching_skills", []),
                 "missing_critical": data.get("missing_skills", []),
             },
-            "recommendations": [data.get("recommendation", "")] if data.get("recommendation") else [],
+            "recommendations": (
+                [data.get("recommendation", "")] if data.get("recommendation") else []
+            ),
         }
 
     async def extract_hidden_achievements(

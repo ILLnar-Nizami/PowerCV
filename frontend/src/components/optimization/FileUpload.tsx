@@ -17,7 +17,7 @@ interface FileUploadProps {
 export function FileUpload({
   onFileSelect,
   selectedFile,
-  accept = [FILE_TYPES.PDF, FILE_TYPES.DOCX],
+  accept = [FILE_TYPES.PDF, FILE_TYPES.DOCX, FILE_TYPES.TXT, FILE_TYPES.MD],
   maxSize = MAX_FILE_SIZE,
   className = ''
 }: FileUploadProps) {
@@ -51,7 +51,7 @@ export function FileUpload({
 
   const getErrorMessage = (error: string): string => {
     if (error.includes('too large')) return 'File size must be less than 10MB'
-    if (error.includes('file type')) return 'Only PDF and DOCX files are allowed'
+    if (error.includes('file type')) return 'Only PDF, DOCX, TXT, and MD files are allowed'
     return error
   }
 
@@ -78,7 +78,7 @@ export function FileUpload({
                   Drag and drop your file here, or click to browse
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  PDF or DOCX files, up to 10MB
+                  PDF, DOCX, TXT, or MD files, up to 10MB
                 </p>
               </div>
               <Button type="button" variant="outline" className="mt-4">

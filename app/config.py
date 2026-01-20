@@ -64,11 +64,13 @@ class Settings(BaseSettings):
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
         default=None,
-        validation_alias=AliasChoices("CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
+        validation_alias=AliasChoices(
+            "CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
     )
     cerebras_api_base: str = Field(
         default="https://api.cerebras.ai/v1",
-        validation_alias=AliasChoices("CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
+        validation_alias=AliasChoices(
+            "CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
     )
     cerebras_model: str = "gpt-oss-120b"
 

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Download, Eye, Share, FileText, Mail } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOptimizationStore } from '@/stores/optimizationStore'
+import { resumesAPI } from '@/api/resumes'
 
 export function ResultsPage() {
   const navigate = useNavigate()
@@ -17,30 +18,18 @@ export function ResultsPage() {
   console.log('ResultsPage result.resume_id:', result?.resume_id)
 
   // Fallback to mock data if no result
-  const resultData = result || {
-    resumeId: 'res_123',
-    resume_id: 'res_123',
-    ats_score: 94,
-    matching_skills: ['React', 'TypeScript', 'Node.js', 'Python', 'AWS', 'Docker', 'Kubernetes'],
-    missing_skills: [],
-    improvements: [
-      'Added Kubernetes experience to match job requirements',
-      'Quantified achievements with specific metrics',
-      'Improved formatting for better ATS readability',
-      'Optimized keyword density for better matching'
-    ],
-    optimizedResumeUrl: '/api/resume/res_123/download',
-    coverLetterUrl: '/api/resume/res_123/cover-letter',
-    analysis: {
-      ats_score: 94,
-      matchedSkills: ['React', 'TypeScript', 'Node.js', 'Python', 'AWS', 'Docker', 'Kubernetes'],
-      missingSkills: [],
-      recommendations: []
-    }
+  // Redirect if no result
+  if (!result) {
+    navigate('/optimize')
+    return null
   }
+  
+  const resultData = result
 
   // Normalize the data structure for consistent access
   const atsScore = Number(resultData.ats_score || (resultData.analysis as { ats_score?: number })?.ats_score || 0)
+  const originalAtsScore = Number(resultData.original_ats_score || 0)
+  const improvement = atsScore - originalAtsScore
   const matchedSkills = (resultData.matching_skills || (resultData.analysis as { matchedSkills?: string[] })?.matchedSkills || []) as string[]
   const improvements = (resultData.improvements || []) as string[]
 
@@ -56,13 +45,25 @@ export function ResultsPage() {
         'minimal': 'simple-xd-resume/cv.typ'
       }
       const templatePath = templateMap[request.template || 'classic'] || 'resume.typ'
+      const resumeId = resultData.resumeId || '' 
+      if (!resumeId) throw new Error('Resume ID required')
 
-      const response = await fetch(`/api/resume/${resultData.resumeId}/download?template=${encodeURIComponent(templatePath)}`)
-      const blob = await response.blob()
+      const response = await resumesAPI.downloadResume(resumeId, templatePath)
+      const blob = response.data
+      const contentDisposition = response.headers['content-disposition']
+      let filename = `resume_optimized_${resultData.resumeId}.pdf`
+      
+      if (contentDisposition) {
+        const customFilename = contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
+        if (customFilename) {
+          filename = customFilename
+        }
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `cv_${request.company || 'Company'}_${request.position || 'Position'}_${new Date().toLocaleDateString('en-GB').replace(/\//g, '.')}_v_1.pdf`
+      a.download = filename
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -81,7 +82,13 @@ export function ResultsPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `cl_${request.company || 'Company'}_${request.position || 'Position'}_${new Date().toLocaleDateString('en-GB').replace(/\//g, '.')}_v_1.txt`
+      const company = (request.company || 'Company').toLowerCase().replace(/[^a-z0-9]/g, '-')
+      const position = (request.position || 'Position').toLowerCase().replace(/[^a-z0-9]/g, '_')
+      const date = new Date().toLocaleDateString('en-GB').replace(/\//g, '.')
+      // Initial could be improved if user info available, defaulting to 'u' (user) or similar if not
+      const filename = `cl_candidate_${company}_${position}_${date}.txt`
+      
+      a.download = filename
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -153,19 +160,39 @@ export function ResultsPage() {
                 atsScore >= 60 ? 'bg-yellow-50 border border-yellow-200' :
                 'bg-red-50 border border-red-200'
               }`}>
-                <div>
-                  <div className={`text-sm font-medium ${
-                    atsScore >= 76 ? 'text-green-800' :
-                    atsScore >= 60 ? 'text-yellow-800' :
-                    'text-red-800'
-                  }`}>ATS Score</div>
-                  <div className={`text-2xl font-bold ${
-                    atsScore >= 76 ? 'text-green-900' :
-                    atsScore >= 60 ? 'text-yellow-900' :
-                    'text-red-900'
-                  }`}>
-                    {atsScore}%
+                <div className="flex gap-8">
+                  <div>
+                    <div className={`text-sm font-medium ${
+                      atsScore >= 76 ? 'text-green-800' :
+                      atsScore >= 60 ? 'text-yellow-800' :
+                      'text-red-800'
+                    }`}>ATS Score</div>
+                    <div className={`text-2xl font-bold ${
+                      atsScore >= 76 ? 'text-green-900' :
+                      atsScore >= 60 ? 'text-yellow-900' :
+                      'text-red-900'
+                    }`}>
+                      {atsScore}%
+                    </div>
                   </div>
+                  
+                  {originalAtsScore > 0 && (
+                    <div className="border-l border-gray-200 pl-8">
+                      <div className="text-sm text-muted-foreground font-medium">Original</div>
+                      <div className="text-xl font-semibold text-muted-foreground">
+                        {originalAtsScore}%
+                      </div>
+                    </div>
+                  )}
+
+                  {improvement !== 0 && (
+                    <div className="border-l border-gray-200 pl-8">
+                      <div className="text-sm text-muted-foreground font-medium">Improvement</div>
+                      <div className={`text-xl font-bold ${improvement > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {improvement > 0 ? `+${improvement}` : improvement}%
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <Badge variant="default" className={
                   atsScore >= 76 ? 'bg-green-500' :

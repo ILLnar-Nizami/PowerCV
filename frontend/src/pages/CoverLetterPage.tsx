@@ -3,58 +3,50 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search, Mail, FileText, Download } from 'lucide-react'
-
-// Mock cover letter data
-const mockCoverLetters = [
-  {
-    id: '1',
-    resumeId: 'res_1',
-    company: 'Google',
-    position: 'Senior Software Engineer',
-    createdAt: '2024-01-15T10:30:00Z',
-    downloadUrl: '/api/cover-letters/1/download'
-  },
-  {
-    id: '2',
-    resumeId: 'res_2',
-    company: 'Microsoft',
-    position: 'Frontend Developer',
-    createdAt: '2024-01-10T14:20:00Z',
-    downloadUrl: '/api/cover-letters/2/download'
-  },
-  {
-    id: '3',
-    resumeId: 'res_3',
-    company: 'Amazon',
-    position: 'Full Stack Developer',
-    createdAt: '2024-01-08T09:15:00Z',
-    downloadUrl: '/api/cover-letters/3/download'
-  }
-]
+import { Plus, Search, Mail, FileText, Download, Loader2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { coverLettersAPI, CoverLetter } from '@/api/coverLetters'
+import { toast } from 'sonner'
 
 export function CoverLetterPage() {
   const [search, setSearch] = useState('')
-  const coverLetters = mockCoverLetters // Using mock data for now
+  // Hardcoded user ID for now, similar to other parts of the app
+  const userId = 'local-user'
 
-  const filteredLetters = coverLetters.filter(letter =>
-    letter.company.toLowerCase().includes(search.toLowerCase()) ||
-    letter.position.toLowerCase().includes(search.toLowerCase())
+  const { data: coverLetters = [], isLoading } = useQuery({
+    queryKey: ['coverLetters', userId],
+    queryFn: () => coverLettersAPI.getUserCoverLetters(userId),
+  })
+
+  const filteredLetters = coverLetters.filter((letter: CoverLetter) =>
+    (letter.target_company || '').toLowerCase().includes(search.toLowerCase()) ||
+    (letter.target_role || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleDownload = async (coverLetter: typeof mockCoverLetters[0]) => {
+  const handleDownload = async (coverLetter: CoverLetter) => {
     try {
-      // TODO: Implement actual download
-      const response = await fetch(coverLetter.downloadUrl)
-      const blob = await response.blob()
+      const response = await coverLettersAPI.downloadCoverLetter(coverLetter._id)
+      const blob = response.data
+      const contentDisposition = response.headers['content-disposition']
+      
+      let filename = `${coverLetter.target_company}_CoverLetter.pdf`
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1]
+        }
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${coverLetter.company}_CoverLetter.pdf`
+      a.download = filename
       a.click()
       window.URL.revokeObjectURL(url)
+      toast.success('Download started')
     } catch (error) {
       console.error('Download failed:', error)
+      toast.error('Failed to download cover letter')
     }
   }
 
@@ -64,6 +56,14 @@ export function CoverLetterPage() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -113,19 +113,19 @@ export function CoverLetterPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLetters.map((letter) => (
-              <Card key={letter.id}>
+            {filteredLetters.map((letter: CoverLetter) => (
+              <Card key={letter._id}>
                 <CardHeader>
                   <div className="space-y-1">
-                    <h3 className="font-semibold text-lg">{letter.position}</h3>
-                    <p className="text-sm text-muted-foreground">{letter.company}</p>
+                    <h3 className="font-semibold text-lg">{letter.target_role || 'Unknown Role'}</h3>
+                    <p className="text-sm text-muted-foreground">{letter.target_company || 'Unknown Company'}</p>
                   </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Generated:</span>
-                    <span className="font-medium">{formatDate(letter.createdAt)}</span>
+                    <span className="font-medium">{formatDate(letter.created_at)}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
