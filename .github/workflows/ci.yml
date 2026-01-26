@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ dev, main ]
+    branches: [dev, main]
   pull_request:
-    branches: [ dev, main ]
+    branches: [dev, main]
 
 jobs:
   backend-tests:
@@ -46,8 +46,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: "3.12"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -55,8 +55,11 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
+      - name: Install Biome
+        run: npm install --save-dev @biomejs/biome
+
       - name: Run linting
-        run: ruff check .
+        run: npx biome check --apply .
 
       - name: Run backend tests
         env:
@@ -95,17 +98,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
+      - name: Install Biome
+        working-directory: frontend
+        run: npm install --save-dev @biomejs/biome
+
       - name: Run linting
         working-directory: frontend
-        run: npm run lint
+        run: npx biome check --apply .
 
       - name: Run frontend tests
         working-directory: frontend
@@ -114,6 +121,14 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright E2E tests
+        working-directory: frontend
+        run: npm run test:e2e:ci
 
   docker-build:
     name: Docker Build Test

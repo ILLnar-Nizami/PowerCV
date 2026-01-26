@@ -1,11 +1,11 @@
-"""Multi-provider AI client."""
+"""Multi-provider AI client using LiteLLM for unified management."""
 
 import logging
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
-import requests
 from dotenv import load_dotenv
+from litellm import completion, exceptions
 
 from app.config.settings import get_settings
 from app.core.exceptions import MissingApiKeyError
@@ -14,41 +14,47 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-class AIClient:
-    """Supports Cerebras (primary) and OpenAI."""
+class AIProviderClient:
+    """Supports multiple cloud-based AI providers via LiteLLM."""
 
-    CONFIGS = {
+    # Supported providers and their models
+    PROVIDERS = {
         "cerebras": {
-            "base": "https://api.cerebras.ai/v1",
-            "model": "gpt-oss-120b",
+            "model": "cerebras/gpt-oss-120b",
+            "fallback": ["openai/gpt-4-turbo", "deepseek/deepseek-chat"],
             "key": "CEREBRAS_API_KEY",
         },
         "openai": {
-            "base": "https://api.openai.com/v1",
-            "model": "gpt-4",
+            "model": "openai/gpt-4-turbo",
+            "fallback": ["cerebras/gpt-oss-120b", "deepseek/deepseek-chat"],
             "key": "OPENAI_API_KEY",
+        },
+        "deepseek": {
+            "model": "deepseek/deepseek-chat",
+            "fallback": ["openai/gpt-4-turbo", "cerebras/gpt-oss-120b"],
+            "key": "DEEPSEEK_API_KEY",
         },
     }
 
-    def __init__(self, provider: str = None):
+    def __init__(self, provider: Optional[str] = None):
         """Initialize AI client with specified provider.
 
         Args:
-            provider: AI provider name ('deepseek', 'cerebras', 'openai')
+            provider: AI provider name ('cerebras', 'openai', 'deepseek')
                      If None, uses AI_PROVIDER env variable, defaults to 'cerebras'
         """
         self.provider = provider or os.getenv("AI_PROVIDER", "cerebras")
 
-        if self.provider not in self.CONFIGS:
+        if self.provider not in self.PROVIDERS:
             raise ValueError(
                 f"Unknown provider: {self.provider}. "
-                f"Supported: {list(self.CONFIGS.keys())}"
+                f"Supported: {list(self.PROVIDERS.keys())}"
             )
 
         settings = get_settings()
-        config = self.CONFIGS[self.provider]
-        self.api_base = config["base"]
+        config = self.PROVIDERS[self.provider]
         self.model = config["model"]
+        self.fallback_models = config["fallback"]
         self.api_key = getattr(settings, config["key"].lower(), None)
 
         if not self.api_key:
@@ -56,7 +62,7 @@ class AIClient:
 
         logger.info(f"Initialized AI client: {self.provider} ({self.model})")
 
-    def chat_completion(
+    async def chat_completion(
         self,
         system_prompt: str,
         user_message: str,
@@ -64,7 +70,7 @@ class AIClient:
         max_tokens: int = 2000,
         timeout: int = 60,
     ) -> str:
-        """Send chat completion request.
+        """Send chat completion request with fallback support.
 
         Args:
             system_prompt: System instructions
@@ -77,100 +83,82 @@ class AIClient:
             str: Model's response
 
         Raises:
-            Exception: If API request fails
+            Exception: If all providers fail
         """
-        url = f"{self.api_base}/chat/completions"
+        # Try primary provider first
+        models_to_try = [self.model] + self.fallback_models
+        last_exception = None
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
-
-        try:
-            logger.debug(f"Calling {self.provider} API")
-            response = requests.post(
-                url, headers=headers, json=payload, timeout=timeout
-            )
-            response.raise_for_status()
-
-            result = response.json()
-            content = result["choices"][0]["message"]["content"]
-
-            logger.debug(f"Response received: {len(content)} chars")
-            return content
-
-        except requests.exceptions.Timeout:
-            logger.error(f"{self.provider} API timeout after {timeout}s")
-            raise requests.exceptions.RequestException(
-                f"{self.provider} API timeout after {timeout}s"
-            )
-
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"{self.provider} API connection error: {str(e)}")
-            raise requests.exceptions.RequestException(
-                f"{self.provider} API connection error: {str(e)}"
-            )
-
-        except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code if e.response else "Unknown"
-            logger.error(f"{self.provider} API HTTP error: {status_code}")
-            if e.response and e.response.status_code == 429:
-                logger.warning(f"{self.provider} API rate limit exceeded")
-                raise requests.exceptions.RequestException(
-                    f"{self.provider} API rate limit exceeded. Please wait and try again."
+        for model in models_to_try:
+            try:
+                logger.debug(f"Attempting completion with model: {model}")
+                response = await completion(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message},
+                    ],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=timeout,
                 )
-            raise requests.exceptions.RequestException(
-                f"{self.provider} API HTTP error: {str(e)}"
-            )
 
-        except requests.exceptions.RequestException as e:
-            logger.error(
-                f"{self.provider} API request error: {type(e).__name__}: {str(e)}"
-            )
-            raise requests.exceptions.RequestException(
-                f"{self.provider} API request error: {type(e).__name__}: {str(e)}"
-            )
+                # Handle ModelResponse
+                if hasattr(response, "choices") and response.choices:
+                    content = response.choices[0].message.content
+                    logger.debug(
+                        f"Response received from {model}: {len(content or '')} chars"
+                    )
+                    return content or ""
+                else:
+                    raise Exception(
+                        f"Invalid response from {model}: No choices returned"
+                    )
 
-        except ValueError as e:
-            logger.error(f"{self.provider} API response parsing error: {str(e)}")
-            raise ValueError(f"Invalid response from {self.provider} API: {str(e)}")
+            except exceptions.RateLimitError as e:
+                logger.warning(f"Rate limit exceeded for {model}: {str(e)}")
+                last_exception = e
+                continue
 
-        except Exception as e:
-            logger.error(
-                f"{self.provider} API unexpected error: {type(e).__name__}: {str(e)}"
-            )
-            raise Exception(
-                f"Unexpected error with {self.provider} API: {type(e).__name__}: {str(e)}"
-            )
+            except exceptions.Timeout as e:
+                logger.warning(f"Timeout for {model}: {str(e)}")
+                last_exception = e
+                continue
 
-    def get_provider_info(self) -> dict:
+            except exceptions.APIError as e:
+                logger.warning(f"API error for {model}: {str(e)}")
+                last_exception = e
+                continue
+
+            except Exception as e:
+                logger.error(
+                    f"Unexpected error with {model}: {type(e).__name__}: {str(e)}"
+                )
+                last_exception = e
+                continue
+
+        # If all providers failed
+        error_msg = f"All AI providers failed. Last error: {type(last_exception).__name__}: {str(last_exception)}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
+
+    def get_provider_info(self) -> Dict[str, Any]:
         """Get current provider information."""
         return {
             "provider": self.provider,
             "model": self.model,
-            "api_base": self.api_base,
+            "fallback_models": self.fallback_models,
         }
 
 
 # Convenience function for backward compatibility
-def get_ai_client(provider: Optional[str] = None) -> AIClient:
+def get_ai_client(provider: Optional[str] = None) -> AIProviderClient:
     """Get AI client instance.
 
     Args:
         provider: Optional provider override
 
     Returns:
-        AIClient: Configured client instance
+        AIProviderClient: Configured client instance
     """
-    return AIClient(provider=provider)
+    return AIProviderClient(provider=provider)

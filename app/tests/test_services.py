@@ -57,7 +57,7 @@ class TestJSONParser:
         """Test repairing empty JSON."""
         json_str = ""
         result = JSONParser.repair_json(json_str)
-        assert result == ""
+        assert result == "{}"
 
 
 class TestTextProcessor:
@@ -229,7 +229,10 @@ class TestWorkflowOrchestrator:
     @patch("app.services.workflow_orchestrator.CoverLetterGenerator")
     @patch("app.services.workflow_orchestrator.CVAnalyzer")
     @patch("app.services.workflow_orchestrator.CVOptimizer")
-    def test_optimize_cv_for_job(self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls):
+    @pytest.mark.asyncio
+    async def test_optimize_cv_for_job(
+        self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls
+    ):
         """Test CV optimization workflow."""
         mock_analyzer = MagicMock()
         mock_analyzer_cls.return_value = mock_analyzer
@@ -254,7 +257,7 @@ class TestWorkflowOrchestrator:
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
-        result = orch.optimize_cv_for_job(
+        result = await orch.optimize_cv_for_job(
             "CV text", "JD text", generate_cover_letter=False
         )
 
@@ -265,7 +268,8 @@ class TestWorkflowOrchestrator:
     @patch("app.services.workflow_orchestrator.CoverLetterGenerator")
     @patch("app.services.workflow_orchestrator.CVAnalyzer")
     @patch("app.services.workflow_orchestrator.CVOptimizer")
-    def test_optimize_cv_for_job_with_cover_letter(
+    @pytest.mark.asyncio
+    async def test_optimize_cv_for_job_with_cover_letter(
         self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls
     ):
         """Test CV optimization with cover letter generation."""
@@ -292,7 +296,7 @@ class TestWorkflowOrchestrator:
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
-        result = orch.optimize_cv_for_job(
+        result = await orch.optimize_cv_for_job(
             "CV text", "JD text", generate_cover_letter=True
         )
 

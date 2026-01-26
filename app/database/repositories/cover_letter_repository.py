@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from bson import ObjectId
+from bson.objectid import ObjectId
 
 from app.database.connector import MongoConnectionManager
 from app.database.models.cover_letter import CoverLetter

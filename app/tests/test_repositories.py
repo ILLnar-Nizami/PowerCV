@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 from datetime import datetime
-from bson import ObjectId
+from bson.objectid import ObjectId
 
 from app.database.repositories.base_repo import BaseRepository
 from app.database.repositories.resume_repository import ResumeRepository

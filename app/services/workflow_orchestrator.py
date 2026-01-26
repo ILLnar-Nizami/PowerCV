@@ -22,7 +22,7 @@ class CVWorkflowOrchestrator:
         self.cover_letter_gen = CoverLetterGenerator()
         logger.info("WorkflowOrchestrator initialized")
 
-    def optimize_cv_for_job(
+    async def optimize_cv_for_job(
         self,
         cv_text: str,
         jd_text: str,
@@ -43,11 +43,11 @@ class CVWorkflowOrchestrator:
 
         # Step 1: Analyze
         logger.info("Step 1/3: Analyzing CV against job description...")
-        analysis = self.analyzer.analyze(cv_text, jd_text)
+        analysis = await self.analyzer.analyze(cv_text, jd_text)
 
         # Step 2: Comprehensive Optimization (One-shot)
         logger.info("Step 2/3: Performing comprehensive optimization...")
-        optimized_data = self.optimizer.optimize_comprehensive(
+        optimized_data = await self.optimizer.optimize_comprehensive(
             cv_text, jd_text, analysis, email
         )
 
@@ -55,7 +55,7 @@ class CVWorkflowOrchestrator:
         cover_letter = None
         if generate_cover_letter:
             logger.info("Step 3/3: Generating cover letter...")
-            cover_letter = self._generate_cover_letter(analysis, jd_text)
+            cover_letter = await self._generate_cover_letter(analysis, jd_text)
 
         # Extract skills for the dashboard/API
         matching_skills = analysis.get("keyword_analysis", {}).get(
@@ -73,7 +73,7 @@ class CVWorkflowOrchestrator:
 
         # Try to get updated ATS score, but fall back to original if rate limited
         try:
-            optimized_analysis = self.analyzer.analyze(optimized_text, jd_text)
+            optimized_analysis = await self.analyzer.analyze(optimized_text, jd_text)
             optimized_ats_score = optimized_analysis.get(
                 "ats_score", analysis.get("ats_score", 0)
             )
@@ -169,8 +169,7 @@ class CVWorkflowOrchestrator:
 
         # Extract and optimize experience section
         experience_section = TextProcessor.extract_section(
-            cv_text, ["EXPERIENCE", "WORK EXPERIENCE",
-                      "PROFESSIONAL EXPERIENCE"]
+            cv_text, ["EXPERIENCE", "WORK EXPERIENCE", "PROFESSIONAL EXPERIENCE"]
         )
         if experience_section:
             optimized_experience = self.optimizer.optimize_section(
@@ -231,7 +230,9 @@ class CVWorkflowOrchestrator:
         logger.info(f"Optimized {len(optimized_sections)} CV sections")
         return optimized_sections
 
-    def _generate_cover_letter(self, analysis: Dict, jd_text: str) -> Optional[Dict]:
+    async def _generate_cover_letter(
+        self, analysis: Dict, jd_text: str
+    ) -> Optional[Dict]:
         """Generate cover letter based on analysis.
 
         Args:
@@ -259,7 +260,7 @@ class CVWorkflowOrchestrator:
             "requirements": self._extract_requirements_from_jd(jd_text),
         }
 
-        return self.cover_letter_gen.generate(candidate_data, job_data)
+        return await self.cover_letter_gen.generate(candidate_data, job_data)
 
     def _extract_other_sections(
         self, cv_text: str, exclude_headers: List[str]
@@ -316,8 +317,7 @@ class CVWorkflowOrchestrator:
         """Extract candidate name from analysis."""
         # Try to find name in experience analysis or other sections
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get(
-                "relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
             if relevant_roles:
                 return relevant_roles[0].get("title", "").split(" - ")[0] or "Candidate"
         return "Candidate"
@@ -325,8 +325,7 @@ class CVWorkflowOrchestrator:
     def _extract_current_title_from_analysis(self, analysis: Dict) -> str:
         """Extract current job title from analysis."""
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get(
-                "relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
             if relevant_roles:
                 return relevant_roles[0].get("title", "Professional")
         return "Professional"
@@ -340,8 +339,7 @@ class CVWorkflowOrchestrator:
         """Extract years of experience from analysis."""
         # This is a rough estimate based on roles
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get(
-                "relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
             if len(relevant_roles) >= 2:
                 return "3+ years"
             elif len(relevant_roles) >= 1:
@@ -353,16 +351,14 @@ class CVWorkflowOrchestrator:
         skills = []
         if "keyword_analysis" in analysis:
             matched = analysis["keyword_analysis"].get("matched_keywords", [])
-            skills = [k.get("keyword", "")
-                      for k in matched[:8] if k.get("keyword")]
+            skills = [k.get("keyword", "") for k in matched[:8] if k.get("keyword")]
         return skills
 
     def _extract_achievements_from_analysis(self, analysis: Dict) -> List[str]:
         """Extract achievements from analysis."""
         achievements = []
         if "experience_analysis" in analysis:
-            relevant_roles = analysis["experience_analysis"].get(
-                "relevant_roles", [])
+            relevant_roles = analysis["experience_analysis"].get("relevant_roles", [])
             for role in relevant_roles:
                 role_achievements = role.get("key_achievements", [])
                 if isinstance(role_achievements, str):
@@ -449,8 +445,7 @@ class CVWorkflowOrchestrator:
         )
         if req_match:
             req_text = req_match.group(1)
-            bullets = re.findall(
-                r"(?:^|\n)\s*[•\-\*]\s*(.*?)(?=\n|$)", req_text)
+            bullets = re.findall(r"(?:^|\n)\s*[•\-\*]\s*(.*?)(?=\n|$)", req_text)
             if bullets:
                 requirements.extend([b.strip() for b in bullets[:5]])
 
@@ -528,8 +523,11 @@ class CVWorkflowOrchestrator:
                 if start or end:
                     lines.append(f"{start} - {end}")
 
-                tasks = exp.get("four_tasks", []) or exp.get(
-                    "tasks", []) or exp.get("achievements", [])
+                tasks = (
+                    exp.get("four_tasks", [])
+                    or exp.get("tasks", [])
+                    or exp.get("achievements", [])
+                )
                 if isinstance(tasks, list):
                     for task in tasks:
                         if task:
@@ -599,8 +597,7 @@ class CVWorkflowOrchestrator:
                     if isinstance(lang, dict):
                         name = lang.get("language", lang.get("name", ""))
                         level = lang.get("proficiency", lang.get("level", ""))
-                        lang_strings.append(
-                            f"{name} ({level})" if level else name)
+                        lang_strings.append(f"{name} ({level})" if level else name)
                     else:
                         lang_strings.append(str(lang))
                 lines.append(", ".join(lang_strings))

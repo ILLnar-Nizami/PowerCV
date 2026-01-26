@@ -1,4 +1,4 @@
-# PowerCV Requirements
+# PowerCV Production Requirements
 # Core dependencies
 python-jose[cryptography]
 passlib[bcrypt]
@@ -47,6 +47,12 @@ pydantic>=2.0.0
 langchain-ollama
 uvloop
 
+# Unified AI management
+litellm>=1.0.0
+
+# Error tracking
+sentry-sdk>=1.0.0
+
 # New: n8n integration support
 python-multipart>=0.0.6
 
@@ -57,14 +63,6 @@ lxml>=4.9.0
 # New: CLI and Configuration
 rich>=13.0.0
 click>=8.0.0
-
-# New: Testing
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.0.0
-
-# PDF Generation
-# Typst is used via CLI (binary), no Python package required
 
 # File validation
 python-magic>=0.4.0

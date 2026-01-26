@@ -1,12 +1,13 @@
 """Test ATS score calculation functionality."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.services.cv_analyzer import CVAnalyzer
 
 
-def test_ats_score_calculation():
+@pytest.mark.asyncio
+async def test_ats_score_calculation():
     """Test ATS score calculation in workflow orchestrator."""
     # Create mock analyzer
     mock_analyzer = MagicMock()
@@ -39,16 +40,16 @@ def test_ats_score_calculation():
         },
     }
 
-    # Mock the analyzer to return different results
-    mock_analyzer.analyze = MagicMock(side_effect=[first_analysis, optimized_analysis])
+    # Mock the analyzer to return different results (async)
+    mock_analyzer.analyze = AsyncMock(side_effect=[first_analysis, optimized_analysis])
 
     # Create orchestrator with mocked analyzer
     orchestrator = CVWorkflowOrchestrator()
     orchestrator.analyzer = mock_analyzer
 
-    # Mock optimizer to return simple optimized data
+    # Mock optimizer to return simple optimized data (async)
     mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = MagicMock(
+    mock_optimizer.optimize_comprehensive = AsyncMock(
         return_value={
             "user_information": {
                 "name": "Test Candidate",
@@ -81,7 +82,7 @@ def test_ats_score_calculation():
     orchestrator.optimizer = mock_optimizer
 
     # Test the optimization workflow
-    result = orchestrator.optimize_cv_for_job(
+    result = await orchestrator.optimize_cv_for_job(
         cv_text="Original CV content",
         jd_text="Job description text",
         generate_cover_letter=False,
@@ -100,7 +101,8 @@ def test_ats_score_calculation():
     assert len(result["missing_skills"]) == 1  # Should have 1 missing skill
 
 
-def test_ats_score_fallback():
+@pytest.mark.asyncio
+async def test_ats_score_fallback():
     """Test ATS score calculation with fallback when optimized analysis fails."""
     # Create mock analyzer
     mock_analyzer = MagicMock()
@@ -114,16 +116,16 @@ def test_ats_score_fallback():
         },
     }
 
-    # Second analysis fails - return empty
-    mock_analyzer.analyze = MagicMock(side_effect=[first_analysis, {}])
+    # Second analysis fails - return empty (async)
+    mock_analyzer.analyze = AsyncMock(side_effect=[first_analysis, {}])
 
     # Create orchestrator with mocked analyzer
     orchestrator = CVWorkflowOrchestrator()
     orchestrator.analyzer = mock_analyzer
 
-    # Mock optimizer
+    # Mock optimizer (async)
     mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = MagicMock(
+    mock_optimizer.optimize_comprehensive = AsyncMock(
         return_value={
             "user_information": {"name": "Test Candidate", "email": "test@example.com"}
         }
@@ -131,7 +133,7 @@ def test_ats_score_fallback():
     orchestrator.optimizer = mock_optimizer
 
     # Test the optimization workflow
-    result = orchestrator.optimize_cv_for_job(
+    result = await orchestrator.optimize_cv_for_job(
         cv_text="Original CV content",
         jd_text="Job description text",
         generate_cover_letter=False,

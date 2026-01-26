@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from bson import ObjectId
+from bson.objectid import ObjectId
 
 from app.database.models.resume import Resume, ResumeData
 from app.database.repositories.base_repo import BaseRepository

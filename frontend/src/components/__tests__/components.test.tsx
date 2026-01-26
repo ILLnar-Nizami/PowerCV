@@ -156,7 +156,7 @@ describe('Component Tests', () => {
     })
 
     it('validates file types', async () => {
-      const invalidFile = new File(['test'], 'resume.txt', { type: 'text/plain' })
+      const invalidFile = new File(['test'], 'resume.exe', { type: 'application/exe' })
       
       const { container } = render(<FileUpload onFileSelect={vi.fn()} />)
       
@@ -164,7 +164,7 @@ describe('Component Tests', () => {
       fireEvent.change(input, { target: { files: [invalidFile] } })
 
       await waitFor(() => {
-        expect(screen.getByText(/File type must be one of/)).toBeInTheDocument()
+        expect(screen.getByText(/Only PDF, DOCX, TXT, and MD files are allowed/)).toBeInTheDocument()
       })
     })
   })

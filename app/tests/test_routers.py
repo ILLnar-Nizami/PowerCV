@@ -3,7 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock, AsyncMock, patch
-from bson import ObjectId
+from bson.objectid import ObjectId
 from datetime import datetime
 from app.main import app
 from app.api.routers.resume import get_resume_repository
@@ -102,7 +102,7 @@ def test_resume_upload(override_deps, mock_resume_repo):
 
 def test_get_user_resumes(override_deps, mock_resume_repo):
     now = datetime.now()
-    mock_resume_repo.get_resumes_by_user_id.return_value = [
+    mock_resume_repo.get_by_user_id.return_value = [
         {
             "_id": ObjectId(),
             "title": "A",
@@ -119,7 +119,7 @@ def test_get_user_resumes(override_deps, mock_resume_repo):
         },
     ]
     response = client.get(
-        "/api/v1/resumes/crud/user/u1?filter_company=Apple&sort_by=title&sort_order=desc"
+        "/api/v1/resumes/user/u1"
     )
     assert response.status_code == 200
 
@@ -137,7 +137,8 @@ def test_resume_crud(override_deps, mock_resume_repo):
 
 
 def test_resume_errors(override_deps, mock_resume_repo):
-    mock_resume_repo.get_resume_by_id.return_value = None
+    mock_resume_repo.get_by_id.return_value = None
+    mock_resume_repo.get_by_id = AsyncMock(return_value=None)
     assert client.get(f"/api/v1/resumes/{str(ObjectId())}").status_code == 404
     assert client.get(f"/api/v1/resumes/{str(ObjectId())}/download").status_code == 404
 

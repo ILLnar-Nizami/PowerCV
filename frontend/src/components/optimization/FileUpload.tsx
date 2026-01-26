@@ -50,8 +50,8 @@ export function FileUpload({
   }
 
   const getErrorMessage = (error: string): string => {
-    if (error.includes('too large')) return 'File size must be less than 10MB'
-    if (error.includes('file type')) return 'Only PDF, DOCX, TXT, and MD files are allowed'
+    if (error === 'file-too-large') return 'File size must be less than 10MB'
+    if (error === 'file-invalid-type') return 'Only PDF, DOCX, TXT, and MD files are allowed'
     return error
   }
 
@@ -121,7 +121,7 @@ export function FileUpload({
           {fileRejections.map(({ file, errors }) => (
             <div key={file.name} className="text-sm text-destructive">
               {errors.map(error => (
-                <p key={error.code}>{getErrorMessage(error.message)}</p>
+                <p key={error.code}>{getErrorMessage(error.code)}</p>
               ))}
             </div>
           ))}

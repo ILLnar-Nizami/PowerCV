@@ -1,3 +1,58 @@
+# Changelog - v2.0.1 (2026-01-21)
+
+## Major Improvements
+
+### AI Microservice Architecture
+- **Separated AI Processing**: Created dedicated `ai-service/` microservice for CV analysis, optimization, and cover letter generation
+- **Reduced Main Image Size**: Removed PyTorch, LangChain, and ML dependencies from main application (~500MB savings)
+- **Docker Compose Update**: Added `ai-service` container to `docker-compose.yml`
+
+### Code Quality & Cleanup
+- **Removed Deprecated Endpoints**: Cleaned up legacy `/api/optimize-resume`, `/api/analyze-cv`, `/api/generate-cover-letter`, and v1 endpoints
+- **Dependency Cleanup**: Removed unused packages (pytesseract, pdf2image, opencv-python, scikit-learn, beautifulsoup4, lxml, etc.)
+- **Test Suite Fix**: Created `pytest.ini` to fix import issues
+
+### Security Enhancements
+- **Environment Cleanup**: Removed real user data and API keys from `.env` template
+- **CORS Hardening**: Narrowed CORS origins to localhost only
+- **Swagger Enabled**: Changed `docs_url=None` to `docs_url="/docs"`
+
+### Template Integration
+- **Added 4 New Templates**:
+  - brilliant-cv (professional with icons)
+  - rendercv-classic (customizable classic)
+  - rendercv-modern (minimalist modern)
+  - simple-xd-resume (ATS-friendly minimal)
+- **Removed LaTeX Templates**: Cleaned up empty `awesome-cv` and `good-cv` directories
+
+### Frontend Improvements
+- **Loading States**: Added spinner UI for analyze/optimize button
+
+## Files Changed
+
+### New Files
+- `pytest.ini`: Test configuration
+- `ai-service/main.py`: AI microservice entry point
+- `ai-service/Dockerfile`: AI service container
+- `ai-service/requirements.txt`: AI dependencies
+- `ai-service/clients/providers.py`: AI client implementations
+- `ai-service/analyzers/cv.py`: CV analysis
+- `ai-service/optimizers/cv.py`: CV optimization
+- `ai-service/generators/cover_letter.py`: Cover letter generation
+
+### Modified Files
+- `.env`: Cleaned with placeholders
+- `app/main.py`: Removed deprecated endpoints, enabled CORS hardening
+- `app/services/ai_client.py`: HTTP client for AI service
+- `pyproject.toml`: Removed unused dependencies
+- `Dockerfile`: Removed PyTorch/LangChain
+- `docker-compose.yml`: Added ai-service
+- `README.md`: Updated version, templates, roadmap
+- `app/config/templates.py`: Added new templates
+- `frontend/src/pages/OptimizePage.tsx`: Added loading spinner
+
+---
+
 # Changelog - CV Layout & Filename Enhancements 2026-01-19
 
 Enhanced CV PDF generation with improved layout spacing and professional filename formatting. Fixed text overcrowding issues and implemented proper multi-page distribution with balanced sections and adequate margins.

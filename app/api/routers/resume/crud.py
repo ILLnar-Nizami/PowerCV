@@ -24,7 +24,6 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.database.repositories.resume_repository import ResumeRepository
-from app.middleware.rate_limit import light_limit
 from app.services.file_validator import SecureFileValidator
 from app.services.resume.typst_generator import TypstGenerator
 
@@ -44,8 +43,7 @@ class CreateResumeRequest(BaseModel):
 
     user_id: str = Field(..., description="Unique identifier for the user")
     title: str = Field(..., description="Title of the resume")
-    original_content: str = Field(...,
-                                  description="Original content of the resume")
+    original_content: str = Field(..., description="Original content of the resume")
     job_description: str = Field(
         ..., description="Job description to tailor the resume for"
     )
@@ -54,12 +52,9 @@ class CreateResumeRequest(BaseModel):
 class UpdateResumeRequest(BaseModel):
     """Schema for updating an existing resume."""
 
-    title: Optional[str] = Field(
-        None, description="Updated title of the resume")
-    content: Optional[str] = Field(
-        None, description="Updated content of the resume")
-    job_description: Optional[str] = Field(
-        None, description="Updated job description")
+    title: Optional[str] = Field(None, description="Updated title of the resume")
+    content: Optional[str] = Field(None, description="Updated content of the resume")
+    job_description: Optional[str] = Field(None, description="Updated job description")
 
 
 class ResumeResponse(BaseModel):
@@ -77,10 +72,8 @@ class ResumeResponse(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     file_path: Optional[str] = Field(None, description="Path to uploaded file")
-    ats_score: Optional[float] = Field(
-        None, description="ATS compatibility score")
-    keywords_matched: Optional[List[str]] = Field(
-        None, description="Matched keywords")
+    ats_score: Optional[float] = Field(None, description="ATS compatibility score")
+    keywords_matched: Optional[List[str]] = Field(None, description="Matched keywords")
 
 
 # =============================================================================
@@ -185,11 +178,15 @@ async def create_resume(
         created_resume = await repository.get_by_id(resume_id)
         if not created_resume:
             raise HTTPException(
-                status_code=500, detail="Failed to retrieve created resume")
+                status_code=500, detail="Failed to retrieve created resume"
+            )
 
         # Ensure proper ID handling
-        c_resume_id = str(created_resume.get(
-            "_id", "")) if "_id" in created_resume else str(created_resume.get("id", ""))
+        c_resume_id = (
+            str(created_resume.get("_id", ""))
+            if "_id" in created_resume
+            else str(created_resume.get("id", ""))
+        )
 
         return ResumeResponse(
             id=c_resume_id,
@@ -238,8 +235,9 @@ async def get_resume(
             )
 
         # Ensure proper ID handling
-        c_resume_id = str(resume.get("_id", "")) if "_id" in resume else str(
-            resume.get("id", ""))
+        c_resume_id = (
+            str(resume.get("_id", "")) if "_id" in resume else str(resume.get("id", ""))
+        )
 
         return ResumeResponse(
             id=c_resume_id,
@@ -300,8 +298,11 @@ async def get_user_resumes(
         response_list = []
         for resume in resumes:
             # Ensure proper ID handling
-            resume_id = str(resume.get("_id", "")) if "_id" in resume else str(
-                resume.get("id", ""))
+            resume_id = (
+                str(resume.get("_id", ""))
+                if "_id" in resume
+                else str(resume.get("id", ""))
+            )
 
             response_list.append(
                 ResumeResponse(
@@ -320,8 +321,7 @@ async def get_user_resumes(
                 )
             )
 
-        logger.info(
-            f"Retrieved {len(response_list)} resumes for user {user_id}")
+        logger.info(f"Retrieved {len(response_list)} resumes for user {user_id}")
         return response_list
 
     except Exception as e:
@@ -383,8 +383,11 @@ async def update_resume(
         logger.info(f"Resume {resume_id} updated successfully")
 
         # Ensure proper ID handling
-        c_resume_id = str(updated_resume.get(
-            "_id", "")) if "_id" in updated_resume else str(updated_resume.get("id", ""))
+        c_resume_id = (
+            str(updated_resume.get("_id", ""))
+            if "_id" in updated_resume
+            else str(updated_resume.get("id", ""))
+        )
 
         return ResumeResponse(
             id=c_resume_id,
@@ -473,12 +476,12 @@ async def delete_resume(
         )
 
 
-@light_limit()
 async def download_resume_pdf(
     request: Request,
     resume_id: str,
     template: str = Query(
-        "modern.typ", description="Template to use for PDF generation"),
+        "modern.typ", description="Template to use for PDF generation"
+    ),
     repository: ResumeRepository = Depends(get_resume_repository),
 ) -> FileResponse:
     """Download a resume as PDF using specified template.

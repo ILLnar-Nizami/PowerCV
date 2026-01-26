@@ -1,7 +1,7 @@
 """Unit tests for utility functions."""
 
 import pytest
-from bson import ObjectId
+from bson.objectid import ObjectId
 from app.utils.shared_utils import JSONParser
 from app.utils.validation import ValidationHelper
 

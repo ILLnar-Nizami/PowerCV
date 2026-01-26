@@ -20,16 +20,20 @@ class Settings(BaseSettings):
     secret_key: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
+    sentry_dsn: Optional[str] = "https://mock@sentry.io/12345"
 
     # API Keys (sensitive - never log these)
     api_key: Optional[str] = None  # Deepseek
+    deepseek_api_key: Optional[str] = None
     cerebras_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
 
     # Case-insensitive aliases for common environment variable variations
     CEREBRAS_API_KEY: Optional[str] = None  # Uppercase variant
+    DEEPSEEK_API_KEY: Optional[str] = None  # Uppercase Deepseek variant
     API_KEY: Optional[str] = None  # Uppercase Deepseek variant
     OPENAI_API_KEY: Optional[str] = None  # Uppercase OpenAI variant
+    SENTRY_DSN: Optional[str] = None  # Uppercase Sentry DSN variant
     API_KEY_UPPER: Optional[str] = None  # Alternative uppercase variant
     OPENAI_API_KEY_UPPER: Optional[str] = None  # Alternative uppercase variant
 
@@ -66,6 +70,8 @@ class Settings(BaseSettings):
         # Merge uppercase variants into lowercase ones for backward compatibility
         if self.CEREBRAS_API_KEY and not self.cerebras_api_key:
             self.cerebras_api_key = self.CEREBRAS_API_KEY
+        if self.DEEPSEEK_API_KEY and not self.deepseek_api_key:
+            self.deepseek_api_key = self.DEEPSEEK_API_KEY
         if self.API_KEY_UPPER and not self.api_key:
             self.api_key = self.API_KEY_UPPER
         if self.OPENAI_API_KEY_UPPER and not self.openai_api_key:
@@ -79,8 +85,15 @@ class Settings(BaseSettings):
 
         # Validate required secrets in production
         if self.environment == "production" and not self.secret_key:
-            raise ValueError(
-                "SECRET_KEY must be set in production environment")
+            raise ValueError("SECRET_KEY must be set in production environment")
+
+        # Merge Deepseek API key
+        if self.DEEPSEEK_API_KEY and not self.deepseek_api_key:
+            self.deepseek_api_key = self.DEEPSEEK_API_KEY
+
+        # Merge Sentry DSN
+        if self.SENTRY_DSN and not self.sentry_dsn:
+            self.sentry_dsn = self.SENTRY_DSN
 
     model_config = ConfigDict(
         env_file=".env",
@@ -96,9 +109,11 @@ class Settings(BaseSettings):
         safe_fields = {
             "secret_key",
             "api_key",
+            "deepseek_api_key",
             "cerebras_api_key",
             "openai_api_key",
             "CEREBRAS_API_KEY",
+            "DEEPSEEK_API_KEY",
             "API_KEY_UPPER",
             "OPENAI_API_KEY_UPPER",
             "mongodb_uri",

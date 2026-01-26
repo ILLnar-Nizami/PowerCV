@@ -86,20 +86,31 @@ async def master_optimization(
         # Use workflow orchestrator for structured optimization
         logger.info("Starting master optimization workflow")
         orchestrator = CVWorkflowOrchestrator()
-        result = orchestrator.optimize_cv_for_job(
+        result = await orchestrator.optimize_cv_for_job(
             cv_text=request.resume_text,
             jd_text=request.job_description,
             generate_cover_letter=True,  # Enable cover letter generation
         )
         logger.info("Master optimization workflow completed")
 
-        # Clean optimized_data to handle empty email
+        # Clean optimized_data to handle empty email and missing fields
         optimized_data = result["optimized_cv"]
-        if (
-            "user_information" in optimized_data
-            and optimized_data["user_information"].get("email") == ""
-        ):
-            optimized_data["user_information"]["email"] = None
+        if "user_information" in optimized_data:
+            ui = optimized_data["user_information"]
+            if ui.get("email") == "":
+                ui["email"] = None
+            # Add required fields if missing
+            if not ui.get("main_job_title"):
+                ui["main_job_title"] = request.target_role or "Software Engineer"
+            # Ensure experiences and education are lists
+            if not isinstance(ui.get("experiences"), list):
+                ui["experiences"] = []
+            if not isinstance(ui.get("education"), list):
+                ui["education"] = []
+            # Ensure skills is a dict
+            if not isinstance(ui.get("skills"), dict):
+                ui["skills"] = {"hard_skills": [], "soft_skills": []}
+            optimized_data["user_information"] = ui
 
         # Save optimized resume to database
         repo = ResumeRepository()
@@ -116,7 +127,6 @@ async def master_optimization(
             matching_skills=result["matching_skills"],
             missing_skills=result["missing_skills"],
             recommendation=result["recommendation"],
-            cover_letter=result.get("cover_letter"),  # Add cover letter to resume
         )
 
         resume_id = await repo.create_resume(optimized_resume)

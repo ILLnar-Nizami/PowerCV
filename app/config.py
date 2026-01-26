@@ -64,13 +64,11 @@ class Settings(BaseSettings):
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
         default=None,
-        validation_alias=AliasChoices(
-            "CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
+        validation_alias=AliasChoices("CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
     )
     cerebras_api_base: str = Field(
         default="https://api.cerebras.ai/v1",
-        validation_alias=AliasChoices(
-            "CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
+        validation_alias=AliasChoices("CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
     )
     cerebras_model: str = "gpt-oss-120b"
 
@@ -192,7 +190,7 @@ class ComputedSettings:
 
     @property
     def API_BASE(self) -> str:
-        """Get API base URL."""
+        """Get API base URL (alias for backward compatibility)."""
         return settings.api_base
 
     @property
@@ -209,16 +207,6 @@ class ComputedSettings:
     def CEREBRASAI_API_KEY(self) -> Optional[str]:
         """Get Cerebras API key (alias for backward compatibility)."""
         return settings.cerebras_api_key
-
-    @property
-    def API_BASE(self) -> str:
-        """Get API base URL (alias for backward compatibility)."""
-        return settings.api_base
-
-    @property
-    def API_MODEL_NAME(self) -> str:
-        """Get API model name (alias for backward compatibility)."""
-        return settings.api_model_name
 
 
 # Create computed settings instance for backward compatibility

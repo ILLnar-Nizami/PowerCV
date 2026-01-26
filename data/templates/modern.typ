@@ -8,7 +8,7 @@
 ) = {
   set document(author: author, title: title)
   set text(font: "Roboto", lang: "en", size: 10pt)
-  set page(margin: (x: 0cm, y: 0cm)) // Full bleed for sidebar
+  set page(paper: "a4", margin: (x: 1.5cm, y: 1.5cm)) // Full bleed for sidebar
 
   // Define colors
   let primary_color = rgb("#2c3e50")

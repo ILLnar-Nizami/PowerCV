@@ -1,36 +1,19 @@
-"""CV analysis service using multi-provider AI."""
+"""CV analysis service using AI microservice."""
 
 import logging
 from typing import Dict
-
-from ..prompts.prompt_loader import PromptLoader
-from ..utils.shared_utils import JSONParser, MetricsHelper, ValidationHelper
-from .ai_client import get_ai_client
 
 logger = logging.getLogger(__name__)
 
 
 class CVAnalyzer:
-    """Analyze CV against job description using multi-provider AI."""
-
-    _system_prompt = None
+    """Analyze CV against job description using AI microservice."""
 
     def __init__(self):
         """Initialize analyzer."""
-        self._client = None
-        if CVAnalyzer._system_prompt is None:
-            loader = PromptLoader()
-            CVAnalyzer._system_prompt = loader.load_prompt("cv_analyzer")
         logger.info("CVAnalyzer initialized")
 
-    @property
-    def client(self):
-        """Lazy instantiation of AI client."""
-        if self._client is None:
-            self._client = get_ai_client()
-        return self._client
-
-    def analyze(self, cv_text: str, jd_text: str) -> Dict:
+    async def analyze(self, cv_text: str, jd_text: str) -> Dict:
         """Analyze CV against job description.
 
         Args:
@@ -42,95 +25,51 @@ class CVAnalyzer:
         """
         logger.info("Starting CV analysis")
 
-        # Basic sanitization
-        cv_text = ValidationHelper.validate_text_input(cv_text, 25000, "CV text")
-        jd_text = ValidationHelper.validate_text_input(
-            jd_text, 15000, "job description"
-        )
+        try:
+            from .ai_client import get_ai_client
 
-        user_message = f"""
-**JOB DESCRIPTION:**
-{jd_text}
+            client = get_ai_client()
+            result = await client.analyze(cv_text, jd_text)
 
-**CANDIDATE CV:**
-{cv_text}
-"""
+            ats_score = result.get("ats_score", 50)
+            analysis = {
+                "ats_score": ats_score,
+                "summary": result.get("summary", ""),
+                "keyword_analysis": result.get("keyword_analysis", {}),
+                "experience_analysis": result.get("experience_analysis", {}),
+                "skill_gaps": result.get("skill_gaps", {}),
+                "strengths": result.get("strengths", []),
+                "recommendations": result.get("recommendations", []),
+            }
 
-        # Call AI API
-        response = self.client.chat_completion(
-            system_prompt=CVAnalyzer._system_prompt,
-            user_message=user_message,
-            temperature=0.3,  # Lower temp for more consistent structure
-            max_tokens=3000,
-        )
+            logger.info(f"Analysis completed. ATS Score: {ats_score}")
+            return analysis
 
-        # Parse JSON response with fallback
-        fallback_analysis = self._get_fallback_analysis()
-        analysis = JSONParser.safe_json_parse(response, fallback_analysis)
-
-        # Ensure ats_score is properly formatted
-        if "ats_score" in analysis:
-            analysis["ats_score"] = MetricsHelper.extract_ats_score_from_text(
-                analysis["ats_score"]
-            )
-
-        logger.info(
-            f"Analysis completed. ATS Score: {analysis.get('ats_score', 'N/A')}"
-        )
-        return analysis
+        except Exception as e:
+            logger.error(f"Analysis failed: {e}")
+            return self._get_fallback_analysis()
 
     def _get_fallback_analysis(self) -> Dict:
-        """Get fallback analysis structure with meaningful defaults.
-
-        Returns:
-            dict: Basic analysis structure for fallback cases
-        """
+        """Get fallback analysis structure with meaningful defaults."""
         return {
             "ats_score": 50,
-            "summary": "Resume analysis completed. Some advanced features may be limited due to processing constraints.",
+            "summary": "Resume analysis completed with limited features.",
             "keyword_analysis": {
-                "matched_keywords": [
-                    {"keyword": "Communication", "jd_mentions": 1, "cv_mentions": 1},
-                    {"keyword": "Teamwork", "jd_mentions": 1, "cv_mentions": 1},
-                ],
-                "missing_critical": [
-                    {
-                        "keyword": "Project Management",
-                        "category": "skill",
-                        "priority": "HIGH",
-                    }
-                ],
+                "matched_keywords": [],
+                "missing_critical": [],
                 "missing_nice_to_have": [],
             },
             "experience_analysis": {
-                "relevant_roles": ["Professional Experience"],
+                "relevant_roles": [],
                 "transferable_roles": [],
             },
             "skill_gaps": {
-                "critical": ["Advanced Technical Skills"],
-                "important": ["Industry-Specific Knowledge"],
-                "nice_to_have": ["Certifications"],
+                "critical": [],
+                "important": [],
+                "nice_to_have": [],
             },
-            "strengths": ["Professional Experience", "Communication Skills"],
-            "education_relevance": {
-                "relevant_degrees": ["Bachelor's Degree"],
-                "relevant_certifications": [],
-            },
-            "optimization_priorities": [
-                {
-                    "section": "Skills",
-                    "action": "Add relevant technical skills and certifications",
-                    "priority": "HIGH",
-                },
-                {
-                    "section": "Experience",
-                    "action": "Quantify achievements with specific metrics",
-                    "priority": "MEDIUM",
-                },
-            ],
+            "strengths": [],
             "recommendations": [
-                "Consider adding more specific technical skills relevant to the target role",
-                "Include quantifiable achievements in your experience section",
-                "Add relevant certifications or training programs",
+                "AI service unavailable. Please try again later.",
             ],
         }

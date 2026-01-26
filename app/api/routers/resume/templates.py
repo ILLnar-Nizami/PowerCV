@@ -23,7 +23,6 @@ from pydantic import BaseModel, Field
 
 from app.config.templates import TemplateConfig
 from app.database.repositories.resume_repository import ResumeRepository
-from app.middleware.rate_limit import light_limit
 from app.services.resume.typst_generator import TypstGenerator
 
 logger = logging.getLogger(__name__)
@@ -229,7 +228,6 @@ async def get_typst_generator() -> TypstGenerator:
 # =============================================================================
 
 
-@light_limit()
 async def get_templates(
     request: Request,
     category: Optional[str] = Query(None, description="Filter by category"),
@@ -303,7 +301,6 @@ async def get_templates(
         )
 
 
-@light_limit()
 async def get_template_by_id(
     request: Request,
     template_id: str,
@@ -364,7 +361,6 @@ async def get_template_by_id(
         )
 
 
-@light_limit()
 async def create_custom_template(
     request: Request,
     template_request: TemplateRequest,
@@ -415,7 +411,6 @@ async def create_custom_template(
 # =============================================================================
 
 
-@light_limit()
 async def download_resume(
     request: Request,
     resume_id: str,
@@ -549,7 +544,6 @@ async def download_resume(
         )
 
 
-@light_limit()
 async def download_resume_file(
     request: Request,
     file_name: str,
@@ -601,7 +595,6 @@ async def download_resume_file(
         )
 
 
-@light_limit()
 async def generate_pdf_preview(
     request: Request,
     resume_id: str,

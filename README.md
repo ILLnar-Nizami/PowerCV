@@ -1,4 +1,4 @@
-# PowerCV <img src="https://img.shields.io/badge/version-3.0.0-blue" alt="Version 3.0.0"/>
+# PowerCV <img src="https://img.shields.io/badge/version-2.0.1-blue" alt="Version 2.0.1"/>
 
 <div align="center">
 
@@ -191,8 +191,7 @@ PowerCV supports multiple professional CV templates:
 |----------|-------------|------|--------|
 | **Classic** | Clean, traditional layout | resume.typ | Active |
 | **Modern** | Contemporary two-column design | modern.typ | Active |
-| **Brilliant CV** | Professional template with icons | brilliant-cv/cv.typ | Active |
-| **good CV** | LaTeX-based simple design | good-cv/cv.tex | Template ready |
+| **Brilliant CV** | Professional template with icons | brilliant-cv/template/cv.typ | Active |
 | **Simple XD** | Minimal ATS-friendly design | simple-xd-resume/cv.typ | Active |
 | **RenderCV Classic** | Highly customizable classic design | rendercv-classic/cv.typ | Active |
 | **RenderCV Modern** | Modern minimalist design | rendercv-modern/cv.typ | Active |
@@ -202,11 +201,11 @@ PowerCV supports multiple professional CV templates:
 Choose your template during CV optimization:
 
 ```json
-POST /api/optimize-resume
+POST /api/v2/optimize
 {
   "cv_text": "Your CV content...",
   "jd_text": "Job description...",
-  "template": "brilliant-cv/cv.typ",
+  "template": "brilliant-cv/template/cv.typ",
   "generate_cover_letter": true
 }
 ```
@@ -214,13 +213,10 @@ POST /api/optimize-resume
 Available template options:
 - "resume.typ" (default)
 - "modern.typ"
-- "brilliant-cv/cv.typ"
-- "good-cv/cv.tex" (LaTeX support needed)
+- "brilliant-cv/template/cv.typ"
 - "simple-xd-resume/cv.typ"
 - "rendercv-classic/cv.typ"
 - "rendercv-modern/cv.typ"
-
-**Note**: good CV template requires LaTeX installation (xelatex) for PDF generation. Currently falls back to the default template.
 
 ### Using Docker
 
@@ -436,7 +432,7 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 
 ## Roadmap
 
-### Completed Features (v3.0.0-beta)
+### Completed Features (v2.0.1)
 
 - [x] **Modern Frontend Stack**: Migrated from Alpine.js to React 19 + TypeScript
 - [x] **Advanced UI/UX**: Built with TailwindCSS and shadcn/ui components
@@ -448,6 +444,9 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [x] **Performance Monitoring**: Coverage reporting and quality gates
 - [x] **Mobile Responsive**: Cross-device compatible design
 - [x] **Advanced Analytics**: Resume performance tracking and insights
+- [x] **AI Microservice**: Separated AI processing to dedicated service
+- [x] **Template Expansion**: Added 4 new Typst-based templates
+- [x] **Code Refactoring**: Removed deprecated code and cleaned up dependencies
 
 ### **Current Development Phase**
 
@@ -458,7 +457,9 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [x] **Performance Optimization**: Optimized based on testing
 - [x] **Documentation Updates**: Refined based on feedback
 
-### **Planned Features (Future Enhancements)**
+### **Planned Features (v3.0.0)**
+
+The following features are planned for the next major release:
 
 - [ ] **Multi-language Support**: Internationalization (i18n) implementation
 - [ ] **Advanced AI Features**: Enhanced resume analysis with ML models
@@ -480,15 +481,17 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [ ] **Custom Branding**: Personal branding tools
 - [ ] **Email Integration**: Automated follow-up reminders
 
-### **Next Milestone: Feature Enhancements (v3.1.0)**
+### **Next Milestone: v3.0.0 Major Release**
 
 **Requirements for Next Release:**
-- [ ] Implement top 3 planned features based on user feedback
-- [ ] Maintain 95%+ test coverage
+- [ ] Implement OAuth authentication (Google, GitHub)
+- [ ] Add i18n support (English, Dutch, Russian)
+- [ ] Add DOCX export functionality
+- [ ] Maintain 90%+ test coverage
 - [ ] Regular security audits
 - [ ] Update documentation for new features
 
-**Target Release Date**: Q2 2025
+**Target Release Date**: TBD
 
 ## License
 

@@ -9,30 +9,19 @@ services:
     ports:
       - "8081:8080"
     environment:
-      # API Configuration
-      - API_KEY=${API_KEY}
-      - API_BASE=${API_BASE:-https://api.deepseek.com/v1}
-      - MODEL_NAME=${MODEL_NAME:-deepseek-chat}
-      
-      # Cerebras (alternative)
-      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
-      - CEREBRAS_API_BASE=${CEREBRAS_API_BASE:-https://api.cerebras.ai/v1}
-      - CEREBRAS_MODEL=${CEREBRAS_MODEL:-gpt-oss-120b}
-      
-      # OpenAI (alternative)
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
-      
+      # AI Service URL
+      - AI_SERVICE_URL=http://ai-service:8080
+
       # Database
       - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/powercv}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      
+
       # Application Settings
       - APP_HOST=0.0.0.0
       - APP_PORT=8080
       - DEBUG=${DEBUG:-false}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      
+
       # n8n integration
       - N8N_API_KEY=${N8N_API_KEY}
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678}
@@ -51,12 +40,41 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ai-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 15s
+
+  # AI Service (for CV analysis, optimization, and cover letter generation)
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    container_name: powercv-ai
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      # Cerebras
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - CEREBRAS_API_BASE=${CEREBRAS_API_BASE:-https://api.cerebras.ai/v1}
+      - CEREBRAS_MODEL=${CEREBRAS_MODEL:-gpt-oss-120b}
+
+      # OpenAI (alternative)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+    networks:
+      - powercv-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   # n8n Workflow Automation
   n8n:

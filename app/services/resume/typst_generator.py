@@ -114,10 +114,23 @@ class TypstGenerator:
             return False
 
         try:
-            # Render the Typt file with data
+            # Render the Typst file with data
             template = self.env.get_template(template_name)
             typst_content = template.render(data=self.json_data)
+            
+            # Log first 100 bytes of rendered content for debugging
+            logger.info(f"Rendered typst content first 100 bytes: {repr(typst_content[:100])}")
 
+            # Check for invalid characters at start of content
+            if typst_content.startswith("###"):
+                logger.warning("Typst content starts with markdown header, removing...")
+                # Find first newline after header and remove everything before it
+                newline_pos = typst_content.find("\n")
+                if newline_pos != -1:
+                    typst_content = typst_content[newline_pos + 1:].lstrip()
+                else:
+                    typst_content = ""
+            
             # Add automatic page breaks for very long content
             # typst_content = self._add_page_break_handling(typst_content)
 

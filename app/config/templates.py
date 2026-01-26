@@ -22,15 +22,10 @@ class TemplateConfig:
             "type": "typst",
             "status": "active",
         },
-        "brilliant-cv/cv.typ": {
+        "brilliant-cv/template/cv.typ": {
             "description": "Professional template with icons",
             "type": "typst",
             "status": "active",
-        },
-        "awesome-cv/cv.tex": {
-            "description": "LaTeX-based elegant design",
-            "type": "latex",
-            "status": "template_ready",
         },
         "simple-xd-resume/cv.typ": {
             "description": "Minimal ATS-friendly design",
@@ -53,9 +48,10 @@ class TemplateConfig:
     ALIASES = {
         # Template-specific aliases
         "modern": "modern.typ",
-        "brilliant-cv": "brilliant-cv/cv.typ",
-        "brilliant": "brilliant-cv/cv.typ",
+        "brilliant-cv": "brilliant-cv/template/cv.typ",
+        "brilliant": "brilliant-cv/template/cv.typ",
         "simple-xd-resume": "simple-xd-resume/cv.typ",
+        "simple-xd": "simple-xd-resume/cv.typ",
         "rendercv-classic": "rendercv-classic/cv.typ",
         "rendercv-modern": "rendercv-modern/cv.typ",
         "rendercv": "rendercv-classic/cv.typ",

@@ -391,6 +391,26 @@ Top 3 weaknesses → targeted rewrites → new scores
 
         except Exception as e:
             print(f"DEBUG: Exception occurred: {str(e)}")
+
+            # Check for rate limit errors
+            error_str = str(e).lower()
+            if (
+                "429" in error_str
+                or "too_many_requests" in error_str
+                or "rate limit" in error_str
+                or "queue" in error_str
+            ):
+                print("DEBUG: Rate limit detected, returning fallback structure")
+                fallback_data = {
+                    "keywords": [],
+                    "matching_skills": [],
+                    "missing_skills": [],
+                    "gaps": [],
+                    "recommendation": "AI service is currently rate limited. Please try again later.",
+                    "ats_score": 50,
+                }
+                return self._transform_ats_response(fallback_data)
+
             # If JSON parsing fails, try to extract JSON from markdown
             if "Invalid json output" in str(e):
                 print("DEBUG: JSON parsing failed, trying fallback")

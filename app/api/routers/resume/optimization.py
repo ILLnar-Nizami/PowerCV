@@ -18,7 +18,6 @@ from fastapi import (
 from pydantic import BaseModel, Field
 
 from app.database.repositories.resume_repository import ResumeRepository
-from app.middleware.rate_limit import heavy_limit, light_limit
 from app.services.master_cv import MasterCV
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
@@ -169,7 +168,6 @@ async def get_master_cv() -> MasterCV:
 # =============================================================================
 
 
-@heavy_limit()
 async def optimize_resume(
     request: Request,
     resume_id: str,
@@ -258,7 +256,6 @@ async def optimize_resume(
         )
 
 
-@light_limit()
 async def score_resume(
     request: Request,
     resume_id: str,
@@ -332,7 +329,6 @@ async def score_resume(
         )
 
 
-@heavy_limit()
 async def generate_cover_letter(
     request: Request,
     resume_id: str,

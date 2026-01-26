@@ -208,7 +208,7 @@ class BaseRepository:
         Returns:
             Optional[Dict]: The document or None if not found.
         """
-        from bson import ObjectId as BsonObjectId
+        from bson.objectid import ObjectId as BsonObjectId
 
         # Convert string ID to ObjectId if necessary
         if isinstance(id, str):
@@ -229,7 +229,7 @@ class BaseRepository:
         Returns:
             Optional[Dict]: Updated document or None if update failed.
         """
-        from bson import ObjectId as BsonObjectId
+        from bson.objectid import ObjectId as BsonObjectId
 
         # Convert string ID to ObjectId if necessary
         if isinstance(id, str):
@@ -252,7 +252,7 @@ class BaseRepository:
         Returns:
             bool: True if deletion was successful.
         """
-        from bson import ObjectId as BsonObjectId
+        from bson.objectid import ObjectId as BsonObjectId
 
         # Convert string ID to ObjectId if necessary
         if isinstance(id, str):

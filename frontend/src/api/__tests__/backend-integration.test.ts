@@ -32,7 +32,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.getResumes(mockFilters, 1, 20)
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/user/local-user', {
+      expect(apiClient.get).toHaveBeenCalledWith('/v1/resumes/user/local-user', {
         params: { page: 1, pageSize: 20 },
       })
       expect(result).toEqual(mockData)
@@ -44,7 +44,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.getResume('123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/123')
+      expect(apiClient.get).toHaveBeenCalledWith('/v1/resumes/123')
       expect(result).toEqual(mockResume)
     })
 
@@ -54,7 +54,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.updateStatus('123', 'applied')
 
-      expect(apiClient.patch).toHaveBeenCalledWith('/resume/123/status', {
+      expect(apiClient.patch).toHaveBeenCalledWith('/v1/resumes/123/status', {
   application_status: 'applied'
 })
       expect(result).toEqual(mockResponse)
@@ -65,7 +65,7 @@ describe('Backend Integration Tests', () => {
 
       await resumesAPI.deleteResume('123')
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/resume/123')
+      expect(apiClient.delete).toHaveBeenCalledWith('/v1/resumes/123')
     })
 
     it('should download resume with correct endpoint', async () => {
@@ -74,10 +74,11 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.downloadResume('123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/123/download', {
+      expect(apiClient.get).toHaveBeenCalledWith('/v1/resumes/123/download', {
+        params: { template: undefined },
         responseType: 'blob',
       })
-      expect(result).toEqual(mockBlob)
+      expect(result).toEqual({ data: mockBlob })
     })
 
     it('should create resume with correct endpoint', async () => {
@@ -88,7 +89,7 @@ describe('Backend Integration Tests', () => {
       const result = await resumesAPI.createResume(formData)
 
       expect(apiClient.post).toHaveBeenCalledWith(
-        '/resume',
+        '/v1/resumes',
         formData,
         {
           headers: {
@@ -110,7 +111,7 @@ describe('Backend Integration Tests', () => {
         'Role'
       )
 
-      expect(apiClient.post).toHaveBeenCalledWith('/resume/123/optimize', {
+      expect(apiClient.post).toHaveBeenCalledWith('/v1/resumes/123/optimize', {
         job_description: 'Job description',
         target_company: 'Company',
         target_role: 'Role',
@@ -124,7 +125,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.scoreResume('123', 'Job description')
 
-      expect(apiClient.post).toHaveBeenCalledWith('/resume/123/score', {
+      expect(apiClient.post).toHaveBeenCalledWith('/v1/resumes/123/score', {
         job_description: 'Job description',
       })
       expect(result).toEqual(mockResponse)
@@ -136,7 +137,7 @@ describe('Backend Integration Tests', () => {
 
       const result = await resumesAPI.getTemplates()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/templates')
+      expect(apiClient.get).toHaveBeenCalledWith('/v1/resumes/templates')
       expect(result).toEqual(mockTemplates)
     })
   })
