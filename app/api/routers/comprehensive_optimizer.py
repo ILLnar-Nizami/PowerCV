@@ -311,3 +311,21 @@ async def get_master_skills(
 ) -> str:
     """Get master skills list."""
     return optimizer.MASTER_SKILLS_LIST
+
+
+@comprehensive_router.get(
+    "/cost-tracking",
+    response_model=Dict[str, Any],
+    summary="Get AI Cost Tracking",
+    description="Get cost tracking information for AI API usage.",
+)
+async def get_cost_tracking(
+    optimizer: ComprehensiveResumeOptimizer = Depends(get_comprehensive_optimizer),
+) -> Dict[str, Any]:
+    """Get AI cost tracking information."""
+    # Assuming the optimizer has access to the AI provider client
+    # This is a simplified implementation - in practice, you might want to aggregate costs from all clients
+    from app.services.ai_providers import AIProviderClient
+
+    ai_client = AIProviderClient()
+    return ai_client.cost_tracker

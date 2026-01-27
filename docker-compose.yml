@@ -16,6 +16,13 @@ services:
       - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/powercv}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
 
+      # PostgreSQL
+      - POSTGRES_USER=${POSTGRES_USER:-powercv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_DB=${POSTGRES_DB:-powercv}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+
       # Application Settings
       - APP_HOST=0.0.0.0
       - APP_PORT=8080
@@ -43,7 +50,13 @@ services:
       ai-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -70,7 +83,13 @@ services:
     networks:
       - powercv-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -88,23 +107,23 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:?N8N_PASSWORD must be set}
-      
+
       # Network Configuration
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
-      
+
       # Security
       # N8N_ENCRYPTION_KEY is required and must be a strong, random value.
       # Example: use at least 32+ characters of high-entropy random data.
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY must be set to a strong, non-empty value}
-      
+
       # Paths
       - N8N_USER_FOLDER=/home/node/.n8n
       - GENERIC_TIMEZONE=${TIMEZONE:-Europe/Amsterdam}
       - N8N_LOG_LEVEL=${LOG_LEVEL:-info}
-      
+
       # External Storage (optional)
       - EXECUTIONS_DATA_SAVE_ON_ERROR=all
       - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
@@ -169,6 +188,32 @@ services:
       timeout: 5s
       retries: 3
 
+  # PostgreSQL Database (for structured data and analytics)
+  postgres:
+    image: postgres:15
+    container_name: powercv-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-powercv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_DB=${POSTGRES_DB:-powercv}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - powercv-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-powercv} -d ${POSTGRES_DB:-powercv}",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   # Optional: Traefik for reverse proxy (uncomment to enable)
   # traefik:
   #   image: traefik:v3.0
@@ -199,6 +244,7 @@ volumes:
   mongodb_data:
   n8n_data:
   redis_data:
+  postgres_data:
 
 # Utility commands
 # docker-compose up -d

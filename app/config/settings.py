@@ -20,7 +20,12 @@ class Settings(BaseSettings):
     secret_key: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
-    sentry_dsn: Optional[str] = "https://mock@sentry.io/12345"
+    sentry_dsn: Optional[str] = None
+    postgres_user: Optional[str] = None
+    postgres_password: Optional[str] = None
+    postgres_db: Optional[str] = None
+    postgres_host: Optional[str] = None
+    postgres_port: Optional[int] = None
 
     # API Keys (sensitive - never log these)
     api_key: Optional[str] = None  # Deepseek
@@ -34,6 +39,21 @@ class Settings(BaseSettings):
     API_KEY: Optional[str] = None  # Uppercase Deepseek variant
     OPENAI_API_KEY: Optional[str] = None  # Uppercase OpenAI variant
     SENTRY_DSN: Optional[str] = None  # Uppercase Sentry DSN variant
+    POSTGRES_USER: Optional[str] = None  # Uppercase PostgreSQL user
+    POSTGRES_PASSWORD: Optional[str] = None  # Uppercase PostgreSQL password
+    POSTGRES_DB: Optional[str] = None  # Uppercase PostgreSQL database
+    POSTGRES_HOST: Optional[str] = None  # Uppercase PostgreSQL host
+    POSTGRES_PORT: Optional[int] = None  # Uppercase PostgreSQL port
+    POSTGRES_USER: Optional[str] = None  # Uppercase PostgreSQL user
+    POSTGRES_PASSWORD: Optional[str] = None  # Uppercase PostgreSQL password
+    POSTGRES_DB: Optional[str] = None  # Uppercase PostgreSQL database
+    POSTGRES_HOST: Optional[str] = None  # Uppercase PostgreSQL host
+    POSTGRES_PORT: Optional[int] = None  # Uppercase PostgreSQL port
+    POSTGRES_USER: Optional[str] = None  # Uppercase PostgreSQL user
+    POSTGRES_PASSWORD: Optional[str] = None  # Uppercase PostgreSQL password
+    POSTGRES_DB: Optional[str] = None  # Uppercase PostgreSQL database
+    POSTGRES_HOST: Optional[str] = None  # Uppercase PostgreSQL host
+    POSTGRES_PORT: Optional[int] = None  # Uppercase PostgreSQL port
     API_KEY_UPPER: Optional[str] = None  # Alternative uppercase variant
     OPENAI_API_KEY_UPPER: Optional[str] = None  # Alternative uppercase variant
 
@@ -91,9 +111,105 @@ class Settings(BaseSettings):
         if self.DEEPSEEK_API_KEY and not self.deepseek_api_key:
             self.deepseek_api_key = self.DEEPSEEK_API_KEY
 
+        # Merge PostgreSQL settings
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
         # Merge Sentry DSN
         if self.SENTRY_DSN and not self.sentry_dsn:
             self.sentry_dsn = self.SENTRY_DSN
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
+
+        # Merge PostgreSQL configuration
+        if self.POSTGRES_USER and not self.postgres_user:
+            self.postgres_user = self.POSTGRES_USER
+        if self.POSTGRES_PASSWORD and not self.postgres_password:
+            self.postgres_password = self.POSTGRES_PASSWORD
+        if self.POSTGRES_DB and not self.postgres_db:
+            self.postgres_db = self.POSTGRES_DB
+        if self.POSTGRES_HOST and not self.postgres_host:
+            self.postgres_host = self.POSTGRES_HOST
+        if self.POSTGRES_PORT and not self.postgres_port:
+            self.postgres_port = self.POSTGRES_PORT
 
     model_config = ConfigDict(
         env_file=".env",
@@ -132,8 +248,17 @@ class Settings(BaseSettings):
     def get_database_config(self) -> dict:
         """Get database configuration (without exposing credentials in logs)."""
         return {
-            "uri": self._mask_mongodb_uri(self.mongodb_uri),
-            "database": self.database_name,
+            "mongodb": {
+                "uri": self._mask_mongodb_uri(self.mongodb_uri),
+                "database": self.database_name,
+            },
+            "postgres": {
+                "user": self.postgres_user,
+                "password": "***" if self.postgres_password else None,
+                "db": self.postgres_db,
+                "host": self.postgres_host,
+                "port": self.postgres_port,
+            },
         }
 
     @staticmethod

@@ -2,7 +2,7 @@
 
 This module contains the implementation of ResumeRepository class which handles
 CRUD operations for resume data in the database, including storing, retrieving,
-updating, and deleting resume information.
+updating, and deleting resume information. Supports dual-write to MongoDB and PostgreSQL.
 """
 
 import os
@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 
 from bson.objectid import ObjectId
 
+from app.database.connector import MongoConnectionManager, PostgresConnectionManager
 from app.database.models.resume import Resume, ResumeData
 from app.database.repositories.base_repo import BaseRepository
 
@@ -19,7 +20,7 @@ class ResumeRepository(BaseRepository):
     """Repository for handling resume-related database operations.
 
     This class extends BaseRepository to provide specific methods for
-    working with resume documents in the database.
+    working with resume documents in MongoDB and PostgreSQL.
     """
 
     def __init__(
@@ -30,13 +31,14 @@ class ResumeRepository(BaseRepository):
         """Initialize the resume repository with database and collection names.
 
         Args:
-            db_name (str): Name of the database. Defaults to "myresumo".
+            db_name (str): Name of the database. Defaults to "powercv".
             collection_name (str): Name of the collection. Defaults to "resumes".
         """
         super().__init__(db_name, collection_name)
+        self.postgres_manager = PostgresConnectionManager.get_instance()
 
     async def create_resume(self, resume: Resume) -> str:
-        """Create a new resume document in the database.
+        """Create a new resume document in both MongoDB and PostgreSQL.
 
         Args:
             resume (Resume): Resume object to be created.
@@ -46,7 +48,31 @@ class ResumeRepository(BaseRepository):
             str: ID of the created resume document, or empty string if operation fails.
         """
         resume_dict = resume.model_dump(by_alias=True)
-        return await self.insert_one(resume_dict)
+        mongo_id = await self.insert_one(resume_dict)
+
+        if mongo_id:
+            # Write to PostgreSQL
+            async with await self.postgres_manager.get_connection() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO resumes (
+                        id, user_id, original_content, job_description,
+                        optimized_data, ats_score, created_at, updated_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    """,
+                    str(mongo_id),
+                    resume.user_id,
+                    resume.original_content,
+                    resume.job_description,
+                    resume.optimized_data.model_dump()
+                    if resume.optimized_data
+                    else None,
+                    resume.ats_score,
+                    resume.created_at,
+                    resume.updated_at,
+                )
+
+        return mongo_id
 
     async def get_resume_by_id(self, resume_id: str) -> Optional[Dict]:
         """Retrieve a resume document by its ID.
@@ -89,7 +115,7 @@ class ResumeRepository(BaseRepository):
         return await self.get_resumes_by_user_id(user_id, skip, limit)
 
     async def update_resume(self, resume_id: str, update_data: Dict) -> bool:
-        """Update a resume document.
+        """Update a resume document in both MongoDB and PostgreSQL.
 
         Args:
             resume_id (str): ID of the resume to update.
@@ -101,10 +127,30 @@ class ResumeRepository(BaseRepository):
         """
         try:
             update_data["updated_at"] = datetime.now()
-            return await self.update_one(
+            mongo_success = await self.update_one(
                 {"_id": ObjectId(resume_id)}, {"$set": update_data}
             )
-        except Exception:
+
+            if mongo_success:
+                # Update PostgreSQL
+                async with await self.postgres_manager.get_connection() as conn:
+                    set_clause = ", ".join(
+                        [f"{k} = ${i + 1}" for i, k in enumerate(update_data.keys())]
+                    )
+                    values = list(update_data.values())
+                    values.append(resume_id)
+
+                    await conn.execute(
+                        f"""
+                        UPDATE resumes SET {set_clause}
+                        WHERE id = ${len(values)}
+                        """,
+                        *values,
+                    )
+
+            return mongo_success
+        except Exception as e:
+            print(f"Error updating resume: {e}")
             return False
 
     async def update_optimized_data(
@@ -189,7 +235,7 @@ class ResumeRepository(BaseRepository):
             return False
 
     async def delete_resume(self, resume_id: str) -> bool:
-        """Delete a resume document.
+        """Delete a resume document from both MongoDB and PostgreSQL.
 
         Args:
             resume_id (str): ID of the resume to delete.
@@ -199,6 +245,17 @@ class ResumeRepository(BaseRepository):
             bool: True if deletion was successful, False otherwise.
         """
         try:
-            return await self.delete_one({"_id": ObjectId(resume_id)})
-        except Exception:
+            mongo_success = await self.delete_one({"_id": ObjectId(resume_id)})
+
+            if mongo_success:
+                # Delete from PostgreSQL
+                async with await self.postgres_manager.get_connection() as conn:
+                    await conn.execute(
+                        "DELETE FROM resumes WHERE id = $1",
+                        resume_id,
+                    )
+
+            return mongo_success
+        except Exception as e:
+            print(f"Error deleting resume: {e}")
             return False

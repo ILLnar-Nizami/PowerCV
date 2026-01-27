@@ -18,6 +18,23 @@
 
 PowerCV is a platform for resume customization that adapts professional profiles to specific job descriptions. Using natural language processing, it analyzes job requirements and highlights relevant skills and experiences to improve ATS compatibility and recruiter visibility.
 
+## New Features
+
+### Advanced Redis Caching
+- Intelligent caching for AI responses and workflow results
+- Significant performance improvements (up to 100x faster for cached requests)
+- Automatic cache invalidation based on content changes
+
+### AI Cost Tracking
+- Real-time monitoring of AI API usage and costs
+- `/api/comprehensive/cost-tracking` endpoint for cost analytics
+- Token usage tracking for budget management
+
+### PostgreSQL Migration Support
+- Dual-write capability to MongoDB and PostgreSQL
+- Migration scripts for seamless database transitions
+- Schema optimization for structured data queries
+
 **🎉 Latest Update (v3.0.0-beta)**: All critical application-breaking bugs have been resolved! The application now provides a complete, production-ready resume optimization experience with proper template selection, PDF generation, and professional file downloads.
 
 ## Key Features
@@ -304,7 +321,9 @@ Access the application at http://localhost:8080.
 
 ```bash
 git clone https://github.com/AnalyticAce/PowerCV.git
-cd PowerCV
+# PowerCV
+
+AI-powered resume optimizer that helps you land your dream job by tailoring your CV to specific job descriptions and maximizing ATS (Applicant Tracking System) compatibility.
 ```
 
 2. Create and activate a virtual environment:

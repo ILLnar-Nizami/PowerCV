@@ -1,9 +1,12 @@
 """Orchestrate complete CV optimization workflow."""
 
+import hashlib
+import json
 import logging
 import re
 from typing import Dict, List, Optional
 
+from ..config.redis import get_redis
 from ..utils.shared_utils import TextProcessor
 from .cover_letter_gen import CoverLetterGenerator
 from .cv_analyzer import CVAnalyzer
@@ -20,6 +23,8 @@ class CVWorkflowOrchestrator:
         self.analyzer = CVAnalyzer()
         self.optimizer = CVOptimizer()
         self.cover_letter_gen = CoverLetterGenerator()
+        self.text_processor = TextProcessor()
+        self.redis = get_redis()
         logger.info("WorkflowOrchestrator initialized")
 
     async def optimize_cv_for_job(
@@ -39,6 +44,17 @@ class CVWorkflowOrchestrator:
         Returns:
             dict: Complete results including analysis, optimized CV, cover letter
         """
+        # Create cache key from inputs
+        import hashlib
+
+        cache_key = f"cv_optimization:{hashlib.md5(f'{cv_text}:{jd_text}:{generate_cover_letter}:{email}'.encode()).hexdigest()}"
+
+        # Try to get from cache first
+        cached_result = await self.redis.get(cache_key)
+        if cached_result:
+            logger.info("Returning cached optimization result")
+            return json.loads(cached_result)
+
         logger.info("Starting complete optimization workflow")
 
         # Step 1: Analyze
@@ -127,7 +143,9 @@ class CVWorkflowOrchestrator:
             ),
         }
 
-        logger.info(f"Workflow completed. ATS Score: {result['ats_score']}")
+        # Cache the result for 1 hour
+        await self.redis.setex(cache_key, 3600, json.dumps(result))
+        logger.info(f"Workflow completed and cached. ATS Score: {result['ats_score']}")
         return result
 
     def _optimize_cv_sections(self, cv_text: str, jd_text: str, analysis: Dict) -> Dict:
