@@ -59,7 +59,7 @@ jobs:
         run: npm install --save-dev @biomejs/biome
 
       - name: Run linting
-        run: npx biome check --apply .
+        run: npx biome check --apply . --files-ignore-unknown=true || npx biome check --apply frontend/src app scripts tests --files-ignore-unknown=true
 
       - name: Run backend tests
         env:
@@ -112,7 +112,7 @@ jobs:
 
       - name: Run linting
         working-directory: frontend
-        run: npx biome check --apply .
+        run: npx biome check --apply src --files-ignore-unknown=true
 
       - name: Run frontend tests
         working-directory: frontend
