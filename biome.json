@@ -1,0 +1,32 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "include": ["app/**/*.py", "frontend/src/**/*.{ts,tsx,js,jsx}", "scripts/**/*.py", "tests/**/*.py"],
+    "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/*.html", "**/__pycache__/**", "**/.venv/**"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": true
+    }
+  },
+  "overrides": [
+    {
+      "include": ["**/*.py"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
+}
