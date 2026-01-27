@@ -111,83 +111,11 @@ class Settings(BaseSettings):
         if self.DEEPSEEK_API_KEY and not self.deepseek_api_key:
             self.deepseek_api_key = self.DEEPSEEK_API_KEY
 
-        # Merge PostgreSQL settings
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
         # Merge Sentry DSN
         if self.SENTRY_DSN and not self.sentry_dsn:
             self.sentry_dsn = self.SENTRY_DSN
 
-        # Merge PostgreSQL configuration
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
-        # Merge PostgreSQL configuration
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
-        # Merge PostgreSQL configuration
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
-        # Merge PostgreSQL configuration
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
-        # Merge PostgreSQL configuration
-        if self.POSTGRES_USER and not self.postgres_user:
-            self.postgres_user = self.POSTGRES_USER
-        if self.POSTGRES_PASSWORD and not self.postgres_password:
-            self.postgres_password = self.POSTGRES_PASSWORD
-        if self.POSTGRES_DB and not self.postgres_db:
-            self.postgres_db = self.POSTGRES_DB
-        if self.POSTGRES_HOST and not self.postgres_host:
-            self.postgres_host = self.POSTGRES_HOST
-        if self.POSTGRES_PORT and not self.postgres_port:
-            self.postgres_port = self.POSTGRES_PORT
-
-        # Merge PostgreSQL configuration
+        # Merge PostgreSQL configuration (consolidated to avoid duplication)
         if self.POSTGRES_USER and not self.postgres_user:
             self.postgres_user = self.POSTGRES_USER
         if self.POSTGRES_PASSWORD and not self.postgres_password:

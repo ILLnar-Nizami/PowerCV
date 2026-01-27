@@ -5,6 +5,7 @@ CRUD operations for resume data in the database, including storing, retrieving,
 updating, and deleting resume information. Supports dual-write to MongoDB and PostgreSQL.
 """
 
+import logging
 import os
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -14,6 +15,8 @@ from bson.objectid import ObjectId
 from app.database.connector import MongoConnectionManager, PostgresConnectionManager
 from app.database.models.resume import Resume, ResumeData
 from app.database.repositories.base_repo import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class ResumeRepository(BaseRepository):
@@ -53,6 +56,25 @@ class ResumeRepository(BaseRepository):
         if mongo_id:
             # Write to PostgreSQL
             async with await self.postgres_manager.get_connection() as conn:
+                # Ensure user exists in PostgreSQL before creating resume (fix foreign key violation)
+                user_exists = await conn.fetchval(
+                    "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
+                    resume.user_id,
+                )
+                if not user_exists:
+                    # Create user if it doesn't exist (for local-user or other default users)
+                    await conn.execute(
+                        """
+                        INSERT INTO users (id, created_at, updated_at)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (id) DO NOTHING
+                        """,
+                        resume.user_id,
+                        datetime.now(),
+                        datetime.now(),
+                    )
+                    logger.info(f"Created user {resume.user_id} in PostgreSQL")
+
                 await conn.execute(
                     """
                     INSERT INTO resumes (
@@ -150,7 +172,7 @@ class ResumeRepository(BaseRepository):
 
             return mongo_success
         except Exception as e:
-            print(f"Error updating resume: {e}")
+            logger.error(f"Error updating resume: {e}")
             return False
 
     async def update_optimized_data(
@@ -231,7 +253,7 @@ class ResumeRepository(BaseRepository):
                 {"$set": update_dict},
             )
         except Exception as e:
-            print(f"Error updating optimized data: {e}")
+            logger.error(f"Error updating optimized data: {e}")
             return False
 
     async def delete_resume(self, resume_id: str) -> bool:
@@ -257,5 +279,5 @@ class ResumeRepository(BaseRepository):
 
             return mongo_success
         except Exception as e:
-            print(f"Error deleting resume: {e}")
+            logger.error(f"Error deleting resume: {e}")
             return False

@@ -44,10 +44,10 @@ class CVWorkflowOrchestrator:
         Returns:
             dict: Complete results including analysis, optimized CV, cover letter
         """
-        # Create cache key from inputs
+        # Create cache key from inputs (using SHA-256 for better security than MD5)
         import hashlib
 
-        cache_key = f"cv_optimization:{hashlib.md5(f'{cv_text}:{jd_text}:{generate_cover_letter}:{email}'.encode()).hexdigest()}"
+        cache_key = f"cv_optimization:{hashlib.sha256(f'{cv_text}:{jd_text}:{generate_cover_letter}:{email}'.encode()).hexdigest()}"
 
         # Try to get from cache first
         cached_result = await self.redis.get(cache_key)

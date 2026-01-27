@@ -61,6 +61,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+      # Note: Healthcheck uses localhost:8080 (container port) which is correct
+      # The service is exposed on host port 8081, but inside container it listens on 8080
 
   # AI Service (for CV analysis, optimization, and cover letter generation)
   ai-service:

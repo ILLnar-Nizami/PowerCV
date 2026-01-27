@@ -91,8 +91,8 @@ class AIProviderClient:
         Raises:
             Exception: If all providers fail
         """
-        # Create cache key from inputs
-        cache_key = f"ai_completion:{hashlib.md5(f'{self.provider}:{self.model}:{system_prompt}:{user_message}:{temperature}:{max_tokens}'.encode()).hexdigest()}"
+        # Create cache key from inputs (using SHA-256 for better security than MD5)
+        cache_key = f"ai_completion:{hashlib.sha256(f'{self.provider}:{self.model}:{system_prompt}:{user_message}:{temperature}:{max_tokens}'.encode()).hexdigest()}"
 
         # Try to get from cache first
         cached_response = await self.redis.get(cache_key)
