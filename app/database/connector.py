@@ -11,7 +11,9 @@ import re
 from contextlib import asynccontextmanager
 from typing import Optional
 
+import asyncpg
 import motor.motor_asyncio
+from asyncpg.pool import Pool
 
 from app.config import get_settings
 
@@ -186,14 +188,9 @@ class MongoConnectionManager:
             pass
 
 
-"""PostgreSQL connection management module.
-
-This module provides the PostgresConnectionManager class which handles database connections
-to PostgreSQL and implements the singleton pattern to ensure efficient connection reuse.
-"""
-
-import asyncpg
-from asyncpg.pool import Pool
+# PostgreSQL connection management section
+# This module provides the PostgresConnectionManager class which handles database connections
+# to PostgreSQL and implements the singleton pattern to ensure efficient connection reuse.
 
 
 class PostgresConnectionManager:

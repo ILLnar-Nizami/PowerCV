@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -37,7 +37,6 @@ from app.config.templates import TemplateConfig
 from app.database.connector import MongoConnectionManager
 from app.database.models.resume import Resume
 from app.middleware.debugging import setup_debugging_middleware
-from app.middleware.rate_limit import init_rate_limiting
 from app.routes.n8n_integration import router as n8n_router
 from app.services.ai_client import analyze_cv, generate_cover_letter, optimize_cv
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
@@ -670,7 +669,7 @@ async def legacy_download_endpoint(
     template: str = Query("modern.typ", description="Template to use"),
 ):
     """Legacy endpoint for PDF download - redirects to the actual download handler."""
-    from fastapi import HTTPException, Query
+    from fastapi import HTTPException
     from fastapi.responses import RedirectResponse
 
     try:

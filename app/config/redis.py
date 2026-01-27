@@ -1,7 +1,6 @@
 """Redis configuration and connection management."""
 
 import logging
-import os
 from typing import Optional
 
 import redis.asyncio as redis

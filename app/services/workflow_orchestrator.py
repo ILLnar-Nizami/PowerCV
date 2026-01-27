@@ -1,6 +1,5 @@
 """Orchestrate complete CV optimization workflow."""
 
-import hashlib
 import json
 import logging
 import re
@@ -45,7 +44,7 @@ class CVWorkflowOrchestrator:
             dict: Complete results including analysis, optimized CV, cover letter
         """
         # Create cache key from inputs (using SHA-256 for better security than MD5)
-        import hashlib
+        import hashlib  # noqa: F401
 
         cache_key = f"cv_optimization:{hashlib.sha256(f'{cv_text}:{jd_text}:{generate_cover_letter}:{email}'.encode()).hexdigest()}"
 
