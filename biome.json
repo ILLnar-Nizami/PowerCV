@@ -1,8 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "include": ["app/**/*.py", "frontend/src/**/*.{ts,tsx,js,jsx}", "scripts/**/*.py", "tests/**/*.py"],
-    "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/*.html", "**/__pycache__/**", "**/.venv/**"]
+    "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/*.html", "**/__pycache__/**", "**/.venv/**", "**/coverage/**", "**/.git/**"]
   },
   "formatter": {
     "enabled": true,
