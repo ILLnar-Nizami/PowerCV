@@ -91,17 +91,15 @@ describe("Component Tests", () => {
 				</QueryClientProvider>,
 			);
 
-			expect(screen.getByText(mockResume.position!)).toBeInTheDocument();
+			expect(screen.getByText(mockResume.position || "")).toBeInTheDocument();
 			expect(screen.getByText(/85/)).toBeInTheDocument();
 		});
 
 		it("handles download click", async () => {
 			const mockMutate = vi.fn();
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			vi.mocked(useDownloadResume).mockReturnValue({
-				mutate: mockMutate,
-				isPending: false,
-			} as any);
+			// biome-ignore lint/suspicious/noExplicitAny: needed for mock
+			const mockDownload = { mutate: mockMutate, isPending: false } as any;
+			vi.mocked(useDownloadResume).mockReturnValue(mockDownload);
 
 			const queryClient = createTestQueryClient();
 
@@ -121,11 +119,9 @@ describe("Component Tests", () => {
 
 		it("handles delete click", async () => {
 			const mockMutate = vi.fn();
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			vi.mocked(useDeleteResume).mockReturnValue({
-				mutate: mockMutate,
-				isPending: false,
-			} as any);
+			// biome-ignore lint/suspicious/noExplicitAny: needed for mock
+			const mockDelete = { mutate: mockMutate, isPending: false } as any;
+			vi.mocked(useDeleteResume).mockReturnValue(mockDelete);
 			window.confirm = vi.fn(() => true);
 
 			const queryClient = createTestQueryClient();

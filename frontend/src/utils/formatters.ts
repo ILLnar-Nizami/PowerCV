@@ -48,7 +48,7 @@ export function generateId(): string {
 	);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: debounced function can have any arguments
 export function debounce<T extends (...args: any[]) => void>(
 	func: T,
 	delay: number,

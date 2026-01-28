@@ -320,7 +320,10 @@ export function OptimizePage() {
 											className="animate-spin -ml-1 mr-2 h-4 w-4"
 											fill="none"
 											viewBox="0 0 24 24"
+											role="img"
+											aria-labelledby="loading-title"
 										>
+											<title id="loading-title">Loading</title>
 											<circle
 												className="opacity-25"
 												cx="12"

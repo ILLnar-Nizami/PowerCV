@@ -26,6 +26,7 @@ function TestSentryButton() {
 
 	return (
 		<button
+			type="button"
 			onClick={triggerError}
 			style={{
 				position: "fixed",

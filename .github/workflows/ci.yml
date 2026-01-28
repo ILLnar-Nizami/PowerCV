@@ -85,6 +85,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
         run: |
+          python scripts/init_postgres.py
           python -m pytest tests/ -v --cov=app --cov-report=xml
           python -m pytest app/tests/ -v --cov=app --cov-append --cov-report=xml
 
@@ -123,10 +124,6 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
-
-      - name: Install Biome
-        working-directory: frontend
-        run: npm install --save-dev @biomejs/biome
 
       - name: Run linting (format + check)
         working-directory: frontend

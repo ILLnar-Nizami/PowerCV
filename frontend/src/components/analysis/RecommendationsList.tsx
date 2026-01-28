@@ -140,9 +140,9 @@ export function RecommendationsList({
 						</div>
 
 						<div className="space-y-3">
-							{recs.map((recommendation, index) => (
+							{recs.map((recommendation) => (
 								<div
-									key={index}
+									key={recommendation.message}
 									className={`p-4 rounded-lg border ${getSeverityColor(recommendation.severity)}`}
 								>
 									<div className="flex items-start gap-3">
