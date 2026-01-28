@@ -8,33 +8,46 @@ from app.services.cover_letter_gen import CoverLetterGenerator
 import requests.exceptions
 
 
+@pytest.mark.asyncio
 @patch("app.services.ai_providers.get_settings")
-def test_ai_client_rate_limit(mock_get_settings):
+@patch("app.services.ai_providers.completion")
+async def test_ai_client_rate_limit(mock_completion, mock_get_settings):
     """Test AI client handles rate limit errors properly."""
     # Mock settings with API key
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test_key"
     mock_get_settings.return_value = mock_settings
 
-    # Create AI client
-    client = AIClient("cerebras")
+    # Mock Redis to avoid connection errors during test
+    with patch("app.services.ai_providers.get_redis") as mock_get_redis:
+        mock_redis = AsyncMock()
+        mock_redis.get.return_value = None  # Cache miss
+        mock_get_redis.return_value = mock_redis
 
-    # Mock requests.post to return 429 status
-    with patch("requests.post") as mock_post:
+        # Create AI client
+        client = AIClient("cerebras")
+
+        # Mock completion to raise RateLimitError
+        from litellm import exceptions
+
+        # We need a valid response object for RateLimitError
         mock_response = MagicMock()
-        mock_response.status_code = 429
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-            response=mock_response
+        mock_completion.side_effect = exceptions.RateLimitError(
+            message="Rate limit exceeded",
+            llm_provider="cerebras",
+            response=mock_response,
+            model="cerebras/gpt-oss-120b"
         )
-        mock_post.return_value = mock_response
 
-        # Test that rate limit error is properly handled
-        with pytest.raises(requests.exceptions.RequestException) as exc_info:
-            client.chat_completion(
+        # Test that rate limit error is properly handled (all providers fail)
+        with pytest.raises(Exception) as exc_info:
+            await client.chat_completion(
                 system_prompt="Test system", user_message="Test user message"
             )
 
-        assert "rate limit exceeded" in str(exc_info.value).lower()
+        # The client logs the error and tries fallbacks, then raises Exception if all fail
+        # The exception message includes the last error type
+        assert "RateLimitError" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
