@@ -85,7 +85,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
         run: |
-          python scripts/init_postgres.py
+          PYTHONPATH=. python scripts/init_postgres.py
           python -m pytest tests/ -v --cov=app --cov-report=xml
           python -m pytest app/tests/ -v --cov=app --cov-append --cov-report=xml
 
