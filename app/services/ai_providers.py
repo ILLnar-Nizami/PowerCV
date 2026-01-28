@@ -48,7 +48,8 @@ class AIProviderClient:
         self.provider = provider or os.getenv("AI_PROVIDER", "cerebras")
         self.redis = get_redis()
         # Cost tracking
-        self.cost_tracker = {"total_cost": 0.0, "total_tokens": 0, "requests": 0}
+        self.cost_tracker = {"total_cost": 0.0,
+                             "total_tokens": 0, "requests": 0}
 
         if self.provider not in self.PROVIDERS:
             raise ValueError(
@@ -91,7 +92,8 @@ class AIProviderClient:
             Exception: If all providers fail
         """
         # Create cache key from inputs (using SHA-256 for better security than MD5)
-        cache_key = f"ai_completion:{hashlib.sha256(f'{self.provider}:{self.model}:{system_prompt}:{user_message}:{temperature}:{max_tokens}'.encode()).hexdigest()}"
+        cache_key = f"ai_completion:{hashlib.sha256(f'{self.provider}:{self.model}:{system_prompt}:{user_message}:{temperature}:{max_tokens}'.encode(
+        )).hexdigest()}"
 
         # Try to get from cache first
         cached_response = await self.redis.get(cache_key)
@@ -128,15 +130,18 @@ class AIProviderClient:
                 # Track cost and tokens (simplified estimation)
                 if hasattr(response, "usage") and response.usage:
                     prompt_tokens = response.usage.get("prompt_tokens", 0)
-                    completion_tokens = response.usage.get("completion_tokens", 0)
+                    completion_tokens = response.usage.get(
+                        "completion_tokens", 0)
                     total_tokens = prompt_tokens + completion_tokens
 
                     # Simplified cost calculation (replace with actual pricing)
-                    cost = (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
+                    cost = (prompt_tokens * 0.00001) + \
+                        (completion_tokens * 0.00003)
                     self.cost_tracker["total_cost"] += cost
                     self.cost_tracker["total_tokens"] += total_tokens
 
-                    logger.info(f"AI cost: ${cost:.6f}, tokens: {total_tokens}")
+                    logger.info(
+                        f"AI cost: ${cost:.6f}, tokens: {total_tokens}")
 
                 # Cache the response for 1 hour
                 if content:
@@ -191,3 +196,9 @@ def get_ai_client(provider: Optional[str] = None) -> AIProviderClient:
         AIProviderClient: Configured client instance
     """
     return AIProviderClient(provider=provider)
+
+
+# Backwards compatibility: keep the old name available
+AIClient = AIProviderClient
+
+__all__ = ["AIProviderClient", "AIClient", "get_ai_client"]

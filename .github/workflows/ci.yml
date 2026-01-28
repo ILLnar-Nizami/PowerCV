@@ -110,9 +110,11 @@ jobs:
         working-directory: frontend
         run: npm install --save-dev @biomejs/biome
 
-      - name: Run linting
+      - name: Run linting (format + check)
         working-directory: frontend
-        run: npx biome check --apply src --files-ignore-unknown=true
+        run: |
+          npx biome format src --write
+          npx biome check src --files-ignore-unknown=true
 
       - name: Run frontend tests
         working-directory: frontend
