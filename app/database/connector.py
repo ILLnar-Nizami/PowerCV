@@ -33,7 +33,7 @@ def get_secure_mongodb_config():
     if not settings.mongodb_uri:
         raise ValueError("MONGODB_URI not configured")
 
-    return {"uri": settings.mongodb_uri, "database": settings.database_name}
+    return {"uri": settings.mongodb_uri, "database": settings.mongodb_db}
 
 
 # Initialize configuration
