@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     # Application settings
     app_name: str = "PowerCV"
     app_version: str = "3.0.0-beta"
-    environment: str = Field(default="development", validation_alias="ENVIRONMENT")
+    environment: str = Field(default="development",
+                             validation_alias="ENVIRONMENT")
     debug: bool = Field(default=False, validation_alias="DEBUG")
 
     @field_validator("debug", mode="before")
@@ -56,13 +57,20 @@ class Settings(BaseSettings):
         default="mongodb://localhost:27017", validation_alias="MONGODB_URI"
     )
     mongodb_db: str = Field(default="powercv", validation_alias="MONGODB_DB")
-    mongodb_user: Optional[str] = Field(default=None, validation_alias="MONGODB_USER")
+
+    @property
+    def database_name(self) -> str:
+        """Alias for mongodb_db for backward compatibility."""
+        return self.mongodb_db
+    mongodb_user: Optional[str] = Field(
+        default=None, validation_alias="MONGODB_USER")
     mongodb_password: Optional[str] = Field(
         default=None, validation_alias="MONGODB_PASSWORD"
     )
 
     # Redis settings (for caching and rate limiting)
-    redis_url: Optional[str] = Field(default=None, validation_alias="REDIS_URL")
+    redis_url: Optional[str] = Field(
+        default=None, validation_alias="REDIS_URL")
     redis_host: str = Field(default="localhost", validation_alias="REDIS_HOST")
     redis_port: int = Field(default=6379, validation_alias="REDIS_PORT")
     redis_db: int = Field(default=0, validation_alias="REDIS_DB")
@@ -93,13 +101,15 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-4", validation_alias="OPENAI_MODEL")
 
     # Deepseek
-    deepseek_api_key: Optional[str] = Field(default=None, validation_alias="API_KEY")
+    deepseek_api_key: Optional[str] = Field(
+        default=None, validation_alias="API_KEY")
 
     # Ollama (local models)
     ollama_base_url: str = Field(
         default="http://localhost:11434", validation_alias="OLLAMA_BASE_URL"
     )
-    ollama_model: str = Field(default="llama2", validation_alias="OLLAMA_MODEL")
+    ollama_model: str = Field(
+        default="llama2", validation_alias="OLLAMA_MODEL")
 
     # Security settings
     secret_key: str = Field(
@@ -140,10 +150,13 @@ class Settings(BaseSettings):
 
     # External services
     # SMTP settings for email notifications
-    smtp_host: Optional[str] = Field(default=None, validation_alias="SMTP_HOST")
+    smtp_host: Optional[str] = Field(
+        default=None, validation_alias="SMTP_HOST")
     smtp_port: int = Field(default=587, validation_alias="SMTP_PORT")
-    smtp_user: Optional[str] = Field(default=None, validation_alias="SMTP_USER")
-    smtp_password: Optional[str] = Field(default=None, validation_alias="SMTP_PASSWORD")
+    smtp_user: Optional[str] = Field(
+        default=None, validation_alias="SMTP_USER")
+    smtp_password: Optional[str] = Field(
+        default=None, validation_alias="SMTP_PASSWORD")
     smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS")
 
     # n8n webhook settings
@@ -153,19 +166,24 @@ class Settings(BaseSettings):
     n8n_webhook_secret: Optional[str] = Field(
         default=None, validation_alias="N8N_WEBHOOK_SECRET"
     )
-    n8n_api_key: Optional[str] = Field(default=None, validation_alias="N8N_API_KEY")
+    n8n_api_key: Optional[str] = Field(
+        default=None, validation_alias="N8N_API_KEY")
     n8n_user: Optional[str] = Field(default=None, validation_alias="N8N_USER")
-    n8n_password: Optional[str] = Field(default=None, validation_alias="N8N_PASSWORD")
+    n8n_password: Optional[str] = Field(
+        default=None, validation_alias="N8N_PASSWORD")
 
     # Sentry for error tracking
-    sentry_dsn: Optional[str] = Field(default=None, validation_alias="SENTRY_DSN")
+    sentry_dsn: Optional[str] = Field(
+        default=None, validation_alias="SENTRY_DSN")
 
     # AI Model tiers configuration
-    fast_model: str = Field(default="gpt-oss-120b", validation_alias="FAST_MODEL")
+    fast_model: str = Field(default="gpt-oss-120b",
+                            validation_alias="FAST_MODEL")
     balanced_model: str = Field(
         default="gpt-oss-120b", validation_alias="BALANCED_MODEL"
     )
-    quality_model: str = Field(default="gpt-4", validation_alias="QUALITY_MODEL")
+    quality_model: str = Field(
+        default="gpt-4", validation_alias="QUALITY_MODEL")
 
     # Token tracking
     enable_token_tracking: bool = Field(
@@ -176,9 +194,12 @@ class Settings(BaseSettings):
     )
 
     # Additional AI settings
-    llm_provider: str = Field(default="cerebras", validation_alias="LLM_PROVIDER")
-    ai_provider: str = Field(default="cerebras", validation_alias="AI_PROVIDER")
-    skip_ats_scoring: bool = Field(default=False, validation_alias="SKIP_ATS_SCORING")
+    llm_provider: str = Field(
+        default="cerebras", validation_alias="LLM_PROVIDER")
+    ai_provider: str = Field(
+        default="cerebras", validation_alias="AI_PROVIDER")
+    skip_ats_scoring: bool = Field(
+        default=False, validation_alias="SKIP_ATS_SCORING")
     use_fast_optimizer: bool = Field(
         default=False, validation_alias="USE_FAST_OPTIMIZER"
     )

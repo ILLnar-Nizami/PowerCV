@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # MongoDB settings
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_db: str = "powercv"
+
+    @property
+    def database_name(self) -> str:
+        """Alias for mongodb_db for backward compatibility."""
+        return self.mongodb_db
     mongodb_user: Optional[str] = None
     mongodb_password: Optional[str] = None
 
@@ -64,11 +69,13 @@ class Settings(BaseSettings):
     # Cerebras AI
     cerebras_api_key: Optional[str] = Field(
         default=None,
-        validation_alias=AliasChoices("CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
+        validation_alias=AliasChoices(
+            "CEREBRAS_API_KEY", "CEREBRASAI_API_KEY"),
     )
     cerebras_api_base: str = Field(
         default="https://api.cerebras.ai/v1",
-        validation_alias=AliasChoices("CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
+        validation_alias=AliasChoices(
+            "CEREBRAS_API_BASE", "CEREBRASAI_API_BASE"),
     )
     cerebras_model: str = "gpt-oss-120b"
 

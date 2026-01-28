@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017/powercv"
     database_name: str = "powercv"
 
+    @property
+    def mongodb_db(self) -> str:
+        """Alias for database_name for backward compatibility."""
+        return self.database_name
+
     # Redis (for caching and rate limiting)
     redis_url: Optional[str] = None
 
@@ -105,7 +110,8 @@ class Settings(BaseSettings):
 
         # Validate required secrets in production
         if self.environment == "production" and not self.secret_key:
-            raise ValueError("SECRET_KEY must be set in production environment")
+            raise ValueError(
+                "SECRET_KEY must be set in production environment")
 
         # Merge Deepseek API key
         if self.DEEPSEEK_API_KEY and not self.deepseek_api_key:

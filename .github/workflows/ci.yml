@@ -76,6 +76,7 @@ jobs:
 
       - name: Run backend tests
         env:
+          PYTHONPATH: ${{ github.workspace }}
           MONGODB_URI: mongodb://localhost:27017/powercv_test
           REDIS_URL: redis://localhost:6379
           TESTING: true
@@ -85,7 +86,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
         run: |
-          PYTHONPATH=. python scripts/init_postgres.py
+          python -m scripts.init_postgres
           python -m pytest tests/ -v --cov=app --cov-report=xml
           python -m pytest app/tests/ -v --cov=app --cov-append --cov-report=xml
 
