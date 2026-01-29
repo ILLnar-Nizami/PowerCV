@@ -12,9 +12,11 @@ from app.services.cover_letter_gen import CoverLetterGenerator
 from app.services.cv_analyzer import CVAnalyzer
 from app.services.cv_optimizer import CVOptimizer
 from app.services.master_cv import CVTemplate, MasterCV, create_template_cv
-from app.services.scraper import (JobDescriptionScraperFactory,
-                                  extract_keywords_from_jd,
-                                  fetch_job_description)
+from app.services.scraper import (
+    JobDescriptionScraperFactory,
+    extract_keywords_from_jd,
+    fetch_job_description,
+)
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 __all__ = [

@@ -7,8 +7,12 @@ import pytest
 from app.services.cv_analyzer import CVAnalyzer
 from app.services.cv_optimizer import CVOptimizer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-from app.utils.shared_utils import (ErrorHandler, JSONParser, MetricsHelper,
-                                    TextProcessor)
+from app.utils.shared_utils import (
+    ErrorHandler,
+    JSONParser,
+    MetricsHelper,
+    TextProcessor,
+)
 
 
 class TestJSONParser:

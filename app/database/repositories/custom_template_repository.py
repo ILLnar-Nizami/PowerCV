@@ -7,9 +7,11 @@ from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.config.logging_config import logger
-from app.database.models.custom_template import (CustomTemplate,
-                                                 CustomTemplateCreate,
-                                                 CustomTemplateUpdate)
+from app.database.models.custom_template import (
+    CustomTemplate,
+    CustomTemplateCreate,
+    CustomTemplateUpdate,
+)
 from app.database.repositories.base_repo import BaseRepository
 
 

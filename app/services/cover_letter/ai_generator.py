@@ -6,7 +6,9 @@ from openai import OpenAI
 
 from app.config import get_settings
 from app.services.llm.prompts.cover_letter_prompts import (
-    COVER_LETTER_PROMPT, COVER_LETTER_SYSTEM_PROMPT)
+    COVER_LETTER_PROMPT,
+    COVER_LETTER_SYSTEM_PROMPT,
+)
 
 
 class AICoverLetterGenerator:

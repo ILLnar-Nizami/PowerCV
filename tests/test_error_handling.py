@@ -4,9 +4,14 @@ from unittest.mock import patch
 
 import pytest
 
-from app.utils.error_handler import (ConfigurationError, DetailedError,
-                                     ErrorContext, ErrorHandler,
-                                     ValidationError, create_error_response)
+from app.utils.error_handler import (
+    ConfigurationError,
+    DetailedError,
+    ErrorContext,
+    ErrorHandler,
+    ValidationError,
+    create_error_response,
+)
 from app.utils.validation import ValidationHelper
 
 

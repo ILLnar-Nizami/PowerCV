@@ -9,8 +9,7 @@ import asyncio
 import logging
 
 from app.config import get_settings
-from app.database.connector import (MongoConnectionManager,
-                                    PostgresConnectionManager)
+from app.database.connector import MongoConnectionManager, PostgresConnectionManager
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

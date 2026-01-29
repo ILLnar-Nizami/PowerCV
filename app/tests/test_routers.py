@@ -8,8 +8,7 @@ from bson.objectid import ObjectId
 from fastapi.testclient import TestClient
 
 from app.api.routers.comprehensive_optimizer import get_comprehensive_optimizer
-from app.api.routers.cover_letter import (get_ai_generator,
-                                          get_cover_letter_repository)
+from app.api.routers.cover_letter import get_ai_generator, get_cover_letter_repository
 from app.api.routers.resume import get_resume_repository
 from app.main import app
 

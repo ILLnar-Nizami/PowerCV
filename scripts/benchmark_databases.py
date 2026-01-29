@@ -11,8 +11,7 @@ import time
 from typing import Dict, List
 
 from app.config import get_settings
-from app.database.connector import (MongoConnectionManager,
-                                    PostgresConnectionManager)
+from app.database.connector import MongoConnectionManager, PostgresConnectionManager
 from app.database.models.resume import Resume, ResumeData
 
 # Set up logging

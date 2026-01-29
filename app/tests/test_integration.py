@@ -5,14 +5,22 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from app.tests.conftest import (assert_ats_score_in_range,
-                                assert_response_structure,
-                                create_mock_ai_client, mock_ai_client,
-                                mock_ai_response, mock_cover_letter_response,
-                                mock_scraper_response, sample_cv_text,
-                                sample_jd_text, sample_resume_data,
-                                temp_cv_file, temp_jd_file, temp_output_dir,
-                                test_client)
+from app.tests.conftest import (
+    assert_ats_score_in_range,
+    assert_response_structure,
+    create_mock_ai_client,
+    mock_ai_client,
+    mock_ai_response,
+    mock_cover_letter_response,
+    mock_scraper_response,
+    sample_cv_text,
+    sample_jd_text,
+    sample_resume_data,
+    temp_cv_file,
+    temp_jd_file,
+    temp_output_dir,
+    test_client,
+)
 
 # Use fixtures from conftest.py
 # These are automatically loaded by pytest

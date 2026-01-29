@@ -539,8 +539,7 @@ class TestWorkflowOrchestrator:
             )
             MockGen.return_value = mock_gen
 
-            from app.services.workflow_orchestrator import \
-                CVWorkflowOrchestrator
+            from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
             orchestrator = CVWorkflowOrchestrator()
 
@@ -581,8 +580,7 @@ class TestWorkflowOrchestrator:
             )
             MockOptimizer.return_value = mock_optimizer
 
-            from app.services.workflow_orchestrator import \
-                CVWorkflowOrchestrator
+            from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
             orchestrator = CVWorkflowOrchestrator()
 

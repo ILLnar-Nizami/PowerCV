@@ -276,8 +276,9 @@ async def get_templates(
         # Add custom templates from database if requested
         if include_custom:
             try:
-                from app.database.repositories.custom_template_repository import \
-                    CustomTemplateRepository
+                from app.database.repositories.custom_template_repository import (
+                    CustomTemplateRepository,
+                )
 
                 custom_repo = CustomTemplateRepository()
                 custom_templates = await custom_repo.get_public_templates(limit=100)
@@ -369,8 +370,9 @@ async def get_template_by_id(
         # Check custom templates
         if template_id.startswith("custom_"):
             try:
-                from app.database.repositories.custom_template_repository import \
-                    CustomTemplateRepository
+                from app.database.repositories.custom_template_repository import (
+                    CustomTemplateRepository,
+                )
 
                 custom_repo = CustomTemplateRepository()
                 custom_template_id = template_id.replace("custom_", "")
@@ -440,8 +442,9 @@ async def create_custom_template(
         )  # TODO: Implement proper auth
 
         from app.database.models.custom_template import CustomTemplateCreate
-        from app.database.repositories.custom_template_repository import \
-            CustomTemplateRepository
+        from app.database.repositories.custom_template_repository import (
+            CustomTemplateRepository,
+        )
 
         custom_repo = CustomTemplateRepository()
 

@@ -12,8 +12,7 @@ from typing import Any, Dict, Optional
 
 import sentry_sdk
 from dotenv import load_dotenv
-from fastapi import (Body, Depends, FastAPI, HTTPException, Query, Request,
-                     status)
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -30,6 +29,7 @@ from app.api.routers.cover_letter import cover_letter_router
 from app.api.routers.resume.crud import ResumeRepository
 from app.api.routers.resume.router import resume_router
 from app.api.routers.token_usage import router as token_usage_router
+
 # Import the old resume router from resume.py
 from app.config.logging_config import logger
 from app.config.settings import get_settings
@@ -38,8 +38,7 @@ from app.database.connector import MongoConnectionManager
 from app.database.models.resume import Resume
 from app.middleware.debugging import setup_debugging_middleware
 from app.routes.n8n_integration import router as n8n_router
-from app.services.ai_client import (analyze_cv, generate_cover_letter,
-                                    optimize_cv)
+from app.services.ai_client import analyze_cv, generate_cover_letter, optimize_cv
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.utils.error_handler import ErrorContext, ErrorHandler, debug_endpoint
 
