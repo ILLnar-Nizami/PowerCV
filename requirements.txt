@@ -23,18 +23,12 @@ ruff
 jinja2
 pyjwt
 markdown
-pytesseract
-pdf2image
-opencv-python
-psutil
 pypdf
 openai
 langchain-community
 langchain
 langchain-openai
 PyPDF2
-scikit-learn
-sentence-transformers
 tiktoken
 mkdocs
 mkdocs-material
@@ -67,3 +61,8 @@ click>=8.0.0
 # File validation
 python-magic>=0.4.0
 asyncpg>=0.29.0
+
+# OCR and PDF processing (actively used)
+pytesseract
+pdf2image
+opencv-python

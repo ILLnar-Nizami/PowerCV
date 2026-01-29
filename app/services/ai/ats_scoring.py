@@ -260,10 +260,6 @@ class ATSScorerLLM:
             data.setdefault("key_requirements", [])
             return SkillsExtraction(**data)
 
-    def calculate_keyword_overlap(self, resume_skills, job_skills):
-        """[DEPRECATED] No longer used. All matching is now LLM-based for domain-agnostic optimization."""
-        return 0.0
-
     def analyze_match(self, resume_analysis, job_analysis):
         """Have the LLM analyze the match between resume and job requirements."""
         try:
