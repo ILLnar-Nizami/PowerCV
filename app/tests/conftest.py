@@ -4,12 +4,13 @@ This module provides centralized fixtures for testing, reducing boilerplate
 and ensuring consistent test setup across all test modules.
 """
 
-import pytest
 import json
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
-from typing import Generator, Dict, Any
+from typing import Any, Dict, Generator
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -307,8 +308,9 @@ def create_mock_ai_client(response: Dict[str, Any]) -> Mock:
 @pytest.fixture
 def test_client():
     """Create a FastAPI test client."""
-    from app.main import app
     from fastapi.testclient import TestClient
+
+    from app.main import app
 
     return TestClient(app, raise_server_exceptions=False)
 

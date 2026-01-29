@@ -9,7 +9,8 @@ import asyncio
 import logging
 
 from app.config import get_settings
-from app.database.connector import MongoConnectionManager, PostgresConnectionManager
+from app.database.connector import (MongoConnectionManager,
+                                    PostgresConnectionManager)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -81,9 +82,11 @@ async def migrate_resumes():
                         resume_doc.get("user_id"),
                         resume_doc.get("original_content"),
                         resume_doc.get("job_description"),
-                        json.dumps(resume_doc.get("optimized_data"))
-                        if resume_doc.get("optimized_data")
-                        else None,
+                        (
+                            json.dumps(resume_doc.get("optimized_data"))
+                            if resume_doc.get("optimized_data")
+                            else None
+                        ),
                         resume_doc.get("ats_score"),
                         resume_doc.get("original_ats_score"),
                         resume_doc.get("matching_skills", []),

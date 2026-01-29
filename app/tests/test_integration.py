@@ -1,25 +1,18 @@
 """Updated integration tests for PowerCV using the new conftest fixtures."""
 
-from unittest.mock import patch, Mock, MagicMock, AsyncMock
-from app.tests.conftest import (
-    sample_cv_text,
-    sample_jd_text,
-    sample_resume_data,
-    mock_ai_response,
-    mock_scraper_response,
-    mock_cover_letter_response,
-    mock_ai_client,
-    test_client,
-    temp_cv_file,
-    temp_jd_file,
-    temp_output_dir,
-    create_mock_ai_client,
-    assert_ats_score_in_range,
-    assert_response_structure,
-)
-import pytest
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
+import pytest
+
+from app.tests.conftest import (assert_ats_score_in_range,
+                                assert_response_structure,
+                                create_mock_ai_client, mock_ai_client,
+                                mock_ai_response, mock_cover_letter_response,
+                                mock_scraper_response, sample_cv_text,
+                                sample_jd_text, sample_resume_data,
+                                temp_cv_file, temp_jd_file, temp_output_dir,
+                                test_client)
 
 # Use fixtures from conftest.py
 # These are automatically loaded by pytest
@@ -127,6 +120,7 @@ async def test_cover_letter_generation(mock_cover_letter_response):
 def test_scraper_integration(mock_scraper_response):
     """Test job scraper integration using fixtures."""
     import asyncio
+
     from app.services.scraper import JobDescriptionScraperFactory
 
     async def test_scraper():

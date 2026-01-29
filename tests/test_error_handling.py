@@ -1,15 +1,12 @@
 """Test enhanced error handling and debugging capabilities."""
 
-import pytest
 from unittest.mock import patch
-from app.utils.error_handler import (
-    DetailedError,
-    ErrorHandler,
-    ValidationError,
-    ConfigurationError,
-    ErrorContext,
-    create_error_response,
-)
+
+import pytest
+
+from app.utils.error_handler import (ConfigurationError, DetailedError,
+                                     ErrorContext, ErrorHandler,
+                                     ValidationError, create_error_response)
 from app.utils.validation import ValidationHelper
 
 

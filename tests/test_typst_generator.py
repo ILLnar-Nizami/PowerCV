@@ -1,9 +1,11 @@
 """Test Typst PDF generation."""
 
-from app.services.resume.typst_generator import TypstGenerator
-import pytest
-import sys
 import os
+import sys
+
+import pytest
+
+from app.services.resume.typst_generator import TypstGenerator
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

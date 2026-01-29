@@ -1,17 +1,14 @@
 """Comprehensive tests for PowerCV services."""
 
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
+from app.services.cv_analyzer import CVAnalyzer
 from app.services.cv_optimizer import CVOptimizer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-from app.services.cv_analyzer import CVAnalyzer
-from app.utils.shared_utils import (
-    JSONParser,
-    TextProcessor,
-    MetricsHelper,
-    ErrorHandler,
-)
+from app.utils.shared_utils import (ErrorHandler, JSONParser, MetricsHelper,
+                                    TextProcessor)
 
 
 class TestJSONParser:
@@ -172,7 +169,8 @@ class TestCVOptimizer:
         mock_client = MagicMock()
         mock_client_factory.return_value = mock_client
         mock_client.optimize = AsyncMock(
-            return_value={"optimized_cv": {"user_information": {"name": "Test"}}})
+            return_value={"optimized_cv": {"user_information": {"name": "Test"}}}
+        )
 
         opt = CVOptimizer()
         result = await opt.optimize_comprehensive("CV", "JD")
@@ -242,25 +240,28 @@ class TestWorkflowOrchestrator:
         mock_get_redis.return_value = mock_redis
         mock_analyzer = MagicMock()
         mock_analyzer_cls.return_value = mock_analyzer
-        mock_analyzer.analyze = AsyncMock(return_value={
-            "ats_score": 75,
-            "matching_skills": ["Python"],
-            "missing_skills": ["Java"],
-            "keyword_analysis": {
-                "matched_keywords": [{"keyword": "Python"}],
-                "missing_critical": [],
-            },
-        })
+        mock_analyzer.analyze = AsyncMock(
+            return_value={
+                "ats_score": 75,
+                "matching_skills": ["Python"],
+                "missing_skills": ["Java"],
+                "keyword_analysis": {
+                    "matched_keywords": [{"keyword": "Python"}],
+                    "missing_critical": [],
+                },
+            }
+        )
 
         mock_opt = MagicMock()
         mock_opt_cls.return_value = mock_opt
-        mock_opt.optimize_comprehensive = AsyncMock(return_value={
-            "user_information": {"name": "Test", "email": "test@test.com"}
-        })
+        mock_opt.optimize_comprehensive = AsyncMock(
+            return_value={
+                "user_information": {"name": "Test", "email": "test@test.com"}
+            }
+        )
 
         mock_cl_gen = MagicMock()
-        mock_cl_gen.generate = AsyncMock(
-            return_value={"content": "Test cover letter"})
+        mock_cl_gen.generate = AsyncMock(return_value={"content": "Test cover letter"})
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
@@ -286,25 +287,28 @@ class TestWorkflowOrchestrator:
         mock_get_redis.return_value = mock_redis
         mock_analyzer = MagicMock()
         mock_analyzer_cls.return_value = mock_analyzer
-        mock_analyzer.analyze = AsyncMock(return_value={
-            "ats_score": 75,
-            "matching_skills": ["Python"],
-            "missing_skills": ["Java"],
-            "keyword_analysis": {
-                "matched_keywords": [{"keyword": "Python"}],
-                "missing_critical": [],
-            },
-        })
+        mock_analyzer.analyze = AsyncMock(
+            return_value={
+                "ats_score": 75,
+                "matching_skills": ["Python"],
+                "missing_skills": ["Java"],
+                "keyword_analysis": {
+                    "matched_keywords": [{"keyword": "Python"}],
+                    "missing_critical": [],
+                },
+            }
+        )
 
         mock_opt = MagicMock()
         mock_opt_cls.return_value = mock_opt
-        mock_opt.optimize_comprehensive = AsyncMock(return_value={
-            "user_information": {"name": "Test", "email": "test@test.com"}
-        })
+        mock_opt.optimize_comprehensive = AsyncMock(
+            return_value={
+                "user_information": {"name": "Test", "email": "test@test.com"}
+            }
+        )
 
         mock_cl_gen = MagicMock()
-        mock_cl_gen.generate = AsyncMock(
-            return_value={"content": "Test cover letter"})
+        mock_cl_gen.generate = AsyncMock(return_value={"content": "Test cover letter"})
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
@@ -339,7 +343,8 @@ class TestEdgeCases:
         """Test CV optimizer returns fallback on invalid response."""
         with patch("app.services.ai_client.get_ai_client") as mock_client:
             mock_client.return_value.chat_completion = AsyncMock(
-                side_effect=Exception("API Error"))
+                side_effect=Exception("API Error")
+            )
 
             opt = CVOptimizer()
             result = await opt.optimize_comprehensive("CV", "JD")

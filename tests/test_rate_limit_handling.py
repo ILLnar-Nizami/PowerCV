@@ -1,11 +1,13 @@
 """Test rate limiting and fallback behavior."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import MagicMock, AsyncMock, patch
-from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-from app.services.cover_letter_gen import CoverLetterGenerator
+
 from app.services.ai_client import AIProviderClients
+from app.services.cover_letter_gen import CoverLetterGenerator
+from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 
 @pytest.mark.asyncio
@@ -59,7 +61,9 @@ async def test_workflow_orchestrator_rate_limit_fallback():
     mock_redis.setex = AsyncMock()  # Cache setting
 
     # Create orchestrator with mocked Redis
-    with patch('app.services.workflow_orchestrator.RedisClient', return_value=mock_redis):
+    with patch(
+        "app.services.workflow_orchestrator.RedisClient", return_value=mock_redis
+    ):
         orchestrator = CVWorkflowOrchestrator()
 
         # Mock analyzer to raise rate limit error on second call
@@ -85,7 +89,10 @@ async def test_workflow_orchestrator_rate_limit_fallback():
         mock_optimizer = MagicMock()
         mock_optimizer.optimize_comprehensive = AsyncMock(
             return_value={
-                "user_information": {"name": "Test Candidate", "email": "test@example.com"}
+                "user_information": {
+                    "name": "Test Candidate",
+                    "email": "test@example.com",
+                }
             }
         )
         orchestrator.optimizer = mock_optimizer

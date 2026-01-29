@@ -10,14 +10,7 @@ import tempfile
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -281,16 +274,18 @@ async def get_templates(
         # Add custom templates from database if requested
         if include_custom:
             try:
-                from app.database.repositories.custom_template_repository import CustomTemplateRepository
-                
+                from app.database.repositories.custom_template_repository import \
+                    CustomTemplateRepository
+
                 custom_repo = CustomTemplateRepository()
                 custom_templates = await custom_repo.get_public_templates(limit=100)
-                
+
                 for custom_template in custom_templates:
                     template = TemplateResponse(
                         id=f"custom_{custom_template.id}",
                         name=custom_template.name,
-                        description=custom_template.description or f"Custom template by user {custom_template.user_id}",
+                        description=custom_template.description
+                        or f"Custom template by user {custom_template.user_id}",
                         category=custom_template.category,
                         style="custom",
                         is_custom=True,
@@ -305,7 +300,7 @@ async def get_templates(
                         updated_at=custom_template.updated_at,
                     )
                     templates.append(template)
-                    
+
             except Exception as e:
                 logger.warning(f"Failed to load custom templates: {e}")
                 # Continue without custom templates if there's an error
@@ -372,12 +367,13 @@ async def get_template_by_id(
         # Check custom templates
         if template_id.startswith("custom_"):
             try:
-                from app.database.repositories.custom_template_repository import CustomTemplateRepository
-                
+                from app.database.repositories.custom_template_repository import \
+                    CustomTemplateRepository
+
                 custom_repo = CustomTemplateRepository()
                 custom_template_id = template_id.replace("custom_", "")
                 custom_template = await custom_repo.get_template(custom_template_id)
-                
+
                 if custom_template:
                     return TemplateResponse(
                         id=template_id,
@@ -396,10 +392,10 @@ async def get_template_by_id(
                         created_at=custom_template.created_at,
                         updated_at=custom_template.updated_at,
                     )
-                    
+
             except Exception as e:
                 logger.error(f"Error retrieving custom template {template_id}: {e}")
-        
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Template not found"
         )
@@ -435,28 +431,39 @@ async def create_custom_template(
     """
     try:
         logger.info("Creating custom template")
-        
+
         # Get user ID from request (you may need to implement authentication)
-        user_id = request.headers.get("X-User-ID", "default_user")  # TODO: Implement proper auth
-        
-        from app.database.repositories.custom_template_repository import CustomTemplateRepository
+        user_id = request.headers.get(
+            "X-User-ID", "default_user"
+        )  # TODO: Implement proper auth
+
         from app.database.models.custom_template import CustomTemplateCreate
-        
+        from app.database.repositories.custom_template_repository import \
+            CustomTemplateRepository
+
         custom_repo = CustomTemplateRepository()
-        
+
         template_create = CustomTemplateCreate(
             name=template_request.name,
             description=template_request.description,
             category=template_request.category,
-            typst_content=template_request.template_data.get("content", "") if template_request.template_data else "",
-            variables=template_request.template_data.get("variables", []) if template_request.template_data else [],
+            typst_content=(
+                template_request.template_data.get("content", "")
+                if template_request.template_data
+                else ""
+            ),
+            variables=(
+                template_request.template_data.get("variables", [])
+                if template_request.template_data
+                else []
+            ),
             preview_image=template_request.preview_image,
-            is_public=template_request.is_custom  # Using is_custom as proxy for is_public
+            is_public=template_request.is_custom,  # Using is_custom as proxy for is_public
         )
-        
+
         template_id = await custom_repo.create_template(template_create, user_id)
         created_template = await custom_repo.get_template(template_id)
-        
+
         return TemplateResponse(
             id=f"custom_{template_id}",
             name=created_template.name,
@@ -595,11 +602,11 @@ async def download_resume(
 
             # Implement file serving with expiration
             import secrets
-            
+
             # Generate secure download token
             download_token = secrets.token_urlsafe(32)
             expires_at = datetime.utcnow() + timedelta(hours=1)
-            
+
             # Store download info in Redis or database for validation
             # For now, use a simple in-memory approach (in production, use Redis)
             download_info = {
@@ -608,17 +615,17 @@ async def download_resume(
                 "file_size": file_size,
                 "expires_at": expires_at.isoformat(),
                 "resume_id": resume_id,
-                "user_id": request.headers.get("X-User-ID", "default_user")
+                "user_id": request.headers.get("X-User-ID", "default_user"),
             }
-            
+
             # Generate secure download URL with token
             download_url = f"/api/v1/resumes/downloads/{download_token}"
-            
+
             # Store download info (in production, use Redis with expiration)
             # redis_client.setex(f"download:{download_token}", 3600, json.dumps(download_info))
-            
+
             logger.info(f"Resume {resume_id} download URL generated: {download_url}")
-            
+
             return DownloadResponse(
                 success=True,
                 download_url=download_url,

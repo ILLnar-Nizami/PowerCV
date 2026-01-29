@@ -1,12 +1,13 @@
 """Comprehensive test suite for PowerCV with mocking and integration tests."""
 
-import pytest
 import json
-from pathlib import Path
-from typing import Dict, Any
-from unittest.mock import Mock, patch, AsyncMock
-from fastapi.testclient import TestClient
 import sys
+from pathlib import Path
+from typing import Any, Dict
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -358,8 +359,7 @@ class TestJobScraper:
     ):
         """Test Indeed scraper extracts required fields."""
         with patch("app.services.scraper.IndeedScraper.fetch") as mock_fetch:
-            mock_fetch.return_value = {
-                **mock_scraper_response, "source": "indeed"}
+            mock_fetch.return_value = {**mock_scraper_response, "source": "indeed"}
 
             from app.services.scraper import IndeedScraper
 
@@ -482,8 +482,7 @@ class TestCoverLetterGenerator:
 
             # Test with different tones
             for tone in ["Professional", "Enthusiastic", "Formal"]:
-                result = await generator.generate(
-                    candidate_data, job_data, tone=tone)
+                result = await generator.generate(candidate_data, job_data, tone=tone)
                 assert "cover_letter" in result
 
 
@@ -537,7 +536,8 @@ class TestWorkflowOrchestrator:
             )
             MockGen.return_value = mock_gen
 
-            from app.services.workflow_orchestrator import CVWorkflowOrchestrator
+            from app.services.workflow_orchestrator import \
+                CVWorkflowOrchestrator
 
             orchestrator = CVWorkflowOrchestrator()
 
@@ -580,7 +580,8 @@ class TestWorkflowOrchestrator:
             )
             MockOptimizer.return_value = mock_optimizer
 
-            from app.services.workflow_orchestrator import CVWorkflowOrchestrator
+            from app.services.workflow_orchestrator import \
+                CVWorkflowOrchestrator
 
             orchestrator = CVWorkflowOrchestrator()
 
@@ -765,6 +766,5 @@ class TestAPIEndpoints:
             openapi = response.json()
             paths = openapi.get("paths", {})
             # Check for optimization endpoints
-            has_optimize = any(
-                "/optimize" in p or "/analyze" in p for p in paths)
+            has_optimize = any("/optimize" in p or "/analyze" in p for p in paths)
             # This is a soft check - endpoint may not be fully implemented

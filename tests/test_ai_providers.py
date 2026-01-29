@@ -1,7 +1,8 @@
 """Tests for AIProviderClient using LiteLLM."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.ai_providers import AIProviderClient
 
@@ -95,7 +96,7 @@ async def test_chat_completion_all_fail(mock_get_settings):
         mock_completion.side_effect = Exception("All providers failed")
 
         client = AIProviderClient(provider="cerebras")
-        
+
         with pytest.raises(Exception) as exc_info:
             await client.chat_completion(
                 system_prompt="Optimize this resume",

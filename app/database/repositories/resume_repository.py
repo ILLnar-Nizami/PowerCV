@@ -86,9 +86,11 @@ class ResumeRepository(BaseRepository):
                     resume.user_id,
                     resume.original_content,
                     resume.job_description,
-                    resume.optimized_data.model_dump()
-                    if resume.optimized_data
-                    else None,
+                    (
+                        resume.optimized_data.model_dump()
+                        if resume.optimized_data
+                        else None
+                    ),
                     resume.ats_score,
                     resume.created_at,
                     resume.updated_at,

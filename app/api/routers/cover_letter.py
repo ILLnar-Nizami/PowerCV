@@ -11,35 +11,21 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Body,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-    status,
-)
+from fastapi import (APIRouter, BackgroundTasks, Body, Depends, HTTPException,
+                     Query, Request, status)
 from fastapi.responses import FileResponse
 
 from app.config import computed_settings as settings
-from app.database.models.ai_cover_letter import (
-    AICoverLetterRequest,
-    AICoverLetterResponse,
-)
-from app.database.models.cover_letter import (
-    CoverLetter,
-    CoverLetterData,
-    CoverLetterGenerationRequest,
-    CoverLetterRequest,
-    CoverLetterSummary,
-)
-from app.database.repositories.cover_letter_repository import CoverLetterRepository
-from app.services.cover_letter import (
-    AICoverLetterGenerator,
-    CoverLetterTemplateGenerator,
-)
+from app.database.models.ai_cover_letter import (AICoverLetterRequest,
+                                                 AICoverLetterResponse)
+from app.database.models.cover_letter import (CoverLetter, CoverLetterData,
+                                              CoverLetterGenerationRequest,
+                                              CoverLetterRequest,
+                                              CoverLetterSummary)
+from app.database.repositories.cover_letter_repository import \
+    CoverLetterRepository
+from app.services.cover_letter import (AICoverLetterGenerator,
+                                       CoverLetterTemplateGenerator)
 from app.services.resume.typst_generator import TypstGenerator
 
 # Configure logging

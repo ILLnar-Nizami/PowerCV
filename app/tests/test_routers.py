@@ -1,14 +1,17 @@
 """Unit tests for FastAPI routers - comprehensive coverage."""
 
-import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, AsyncMock, patch
-from bson.objectid import ObjectId
 from datetime import datetime
-from app.main import app
-from app.api.routers.resume import get_resume_repository
-from app.api.routers.cover_letter import get_cover_letter_repository, get_ai_generator
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from bson.objectid import ObjectId
+from fastapi.testclient import TestClient
+
 from app.api.routers.comprehensive_optimizer import get_comprehensive_optimizer
+from app.api.routers.cover_letter import (get_ai_generator,
+                                          get_cover_letter_repository)
+from app.api.routers.resume import get_resume_repository
+from app.main import app
 
 client = TestClient(app)
 
@@ -87,8 +90,8 @@ def test_resume_upload(override_deps, mock_resume_repo):
         "app.services.file_validator.SecureFileValidator.validate_upload",
         AsyncMock(return_value=(b"t", "t.pdf", "h")),
     ), patch(
-        "app.services.file_validator.store_file_securely", AsyncMock(
-            return_value="/t.pdf")
+        "app.services.file_validator.store_file_securely",
+        AsyncMock(return_value="/t.pdf"),
     ), patch(
         "app.utils.file_handling.extract_text_from_file",
         AsyncMock(side_effect=lambda *args, **kwargs: "E"),
@@ -96,7 +99,8 @@ def test_resume_upload(override_deps, mock_resume_repo):
         "app.services.master_cv.MasterCV"
     ) as mock_master_cv:
         mock_master_cv.return_value.extract_text_from_uploaded_file = AsyncMock(
-            return_value="Extracted text")
+            return_value="Extracted text"
+        )
         response = client.post(
             "/api/v1/resumes/master-cv/upload",
             data={"user_id": "u"},
@@ -124,9 +128,7 @@ def test_get_user_resumes(override_deps, mock_resume_repo):
             "updated_at": now,
         },
     ]
-    response = client.get(
-        "/api/v1/resumes/user/u1"
-    )
+    response = client.get("/api/v1/resumes/user/u1")
     assert response.status_code == 200
 
 
@@ -135,25 +137,39 @@ def test_resume_crud(override_deps, mock_resume_repo):
     rid = str(ObjectId())
     # Mock with file_path attribute for DELETE endpoint
     mock_existing = MagicMock()
-    mock_existing.get = lambda key, default=None: {"_id": ObjectId(
-        rid), "title": "T", "file_path": None}.get(key, default)
+    mock_existing.get = lambda key, default=None: {
+        "_id": ObjectId(rid),
+        "title": "T",
+        "file_path": None,
+    }.get(key, default)
     mock_existing.file_path = None
 
     mock_resume_repo.get_by_id = AsyncMock(return_value=mock_existing)
     mock_resume_repo.get_resume_by_id = AsyncMock(
-        return_value={"_id": ObjectId(rid), "title": "T"})
+        return_value={"_id": ObjectId(rid), "title": "T"}
+    )
     # The actual endpoint uses repository.update(), not update_resume
     mock_resume_repo.update = AsyncMock(
-        return_value={"_id": ObjectId(rid), "title": "N", "user_id": "u", "original_content": "c", "created_at": "2024-01-01", "updated_at": "2024-01-01"})
+        return_value={
+            "_id": ObjectId(rid),
+            "title": "N",
+            "user_id": "u",
+            "original_content": "c",
+            "created_at": "2024-01-01",
+            "updated_at": "2024-01-01",
+        }
+    )
     mock_resume_repo.update_resume = AsyncMock(
-        return_value={"_id": ObjectId(rid), "title": "N"})
+        return_value={"_id": ObjectId(rid), "title": "N"}
+    )
     mock_resume_repo.delete = AsyncMock(return_value=True)
     mock_resume_repo.delete_resume = AsyncMock(return_value=True)
 
     with patch("app.database.repositories.resume_repository.PostgresConnectionManager"):
         # assert client.put(f"/api/v1/resumes/{rid}/status/applied").status_code == 200
-        assert client.put(
-            f"/api/v1/resumes/{rid}", json={"title": "N"}).status_code == 200
+        assert (
+            client.put(f"/api/v1/resumes/{rid}", json={"title": "N"}).status_code == 200
+        )
         assert client.delete(f"/api/v1/resumes/{rid}").status_code == 200
 
 
@@ -161,21 +177,24 @@ def test_resume_errors(override_deps, mock_resume_repo):
     mock_resume_repo.get_by_id.return_value = None
     mock_resume_repo.get_by_id = AsyncMock(return_value=None)
     assert client.get(f"/api/v1/resumes/{str(ObjectId())}").status_code == 404
-    assert client.get(
-        f"/api/v1/resumes/{str(ObjectId())}/download").status_code == 404
+    assert client.get(f"/api/v1/resumes/{str(ObjectId())}/download").status_code == 404
 
 
 # @pytest.mark.skip(reason="Needs URL and mocking fixes")
 def test_score_optimize(override_deps, mock_resume_repo):
     rid = str(ObjectId())
-    mock_resume_repo.get_by_id = AsyncMock(return_value={
-        "_id": ObjectId(rid),
-        "original_content": "C",
-    })
-    mock_resume_repo.get_resume_by_id = AsyncMock(return_value={
-        "_id": ObjectId(rid),
-        "original_content": "C",
-    })
+    mock_resume_repo.get_by_id = AsyncMock(
+        return_value={
+            "_id": ObjectId(rid),
+            "original_content": "C",
+        }
+    )
+    mock_resume_repo.get_resume_by_id = AsyncMock(
+        return_value={
+            "_id": ObjectId(rid),
+            "original_content": "C",
+        }
+    )
     mock_resume_repo.create_resume = AsyncMock(return_value=str(ObjectId()))
     with patch("app.services.cv_analyzer.CVAnalyzer") as a, patch(
         "app.services.workflow_orchestrator.CVWorkflowOrchestrator"
@@ -185,41 +204,47 @@ def test_score_optimize(override_deps, mock_resume_repo):
         "app.services.master_cv.MasterCV"
     ) as MockMasterCV:
         mock_analyzer = AsyncMock()
-        mock_analyzer.analyze = AsyncMock(return_value={
-            "ats_score": 80, "matching_skills": []})
+        mock_analyzer.analyze = AsyncMock(
+            return_value={"ats_score": 80, "matching_skills": []}
+        )
         a.return_value = mock_analyzer
 
         mock_orchestrator = AsyncMock()
-        mock_orchestrator.optimize_cv_for_job = AsyncMock(return_value={
-            "optimized_cv": {
-                "user_information": {
-                    "name": "N",
-                    "main_job_title": "J",
-                    "profile_description": "D",
-                    "email": "e@e.com",
-                    "experiences": [],
-                    "education": [],
-                    "skills": {"hard_skills": [], "soft_skills": []},
-                }
-            },
-            "ats_score": 90,
-        })
+        mock_orchestrator.optimize_cv_for_job = AsyncMock(
+            return_value={
+                "optimized_cv": {
+                    "user_information": {
+                        "name": "N",
+                        "main_job_title": "J",
+                        "profile_description": "D",
+                        "email": "e@e.com",
+                        "experiences": [],
+                        "education": [],
+                        "skills": {"hard_skills": [], "soft_skills": []},
+                    }
+                },
+                "ats_score": 90,
+            }
+        )
         o.return_value = mock_orchestrator
 
         # Patch MasterCV class - when instantiated, return mock with score_resume
         mock_master_cv = MagicMock()
-        mock_master_cv.score_resume = AsyncMock(return_value={
-            "ats_score": 80.0,
-            "readability_score": 75.0,
-            "keyword_density": {},
-            "strengths": ["Good formatting"],
-            "weaknesses": ["Missing keywords"],
-            "recommendations": ["Add more skills"]
-        })
+        mock_master_cv.score_resume = AsyncMock(
+            return_value={
+                "ats_score": 80.0,
+                "readability_score": 75.0,
+                "keyword_density": {},
+                "strengths": ["Good formatting"],
+                "weaknesses": ["Missing keywords"],
+                "recommendations": ["Add more skills"],
+            }
+        )
         MockMasterCV.return_value = mock_master_cv
         assert (
             client.post(
-                f"/api/v1/resumes/optimization/{rid}/score", json={"job_description": "J", "resume_text": "C"}
+                f"/api/v1/resumes/optimization/{rid}/score",
+                json={"job_description": "J", "resume_text": "C"},
             ).status_code
             == 200
         )
@@ -237,9 +262,11 @@ def test_score_optimize(override_deps, mock_resume_repo):
 # @pytest.mark.skip(reason="Covers endpoint validation issue")
 def test_create_cl(override_deps, mock_cl_repo, mock_resume_repo):
     mock_resume_repo.get_by_id = AsyncMock(
-        return_value={"original_content": "Resume Content"})
+        return_value={"original_content": "Resume Content"}
+    )
     mock_resume_repo.get_resume_by_id = AsyncMock(
-        return_value={"original_content": "Resume Content"})
+        return_value={"original_content": "Resume Content"}
+    )
     mock_cl_repo.create_cover_letter = AsyncMock(return_value=str(ObjectId()))
 
     # Mock Redis to avoid connection errors
@@ -248,10 +275,15 @@ def test_create_cl(override_deps, mock_cl_repo, mock_resume_repo):
     mock_redis.setex = AsyncMock()
 
     # Mock CoverLetterData and CoverLetter to avoid validation errors
-    with patch("app.api.routers.cover_letter.CoverLetterData") as MockCoverLetterData, \
-            patch("app.api.routers.cover_letter.CoverLetter") as MockCoverLetter, \
-            patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis), \
-            patch("app.services.ai_providers.get_redis", return_value=mock_redis):
+    with patch(
+        "app.api.routers.cover_letter.CoverLetterData"
+    ) as MockCoverLetterData, patch(
+        "app.api.routers.cover_letter.CoverLetter"
+    ) as MockCoverLetter, patch(
+        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
+    ), patch(
+        "app.services.ai_providers.get_redis", return_value=mock_redis
+    ):
         # Make CoverLetterData return a properly structured mock
         mock_data = MagicMock()
         mock_data.model_dump.return_value = {
@@ -262,7 +294,7 @@ def test_create_cl(override_deps, mock_cl_repo, mock_resume_repo):
             "introduction": "",
             "body_paragraphs": ["default paragraph"],  # Need at least 1 item
             "closing": "",
-            "signature": "Sincerely,\nS"
+            "signature": "Sincerely,\nS",
         }
         MockCoverLetterData.return_value = mock_data
 
@@ -310,8 +342,7 @@ def test_cl_crud(override_deps, mock_cl_repo):
     mock_cl_repo.delete_cover_letter.return_value = True
 
     assert (
-        client.put(f"/api/cover-letter/{cid}",
-                   json={"title": "N"}).status_code == 200
+        client.put(f"/api/cover-letter/{cid}", json={"title": "N"}).status_code == 200
     )
     assert client.delete(f"/api/cover-letter/{cid}").status_code == 200
 
@@ -336,8 +367,7 @@ def test_cl_search_stats(override_deps, mock_cl_repo):
         mock_cl_repo.search_cover_letters.return_value,
         mock_cl_repo.get_cover_letter_statistics.return_value,
     ) = [], {"total": 5}
-    assert client.get(
-        "/api/cover-letter/search/u1?query=test").status_code == 200
+    assert client.get("/api/cover-letter/search/u1?query=test").status_code == 200
     assert client.get("/api/cover-letter/statistics/u1").status_code == 200
 
 
@@ -348,8 +378,7 @@ def test_cl_search_stats(override_deps, mock_cl_repo):
 def test_comp_opt(override_deps, mock_comp_optimizer):
     mock_comp_optimizer.optimize_resume_master.return_value = {"r": "ok"}
     mock_comp_optimizer.analyze_ats_keywords.return_value = {"keywords": []}
-    mock_comp_optimizer.extract_hidden_achievements.return_value = {
-        "achievements": []}
+    mock_comp_optimizer.extract_hidden_achievements.return_value = {"achievements": []}
     mock_comp_optimizer.create_three_versions.return_value = {"versions": []}
     mock_comp_optimizer.iterative_improvement.return_value = {"improved": True}
 
@@ -371,22 +400,24 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
         "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
     ):
         mock_instance = AsyncMock()
-        mock_instance.optimize_cv_for_job = AsyncMock(return_value={
-            "optimized_cv": {
-                "user_information": {
-                    "name": "Test",
-                    "main_job_title": "Dev",
-                    "profile_description": "Desc",
-                    "experiences": [],
-                    "education": [],
-                    "skills": {"hard_skills": [], "soft_skills": []}
-                }
-            },
-            "ats_score": 85,
-            "matching_skills": ["skill1"],
-            "missing_skills": ["skill2"],
-            "recommendation": "Good",
-        })
+        mock_instance.optimize_cv_for_job = AsyncMock(
+            return_value={
+                "optimized_cv": {
+                    "user_information": {
+                        "name": "Test",
+                        "main_job_title": "Dev",
+                        "profile_description": "Desc",
+                        "experiences": [],
+                        "education": [],
+                        "skills": {"hard_skills": [], "soft_skills": []},
+                    }
+                },
+                "ats_score": 85,
+                "matching_skills": ["skill1"],
+                "missing_skills": ["skill2"],
+                "recommendation": "Good",
+            }
+        )
         mock_orch.return_value = mock_instance
 
         mock_repo_instance = MagicMock()
@@ -395,8 +426,7 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
         assert (
             client.post(
                 "/api/comprehensive/optimize/master",
-                json={"target_role": "R",
-                      "job_description": "J", "resume_text": "R"},
+                json={"target_role": "R", "job_description": "J", "resume_text": "R"},
             ).status_code
             == 200
         )
@@ -430,8 +460,7 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
 
 
 def test_comp_opt_getters(override_deps, mock_comp_optimizer):
-    mock_comp_optimizer.get_quick_start_workflows.return_value = {
-        "5min": "Quick"}
+    mock_comp_optimizer.get_quick_start_workflows.return_value = {"5min": "Quick"}
     mock_comp_optimizer.get_pro_tips.return_value = ["Tip"]
     mock_comp_optimizer.get_eu_2025_alignment.return_value = {"ats": []}
 

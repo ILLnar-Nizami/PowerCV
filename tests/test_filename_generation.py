@@ -1,8 +1,8 @@
 """Test filename generation functionality."""
 
 import re
-from datetime import datetime
 import unittest.mock
+from datetime import datetime
 from unittest.mock import MagicMock
 
 

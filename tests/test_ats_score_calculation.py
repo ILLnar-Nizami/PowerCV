@@ -1,7 +1,9 @@
 """Test ATS score calculation functionality."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 
@@ -128,7 +130,9 @@ async def test_ats_score_fallback():
     mock_redis.setex = AsyncMock()  # Cache setting
 
     # Create orchestrator with mocked dependencies
-    with patch('app.services.workflow_orchestrator.RedisClient', return_value=mock_redis):
+    with patch(
+        "app.services.workflow_orchestrator.RedisClient", return_value=mock_redis
+    ):
         orchestrator = CVWorkflowOrchestrator()
         orchestrator.analyzer = mock_analyzer
 

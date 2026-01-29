@@ -3,9 +3,9 @@
 
 import json
 import time
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 
 class PromptType(Enum):

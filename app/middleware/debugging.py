@@ -6,7 +6,8 @@ import time
 import uuid
 
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.middleware.base import (BaseHTTPMiddleware,
+                                       RequestResponseEndpoint)
 
 logger = logging.getLogger(__name__)
 

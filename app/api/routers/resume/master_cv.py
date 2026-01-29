@@ -12,22 +12,14 @@ from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Form,
-    HTTPException,
-    Query,
-    Request,
-    UploadFile,
-    status,
-)
+from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
+                     Request, UploadFile, status)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.database.repositories.resume_repository import ResumeRepository
-from app.services.file_validator import SecureFileValidator, store_file_securely
+from app.services.file_validator import (SecureFileValidator,
+                                         store_file_securely)
 from app.services.resume.universal_scorer import UniversalResumeScorer
 from app.utils.file_handling import extract_text_from_file
 

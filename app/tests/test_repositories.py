@@ -1,8 +1,9 @@
 """Tests for database repositories."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch, Mock
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 from bson.objectid import ObjectId
 
 from app.database.repositories.base_repo import BaseRepository
@@ -284,8 +285,7 @@ class TestRepositoryErrorHandling:
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)
         mock_collection.__aexit__ = AsyncMock(return_value=None)
-        mock_collection.find_one = AsyncMock(
-            side_effect=Exception("Database error"))
+        mock_collection.find_one = AsyncMock(side_effect=Exception("Database error"))
         mock_instance.get_collection.return_value = mock_collection
         mock_manager.get_instance.return_value = mock_instance
 
@@ -302,8 +302,7 @@ class TestRepositoryErrorHandling:
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)
         mock_collection.__aexit__ = AsyncMock(return_value=None)
-        mock_collection.insert_one = AsyncMock(
-            side_effect=Exception("Database error"))
+        mock_collection.insert_one = AsyncMock(side_effect=Exception("Database error"))
         mock_instance.get_collection.return_value = mock_collection
         mock_manager.get_instance.return_value = mock_instance
 
@@ -320,8 +319,7 @@ class TestRepositoryErrorHandling:
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)
         mock_collection.__aexit__ = AsyncMock(return_value=None)
-        mock_collection.update_one = AsyncMock(
-            side_effect=Exception("Database error"))
+        mock_collection.update_one = AsyncMock(side_effect=Exception("Database error"))
         mock_instance.get_collection.return_value = mock_collection
         mock_manager.get_instance.return_value = mock_instance
 
@@ -338,8 +336,7 @@ class TestRepositoryErrorHandling:
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)
         mock_collection.__aexit__ = AsyncMock(return_value=None)
-        mock_collection.delete_one = AsyncMock(
-            side_effect=Exception("Database error"))
+        mock_collection.delete_one = AsyncMock(side_effect=Exception("Database error"))
         mock_instance.get_collection.return_value = mock_collection
         mock_manager.get_instance.return_value = mock_instance
 

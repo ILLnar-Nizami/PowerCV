@@ -11,7 +11,8 @@ import time
 from typing import Dict, List
 
 from app.config import get_settings
-from app.database.connector import MongoConnectionManager, PostgresConnectionManager
+from app.database.connector import (MongoConnectionManager,
+                                    PostgresConnectionManager)
 from app.database.models.resume import Resume, ResumeData
 
 # Set up logging
@@ -111,9 +112,11 @@ async def benchmark_postgres(resumes: List[Resume]) -> Dict[str, float]:
                 resume.user_id,
                 resume.original_content,
                 resume.job_description,
-                json.dumps(resume.optimized_data.model_dump())
-                if resume.optimized_data
-                else None,
+                (
+                    json.dumps(resume.optimized_data.model_dump())
+                    if resume.optimized_data
+                    else None
+                ),
                 70 + (resumes.index(resume) % 30),  # ATS scores between 70-100
                 resume.created_at,
                 resume.updated_at,
