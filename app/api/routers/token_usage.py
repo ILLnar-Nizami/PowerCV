@@ -56,7 +56,7 @@ async def get_token_usage_summary(
 
 @router.get("/export")
 async def export_token_usage_data(
-    format: str = Query("json", description="Output format ('json' or 'dict')")
+    format: str = Query("json", description="Output format ('json' or 'dict')"),
 ) -> Dict:
     """Export token usage data for external analysis.
 

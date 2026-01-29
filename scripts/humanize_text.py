@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Remove AI-typical language patterns from text files."""
+
 import re
 import sys
 from pathlib import Path

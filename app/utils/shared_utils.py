@@ -31,8 +31,7 @@ class JSONParser:
 
         # Remove ```json and ``` markers
         if "```" in response:
-            match = re.search(
-                r"```(?:json)?\s*([\s\S]*?)\s*```", response, re.DOTALL)
+            match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response, re.DOTALL)
             if match:
                 response = match.group(1)
             else:
@@ -66,7 +65,7 @@ class JSONParser:
             # Case of truncated JSON (no closing brace/bracket found)
             response = response[start_idx:]
         else:
-            response = response[start_idx: json_end + 1]
+            response = response[start_idx : json_end + 1]
 
         response = response.strip()
 
@@ -76,8 +75,7 @@ class JSONParser:
         response = re.sub(r",\s*\]", "]", response)
 
         # 2. Fix missing commas between key-value pairs (handles string, number, bool, null values)
-        response = re.sub(
-            r'([0-9]|"|true|false|null)\s+(?=")', r'\1, ', response)
+        response = re.sub(r'([0-9]|"|true|false|null)\s+(?=")', r"\1, ", response)
 
         # 3. Fix missing commas between closing brace and next key
         response = re.sub(r'\}\s*\n?\s*"([^"]+)"\s*:', r'}, "\1":', response)
@@ -186,8 +184,7 @@ class JSONParser:
             logger.error(f"Failed to parse JSON response: {str(e)}")
             logger.error(f"Error location: Line {e.lineno}, Column {e.colno}")
             logger.error(f"Error details: {e.msg}")
-            logger.error(
-                f"Raw response (first 2000 chars):\n{response[:2000]}")
+            logger.error(f"Raw response (first 2000 chars):\n{response[:2000]}")
             if "cleaned" in locals():
                 logger.debug(
                     f"Cleaned response attempt (first 1000 chars):\n{cleaned[:1000]}"
@@ -230,8 +227,7 @@ class JSONParser:
                 f"Unexpected error during JSON parsing: {type(e).__name__}: {str(e)}"
             )
             if fallback_structure is not None:
-                logger.warning(
-                    "Using fallback structure due to unexpected error")
+                logger.warning("Using fallback structure due to unexpected error")
                 return (
                     fallback_structure.copy()
                     if hasattr(fallback_structure, "copy")
@@ -315,8 +311,7 @@ class TextProcessor:
             line_stripped = line.strip()
 
             # Check if this line matches any of our section headers
-            is_header = any(header in line_stripped.upper()
-                            for header in upper_headers)
+            is_header = any(header in line_stripped.upper() for header in upper_headers)
 
             # Additional check: header should be reasonably short and likely a standalone line or bold
             if is_header and len(line_stripped) < 50:

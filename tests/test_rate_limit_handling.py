@@ -36,7 +36,7 @@ async def test_ai_client_rate_limit(mock_completion, mock_get_settings):
             message="Rate limit exceeded",
             llm_provider="cerebras",
             response=mock_response,
-            model="cerebras/gpt-oss-120b"
+            model="cerebras/gpt-oss-120b",
         )
 
         # Test that rate limit error is properly handled (all providers fail)

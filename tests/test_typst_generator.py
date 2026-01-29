@@ -4,8 +4,6 @@ from app.services.resume.typst_generator import TypstGenerator
 import pytest
 import sys
 import os
-import json
-from pathlib import Path
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

@@ -1,9 +1,7 @@
 """Test enhanced error handling and debugging capabilities."""
 
 import pytest
-import json
-from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from app.utils.error_handler import (
     DetailedError,
     ErrorHandler,
