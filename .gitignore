@@ -219,4 +219,4 @@ personal_data.py
 # Docker volumes and data
 mongodb_data/
 n8n_data/
-docker-compose.override.yml
+docker-compose.override.yml.env.backup
