@@ -146,7 +146,11 @@ jobs:
 
       - name: Run Playwright E2E tests
         working-directory: frontend
-        run: npm run test:e2e:ci
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e:ci
+        env:
+          VITE_API_URL: http://localhost:8000
 
   docker-build:
     name: Docker Build Test
