@@ -1,0 +1,21 @@
+# Development overrides for docker-compose.yml
+# This file provides safe defaults for local development
+# DO NOT use in production - these defaults are not secure!
+#
+# To use: copy this file and modify values as needed for your local setup
+
+
+services:
+  # Override n8n with development-safe defaults
+  n8n:
+    environment:
+      # Safe development password (CHANGE THIS!)
+      - N8N_BASIC_AUTH_PASSWORD=dev-password-change-me
+      # Safe development encryption key (CHANGE THIS!)
+      - N8N_ENCRYPTION_KEY=dev-encryption-key-change-in-production-32-chars-minimum
+
+  # Override MongoDB with development-safe defaults
+  mongodb:
+    environment:
+      # Safe development password (CHANGE THIS!)
+      - MONGO_INITDB_ROOT_PASSWORD=dev-mongo-password-change-me
