@@ -23,6 +23,11 @@ class CVAnalyzer:
         Returns:
             dict: Analysis results with ATS score, keywords, gaps, etc.
         """
+        if not cv_text or not cv_text.strip():
+            raise ValueError("CV text cannot be empty")
+        if not jd_text or not jd_text.strip():
+            raise ValueError("Job description text cannot be empty")
+
         logger.info("Starting CV analysis")
 
         try:

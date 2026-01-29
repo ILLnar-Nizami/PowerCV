@@ -153,6 +153,14 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("LOG_FORMAT")
     )
 
+    # AI Model tiers configuration
+    fast_model: str = Field(default="gpt-oss-120b",
+                            validation_alias=AliasChoices("FAST_MODEL"))
+    balanced_model: str = Field(
+        default="gpt-oss-120b", validation_alias=AliasChoices("BALANCED_MODEL"))
+    quality_model: str = Field(
+        default="gpt-4", validation_alias=AliasChoices("QUALITY_MODEL"))
+
     # External services (n8n, SMTP)
     smtp_host: Optional[str] = Field(
         default=None, validation_alias=AliasChoices("SMTP_HOST"))
