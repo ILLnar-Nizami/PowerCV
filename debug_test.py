@@ -1,8 +1,12 @@
 """Debug script to inspect 500 error responses."""
-from app.main import app
+
+import sys
+
 from bson.objectid import ObjectId
 from fastapi.testclient import TestClient
-import sys
+
+from app.main import app
+
 sys.path.insert(0, "/home/illnar/Projects/PowerCV")
 
 

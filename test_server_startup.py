@@ -19,9 +19,7 @@ def test_imports():
         print(f" Settings loaded: {settings.app_name} v{settings.version}")
 
         # Test database connector
-        from app.database.connector import (
-            get_secure_mongodb_config,
-        )
+        from app.database.connector import get_secure_mongodb_config
 
         config = get_secure_mongodb_config()
         print(f" MongoDB config: {config['database']}")

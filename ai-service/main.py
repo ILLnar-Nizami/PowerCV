@@ -118,8 +118,8 @@ async def analyze_cv(request: AnalysisRequest):
 async def optimize_cv(request: OptimizationRequest):
     """Optimize CV for a job description."""
     try:
-        from .optimizers.cv import CVOptimizer
         from .analyzers.cv import CVAnalyzer
+        from .optimizers.cv import CVOptimizer
 
         optimizer = CVOptimizer()
         analyzer = CVAnalyzer()
