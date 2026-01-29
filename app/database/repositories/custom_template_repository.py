@@ -19,8 +19,14 @@ class CustomTemplateRepository(BaseRepository):
     """Repository for custom template database operations."""
 
     def __init__(self, db: AsyncIOMotorDatabase | None = None):
-        super().__init__(db)
-        self.collection_name = "custom_templates"
+        """Initialize the CustomTemplateRepository.
+
+        Args:
+            db: AsyncIOMotorDatabase instance (optional)
+        """
+        # Initialize with default database and collection names
+        super().__init__(db_name="powercv", collection_name="custom_templates")
+        self.db = db
 
     async def create_template(
         self, template_data: CustomTemplateCreate, user_id: str
@@ -29,10 +35,8 @@ class CustomTemplateRepository(BaseRepository):
         try:
             template = CustomTemplate(user_id=user_id, **template_data.model_dump())
 
-            result = await self.db[self.collection_name].insert_one(
-                template.model_dump()
-            )
-            template_id = str(result.inserted_id)
+            result = await self.insert_one(template.model_dump())
+            template_id = result
 
             logger.info(f"Created custom template: {template_id}")
             return template_id
@@ -44,9 +48,7 @@ class CustomTemplateRepository(BaseRepository):
     async def get_template(self, template_id: str) -> CustomTemplate | None:
         """Get a custom template by ID."""
         try:
-            doc = await self.db[self.collection_name].find_one(
-                {"_id": ObjectId(template_id)}
-            )
+            doc = await self.get_by_id(template_id)
             return CustomTemplate(**doc) if doc else None
 
         except Exception as e:
@@ -58,14 +60,9 @@ class CustomTemplateRepository(BaseRepository):
     ) -> List[CustomTemplate]:
         """Get all templates for a specific user."""
         try:
-            cursor = (
-                self.db[self.collection_name]
-                .find({"user_id": user_id})
-                .sort("created_at", -1)
-                .limit(limit)
+            docs = await self.find_many(
+                {"user_id": user_id}, sort=[("created_at", -1)], limit=limit
             )
-
-            docs = await cursor.to_list(length=limit)
             return [CustomTemplate(**doc) for doc in docs]
 
         except Exception as e:
@@ -75,14 +72,9 @@ class CustomTemplateRepository(BaseRepository):
     async def get_public_templates(self, limit: int = 100) -> List[CustomTemplate]:
         """Get all public templates."""
         try:
-            cursor = (
-                self.db[self.collection_name]
-                .find({"is_public": True})
-                .sort("download_count", -1)
-                .limit(limit)
+            docs = await self.find_many(
+                {"is_public": True}, sort=[("download_count", -1)], limit=limit
             )
-
-            docs = await cursor.to_list(length=limit)
             return [CustomTemplate(**doc) for doc in docs]
 
         except Exception as e:
@@ -97,11 +89,10 @@ class CustomTemplateRepository(BaseRepository):
             update_dict = update_data.model_dump(exclude_unset=True)
             update_dict["updated_at"] = datetime.utcnow()
 
-            result = await self.db[self.collection_name].update_one(
+            success = await self.update_one(
                 {"_id": ObjectId(template_id)}, {"$set": update_dict}
             )
 
-            success = result.modified_count > 0
             if success:
                 logger.info(f"Updated custom template: {template_id}")
 
@@ -114,11 +105,8 @@ class CustomTemplateRepository(BaseRepository):
     async def delete_template(self, template_id: str) -> bool:
         """Delete a custom template."""
         try:
-            result = await self.db[self.collection_name].delete_one(
-                {"_id": ObjectId(template_id)}
-            )
+            success = await self.delete_one({"_id": ObjectId(template_id)})
 
-            success = result.deleted_count > 0
             if success:
                 logger.info(f"Deleted custom template: {template_id}")
 
@@ -131,11 +119,10 @@ class CustomTemplateRepository(BaseRepository):
     async def increment_download_count(self, template_id: str) -> bool:
         """Increment the download count for a template."""
         try:
-            result = await self.db[self.collection_name].update_one(
+            success = await self.update_one(
                 {"_id": ObjectId(template_id)}, {"$inc": {"download_count": 1}}
             )
-
-            return result.modified_count > 0
+            return success
 
         except Exception as e:
             logger.error(f"Failed to increment download count for {template_id}: {e}")
@@ -155,14 +142,9 @@ class CustomTemplateRepository(BaseRepository):
                 "is_public": True,
             }
 
-            cursor = (
-                self.db[self.collection_name]
-                .find(search_filter)
-                .sort("rating", -1)
-                .limit(limit)
+            docs = await self.find_many(
+                search_filter, sort=[("rating", -1)], limit=limit
             )
-            docs = await cursor.to_list(length=limit)
-
             return [CustomTemplate(**doc) for doc in docs]
 
         except Exception as e:
