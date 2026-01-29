@@ -48,7 +48,6 @@ async def test_cv_analysis(sample_cv_text, sample_jd_text, mock_ai_response):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Fails with TypeError on await MagicMock, pending fix")
 async def test_full_workflow(sample_cv_text, sample_jd_text, mock_ai_response):
     """Test complete optimization workflow using fixtures."""
     from app.services.workflow_orchestrator import CVWorkflowOrchestrator
@@ -59,15 +58,16 @@ async def test_full_workflow(sample_cv_text, sample_jd_text, mock_ai_response):
         "app.services.workflow_orchestrator.CVOptimizer"
     ) as MockOptimizer:
 
-        mock_redis = MagicMock()
+        mock_redis = Mock()
         mock_redis.get = AsyncMock(return_value=None)
+        mock_redis.setex = AsyncMock(return_value=True)
         mock_get_redis.return_value = mock_redis
 
-        mock_analyzer = MagicMock()
+        mock_analyzer = Mock()
         mock_analyzer.analyze = AsyncMock(return_value=mock_ai_response)
         MockAnalyzer.return_value = mock_analyzer
 
-        mock_optimizer = MagicMock()
+        mock_optimizer = Mock()
         mock_optimizer.optimize_comprehensive = AsyncMock(
             return_value={
                 "optimized_resume": "Optimized content",
