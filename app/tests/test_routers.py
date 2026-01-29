@@ -242,9 +242,16 @@ def test_create_cl(override_deps, mock_cl_repo, mock_resume_repo):
         return_value={"original_content": "Resume Content"})
     mock_cl_repo.create_cover_letter = AsyncMock(return_value=str(ObjectId()))
 
+    # Mock Redis to avoid connection errors
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.setex = AsyncMock()
+
     # Mock CoverLetterData and CoverLetter to avoid validation errors
     with patch("app.api.routers.cover_letter.CoverLetterData") as MockCoverLetterData, \
-            patch("app.api.routers.cover_letter.CoverLetter") as MockCoverLetter:
+            patch("app.api.routers.cover_letter.CoverLetter") as MockCoverLetter, \
+            patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis), \
+            patch("app.services.ai_providers.get_redis", return_value=mock_redis):
         # Make CoverLetterData return a properly structured mock
         mock_data = MagicMock()
         mock_data.model_dump.return_value = {
@@ -346,6 +353,11 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
     mock_comp_optimizer.create_three_versions.return_value = {"versions": []}
     mock_comp_optimizer.iterative_improvement.return_value = {"improved": True}
 
+    # Mock Redis to avoid connection errors
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.setex = AsyncMock()
+
     # Mock the workflow orchestrator used by the master optimization endpoint
     with patch(
         "app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator"
@@ -355,6 +367,8 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
         "app.database.repositories.resume_repository.PostgresConnectionManager"
     ), patch(
         "app.database.repositories.base_repo.MongoConnectionManager"
+    ), patch(
+        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
     ):
         mock_instance = AsyncMock()
         mock_instance.optimize_cv_for_job = AsyncMock(return_value={
