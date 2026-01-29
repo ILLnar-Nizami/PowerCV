@@ -177,7 +177,8 @@ NICE TO HAVE:
 
         # Test with slight variation (should not be cached)
         user_message_variation = user_message.replace(
-            "Senior Machine Learning Engineer", "Lead Machine Learning Engineer"
+            "Senior Machine Learning Engineer",
+            "Lead Machine Learning Engineer",
         )
         start_time = time.time()
         result3 = await ai_client.chat_completion(system_prompt, user_message_variation)
