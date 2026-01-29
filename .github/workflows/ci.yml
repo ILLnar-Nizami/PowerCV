@@ -85,6 +85,13 @@ jobs:
           POSTGRES_DB: powercv_test
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
+          # AI Provider API Keys (placeholder values for CI)
+          CEREBRAS_API_KEY: test-cerebras-api-key-for-ci
+          CEREBRAS_API_BASE: https://api.cerebras.ai/v1
+          CEREBRAS_MODEL: gpt-oss-120b
+          OPENAI_API_KEY: test-openai-api-key-for-ci
+          OPENAI_API_BASE: https://api.openai.com/v1
+          DEEPSEEK_API_KEY: test-deepseek-api-key-for-ci
         run: |
           python -m scripts.init_postgres
           python -m pytest tests/ -v --cov=app --cov-report=xml

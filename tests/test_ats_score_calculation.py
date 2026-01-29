@@ -1,7 +1,7 @@
 """Test ATS score calculation functionality."""
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 
@@ -102,41 +102,49 @@ async def test_ats_score_calculation():
 
 @pytest.mark.asyncio
 async def test_ats_score_fallback():
-    """Test ATS score calculation with fallback when optimized analysis fails."""
+    """Test ATS score fallback when optimized analysis fails."""
     # Create mock analyzer
     mock_analyzer = MagicMock()
 
-    # First analysis (before optimization)
+    # First analysis (before optimization) - low score
     first_analysis = {
         "ats_score": 32,
         "keyword_analysis": {
-            "matched_keywords": [{"keyword": "Python"}],
-            "missing_critical": [{"keyword": "Kubernetes"}],
+            "matched_keywords": [{"keyword": "Python"}, {"keyword": "Teamwork"}],
+            "missing_critical": [
+                {"keyword": "Kubernetes"},
+                {"keyword": "Docker"},
+                {"keyword": "AWS"},
+            ],
         },
     }
 
-    # Second analysis fails - return empty (async)
-    mock_analyzer.analyze = AsyncMock(side_effect=[first_analysis, {}])
+    # Mock the analyzer to return first analysis (async)
+    mock_analyzer.analyze = AsyncMock(return_value=first_analysis)
 
-    # Create orchestrator with mocked analyzer
-    orchestrator = CVWorkflowOrchestrator()
-    orchestrator.analyzer = mock_analyzer
+    # Mock Redis to avoid async event loop issues
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)  # No cached result
+    mock_redis.setex = AsyncMock()  # Cache setting
 
-    # Mock optimizer (async)
-    mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = AsyncMock(
-        return_value={
-            "user_information": {"name": "Test Candidate", "email": "test@example.com"}
-        }
-    )
-    orchestrator.optimizer = mock_optimizer
+    # Create orchestrator with mocked dependencies
+    with patch('app.services.workflow_orchestrator.RedisClient', return_value=mock_redis):
+        orchestrator = CVWorkflowOrchestrator()
+        orchestrator.analyzer = mock_analyzer
 
-    # Test the optimization workflow
-    result = await orchestrator.optimize_cv_for_job(
-        cv_text="Original CV content",
-        jd_text="Job description text",
-        generate_cover_letter=False,
-    )
+        # Mock optimizer to raise exception (simulating failure)
+        mock_optimizer = MagicMock()
+        mock_optimizer.optimize_comprehensive = AsyncMock(
+            side_effect=Exception("Optimization failed")
+        )
+        orchestrator.optimizer = mock_optimizer
 
-    # Should fall back to original score when optimized analysis fails
-    assert result["ats_score"] == 32  # Should use the original score as fallback
+        # Test the optimization workflow
+        result = await orchestrator.optimize_cv_for_job(
+            cv_text="Original CV content",
+            jd_text="Job description text",
+            generate_cover_letter=False,
+        )
+
+        # Should fall back to original score when optimized analysis fails
+        assert result["ats_score"] == 32  # Should use the original score as fallback

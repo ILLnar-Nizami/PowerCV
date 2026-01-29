@@ -1,11 +1,11 @@
-"""Test rate limit handling functionality."""
+"""Test rate limiting and fallback behavior."""
 
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from app.services.ai_providers import AIClient
+import requests
+from unittest.mock import MagicMock, AsyncMock, patch
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.services.cover_letter_gen import CoverLetterGenerator
-import requests.exceptions
+from app.services.ai_client import AIProviderClients
 
 
 @pytest.mark.asyncio
@@ -53,46 +53,52 @@ async def test_ai_client_rate_limit(mock_completion, mock_get_settings):
 @pytest.mark.asyncio
 async def test_workflow_orchestrator_rate_limit_fallback():
     """Test workflow orchestrator falls back gracefully on rate limit."""
-    # Create orchestrator
-    orchestrator = CVWorkflowOrchestrator()
+    # Mock Redis to avoid caching issues
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)  # No cached result
+    mock_redis.setex = AsyncMock()  # Cache setting
 
-    # Mock analyzer to raise rate limit error on second call
-    mock_analyzer = MagicMock()
-    first_analysis = {
-        "ats_score": 32,
-        "keyword_analysis": {
-            "matched_keywords": [{"keyword": "Python"}],
-            "missing_critical": [{"keyword": "Kubernetes"}],
-        },
-    }
-    mock_analyzer.analyze = AsyncMock(
-        side_effect=[
-            first_analysis,  # First call succeeds
-            requests.exceptions.RequestException(
-                "rate limit exceeded"
-            ),  # Second call fails
-        ]
-    )
-    orchestrator.analyzer = mock_analyzer
+    # Create orchestrator with mocked Redis
+    with patch('app.services.workflow_orchestrator.RedisClient', return_value=mock_redis):
+        orchestrator = CVWorkflowOrchestrator()
 
-    # Mock optimizer (async)
-    mock_optimizer = MagicMock()
-    mock_optimizer.optimize_comprehensive = AsyncMock(
-        return_value={
-            "user_information": {"name": "Test Candidate", "email": "test@example.com"}
+        # Mock analyzer to raise rate limit error on second call
+        mock_analyzer = MagicMock()
+        first_analysis = {
+            "ats_score": 32,
+            "keyword_analysis": {
+                "matched_keywords": [{"keyword": "Python"}],
+                "missing_critical": [{"keyword": "Kubernetes"}],
+            },
         }
-    )
-    orchestrator.optimizer = mock_optimizer
+        mock_analyzer.analyze = AsyncMock(
+            side_effect=[
+                first_analysis,  # First call succeeds
+                requests.exceptions.RequestException(
+                    "rate limit exceeded"
+                ),  # Second call fails
+            ]
+        )
+        orchestrator.analyzer = mock_analyzer
 
-    # Test that workflow completes despite rate limit
-    result = await orchestrator.optimize_cv_for_job(
-        cv_text="Original CV content",
-        jd_text="Job description text",
-        generate_cover_letter=False,
-    )
+        # Mock optimizer (async)
+        mock_optimizer = MagicMock()
+        mock_optimizer.optimize_comprehensive = AsyncMock(
+            return_value={
+                "user_information": {"name": "Test Candidate", "email": "test@example.com"}
+            }
+        )
+        orchestrator.optimizer = mock_optimizer
 
-    # Should use original score when rate limited
-    assert result["ats_score"] == 32
+        # Test that workflow completes despite rate limit
+        result = await orchestrator.optimize_cv_for_job(
+            cv_text="Original CV content",
+            jd_text="Job description text",
+            generate_cover_letter=False,
+        )
+
+        # Should use original score when rate limited
+        assert result["ats_score"] == 32
 
 
 @pytest.mark.asyncio
