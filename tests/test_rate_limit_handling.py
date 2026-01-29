@@ -25,7 +25,7 @@ async def test_ai_client_rate_limit(mock_completion, mock_get_settings):
         mock_get_redis.return_value = mock_redis
 
         # Create AI client
-        client = AIClient("cerebras")
+        client = AIProviderClients("cerebras")
 
         # Mock completion to raise RateLimitError
         from litellm import exceptions
