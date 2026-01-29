@@ -208,8 +208,8 @@ async def upload_master_cv(
             file_size=file.size,
             file_type=file.content_type,
             tags=tag_list,
-            created_at=master_cv_data["created_at"],
-            updated_at=master_cv_data["updated_at"],
+            created_at=cast(datetime, master_cv_data["created_at"]),
+            updated_at=cast(datetime, master_cv_data["updated_at"]),
             is_active=False,
             usage_count=0,
         )

@@ -133,8 +133,8 @@ class LinkedInScraper(JobDescriptionScraper):
         """Extract company name from LinkedIn page."""
         # Try to find company name
         company_selectors = [
-            ("a", {"class": lambda x: x and "company" in str(x).lower()}),
-            ("span", {"class": lambda x: x and "company" in str(x).lower()}),
+            ("a", {"class": _class_contains("company")}),
+            ("span", {"class": _class_contains("company")}),
         ]
 
         for tag, attrs in company_selectors:
@@ -244,7 +244,7 @@ class IndeedScraper(JobDescriptionScraper):
 
         og_title = soup.find("meta", {"property": "og:title"})
         if og_title:
-            return self._clean_text(og_title.get("content", ""))
+            return self._clean_text(str(og_title.get("content", "") or ""))
 
         return ""
 
