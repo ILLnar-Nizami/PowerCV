@@ -7,11 +7,9 @@ This script migrates data from MongoDB to PostgreSQL for the PowerCV application
 
 import asyncio
 import logging
-from typing import Dict, List
 
 from app.config import get_settings
 from app.database.connector import MongoConnectionManager, PostgresConnectionManager
-from app.database.models.resume import Resume
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

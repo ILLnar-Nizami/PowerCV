@@ -322,7 +322,7 @@ class ModelRouter:
             {job_description[:1200]}
 
             Original Skills section:
-            {kwargs.get('content', '')}
+            {kwargs.get("content", "")}
 
             OUTPUT:
             Return ONLY valid JSON: {{"hard_skills": [...], "soft_skills": [...]}}.

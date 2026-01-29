@@ -1,6 +1,5 @@
 """Test JSON repair logic."""
 
-import pytest
 from app.utils.shared_utils import JSONParser
 
 

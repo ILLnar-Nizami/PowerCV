@@ -212,7 +212,7 @@ class UltraFastResumeOptimizer:
             prompt = f"""Rewrite this professional profile summary to align with these keywords: {keywords_str}.
             Write in FIRST PERSON using "I", "my", "me" (NOT third person).
             Use strong "Power Verbs". Keep it punchy (3-4 sentences).
-            Current: {content.get('profile_description', '')}
+            Current: {content.get("profile_description", "")}
             
             Return ONLY the rewritten text.
             """

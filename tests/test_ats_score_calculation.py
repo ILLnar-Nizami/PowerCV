@@ -1,9 +1,8 @@
 """Test ATS score calculation functionality."""
 
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-from app.services.cv_analyzer import CVAnalyzer
 
 
 @pytest.mark.asyncio

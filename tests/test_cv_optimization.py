@@ -1,6 +1,5 @@
 """Test CV optimization quality and data preservation."""
 
-import pytest
 from app.services.cv_validator import CVValidator
 
 

@@ -49,8 +49,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-cover_letter_router = APIRouter(
-    prefix="/api/cover-letter", tags=["Cover Letter"])
+cover_letter_router = APIRouter(prefix="/api/cover-letter", tags=["Cover Letter"])
 
 
 def get_ai_generator() -> AICoverLetterGenerator:
@@ -116,8 +115,7 @@ async def generate_cover_letter_with_ai(
         )
 
     except Exception as e:
-        logger.error(
-            f"AI cover letter generation failed: {str(e)}", exc_info=True)
+        logger.error(f"AI cover letter generation failed: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate cover letter: {str(e)}",
@@ -256,8 +254,7 @@ async def generate_cover_letter(
             )
 
         # Create CoverLetterData from existing data and new content
-        existing_content_data = CoverLetterData(
-            **cover_letter.get("content_data", {}))
+        existing_content_data = CoverLetterData(**cover_letter.get("content_data", {}))
 
         # Update with new generation data
         existing_content_data.introduction = generation_data.introduction
@@ -277,8 +274,7 @@ async def generate_cover_letter(
             )
 
         # Generate formatted content using template generator
-        template_name = cover_letter.get(
-            "template_name", "professional_template")
+        template_name = cover_letter.get("template_name", "professional_template")
         generated_content = template_generator.generate_cover_letter(
             existing_content_data, template_name
         )
@@ -561,13 +557,7 @@ async def download_cover_letter_pdf(
     company = cover_letter.get("target_company", "Company")
     role = cover_letter.get("target_role", "Role")
 
-    filename = generate_filename(
-        "cl",
-        first_name,
-        last_name,
-        company,
-        role
-    )
+    filename = generate_filename("cl", first_name, last_name, company, role)
     return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
 
 
@@ -712,8 +702,7 @@ async def preview_cover_letter(
             )
 
         content_data = CoverLetterData(**cover_letter.get("content_data", {}))
-        template_name = cover_letter.get(
-            "template_name", "professional_template")
+        template_name = cover_letter.get("template_name", "professional_template")
 
         template_generator = CoverLetterTemplateGenerator()
         preview_info = template_generator.preview_cover_letter(

@@ -35,8 +35,7 @@ class CerebrasClient:
 
         if not self.api_key:
             raise ValueError(
-                "CEREBRAS_API_KEY not found. "
-                "Set it in .env file or pass as parameter."
+                "CEREBRAS_API_KEY not found. Set it in .env file or pass as parameter."
             )
 
         logger.info(f"Initialized Cerebras client with model: {self.model}")
