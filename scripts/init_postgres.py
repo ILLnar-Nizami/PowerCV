@@ -8,7 +8,7 @@ This script creates the necessary tables for the PowerCV application in PostgreS
 import asyncio
 import logging
 
-from app.config import get_settings
+from app.config.settings import get_settings
 from app.database.connector import PostgresConnectionManager
 
 # Set up logging
