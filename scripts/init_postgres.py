@@ -36,8 +36,7 @@ async def create_tables():
         conn = await postgres_manager.get_connection()
         try:
             # Create users table
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id VARCHAR(255) PRIMARY KEY,
                     email VARCHAR(255) UNIQUE,
@@ -46,12 +45,10 @@ async def create_tables():
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 )
-                """
-            )
+                """)
 
             # Create resumes table
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS resumes (
                     id VARCHAR(255) PRIMARY KEY,
                     user_id VARCHAR(255) NOT NULL REFERENCES users(id),
@@ -68,8 +65,7 @@ async def create_tables():
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 )
-                """
-            )
+                """)
 
             # Create index on user_id for faster queries
             await conn.execute(
