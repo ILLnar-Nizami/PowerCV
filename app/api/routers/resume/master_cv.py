@@ -8,7 +8,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -164,12 +164,16 @@ async def upload_master_cv(
     try:
         logger.info(f"Uploading master CV for user {user_id}")
         validate_master_cv_file(file)
-        content = await file.read()
+        raw = await file.read()
         _, safe_filename, _ = await file_validator.validate_upload(file)
-        file_path = store_file_securely(content, safe_filename, user_id)
+        file_path = store_file_securely(raw, safe_filename, user_id)
 
         file_extension = Path(file.filename).suffix.lower() or ".txt"
         content = extract_text_from_file(str(file_path), file_extension)
+
+        # Ensure we provide a str to Pydantic
+        if isinstance(content, (bytes, bytearray)):
+            content = content.decode("utf-8", errors="ignore")
 
         tag_list = (
             [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
@@ -252,8 +256,12 @@ async def get_master_cvs(
                     file_size=master_cv.get("file_size"),
                     file_type=master_cv.get("file_type"),
                     tags=master_cv.get("tags"),
-                    created_at=master_cv.get("created_at", datetime.utcnow()),
-                    updated_at=master_cv.get("updated_at", datetime.utcnow()),
+                    created_at=cast(
+                        datetime, master_cv.get("created_at", datetime.utcnow())
+                    ),
+                    updated_at=cast(
+                        datetime, master_cv.get("updated_at", datetime.utcnow())
+                    ),
                     is_active=master_cv.get("is_active", False),
                     usage_count=master_cv.get("usage_count", 0),
                 )
@@ -294,11 +302,15 @@ async def get_master_cv(
         file_size = master_cv.get("file_size") or getattr(master_cv, "file_size", None)
         file_type = master_cv.get("file_type") or getattr(master_cv, "file_type", None)
         tags = master_cv.get("tags") or getattr(master_cv, "tags", None)
-        created_at = master_cv.get("created_at") or getattr(
-            master_cv, "created_at", datetime.utcnow()
+        created_at = cast(
+            datetime,
+            master_cv.get("created_at")
+            or getattr(master_cv, "created_at", datetime.utcnow()),
         )
-        updated_at = master_cv.get("updated_at") or getattr(
-            master_cv, "updated_at", datetime.utcnow()
+        updated_at = cast(
+            datetime,
+            master_cv.get("updated_at")
+            or getattr(master_cv, "updated_at", datetime.utcnow()),
         )
         is_active = master_cv.get("is_active") or getattr(master_cv, "is_active", False)
         usage_count = master_cv.get("usage_count") or getattr(
@@ -351,16 +363,20 @@ async def replace_master_cv(
             )
 
         validate_master_cv_file(file)
-        content = await file.read()
+        raw = await file.read()
         _, safe_filename, _ = await file_validator.validate_upload(file)
 
         user_id = existing_master_cv.get("user_id") or getattr(
             existing_master_cv, "user_id"
         )
-        file_path = store_file_securely(content, safe_filename, user_id)
+        file_path = store_file_securely(raw, safe_filename, user_id)
 
         file_extension = Path(file.filename).suffix.lower() or ".txt"
         content = extract_text_from_file(str(file_path), file_extension)
+
+        # Ensure we provide a str to Pydantic
+        if isinstance(content, (bytes, bytearray)):
+            content = content.decode("utf-8", errors="ignore")
 
         tag_list = (
             [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
@@ -404,11 +420,15 @@ async def replace_master_cv(
         final_file_size = file.size
         final_file_type = file.content_type
         final_tags = tag_list
-        created_at = updated_master_cv.get("created_at") or getattr(
-            updated_master_cv, "created_at", datetime.utcnow()
+        created_at = cast(
+            datetime,
+            updated_master_cv.get("created_at")
+            or getattr(updated_master_cv, "created_at", datetime.utcnow()),
         )
-        updated_at = updated_master_cv.get("updated_at") or getattr(
-            updated_master_cv, "updated_at", datetime.utcnow()
+        updated_at = cast(
+            datetime,
+            updated_master_cv.get("updated_at")
+            or getattr(updated_master_cv, "updated_at", datetime.utcnow()),
         )
         is_active = updated_master_cv.get("is_active") or getattr(
             updated_master_cv, "is_active", False

@@ -173,9 +173,9 @@ def get_template_categories() -> List[str]:
     Returns:
         List[str]: List of categories
     """
-    categories = set()
+    categories: set[str] = set()
     for template in BUILTIN_TEMPLATES.values():
-        categories.add(template["category"])
+        categories.add(str(template["category"]))
     return sorted(list(categories))
 
 
@@ -286,21 +286,35 @@ async def get_templates(
                 for custom_template in custom_templates:
                     template = TemplateResponse(
                         id=f"custom_{custom_template.id}",
-                        name=custom_template.name,
-                        description=custom_template.description
+                        name=str(custom_template.name),
+                        description=str(custom_template.description)
                         or f"Custom template by user {custom_template.user_id}",
-                        category=custom_template.category,
+                        category=str(custom_template.category),
                         style="custom",
                         is_custom=True,
                         template_data={
                             "file_path": f"custom_{custom_template.id}",
-                            "content": custom_template.typst_content,
-                            "variables": custom_template.variables,
+                            "content": str(custom_template.typst_content),
+                            "variables": (
+                                list(custom_template.variables)
+                                if custom_template.variables is not None
+                                else []
+                            ),
                         },
-                        preview_image=custom_template.preview_image,
-                        download_count=custom_template.download_count,
-                        created_at=custom_template.created_at,
-                        updated_at=custom_template.updated_at,
+                        preview_image=(
+                            str(custom_template.preview_image)
+                            if custom_template.preview_image
+                            else None
+                        ),
+                        download_count=int(
+                            getattr(custom_template, "download_count", 0)
+                        ),
+                        created_at=getattr(
+                            custom_template, "created_at", datetime.utcnow()
+                        ),
+                        updated_at=getattr(
+                            custom_template, "updated_at", datetime.utcnow()
+                        ),
                     )
                     templates.append(template)
 
@@ -381,20 +395,34 @@ async def get_template_by_id(
                 if custom_template:
                     return TemplateResponse(
                         id=template_id,
-                        name=custom_template.name,
-                        description=custom_template.description,
-                        category=custom_template.category,
+                        name=str(custom_template.name),
+                        description=str(custom_template.description),
+                        category=str(custom_template.category),
                         style="custom",
                         is_custom=True,
                         template_data={
                             "file_path": f"custom_{custom_template.id}",
-                            "content": custom_template.typst_content,
-                            "variables": custom_template.variables,
+                            "content": str(custom_template.typst_content),
+                            "variables": (
+                                list(custom_template.variables)
+                                if custom_template.variables is not None
+                                else []
+                            ),
                         },
-                        preview_image=custom_template.preview_image,
-                        download_count=custom_template.download_count,
-                        created_at=custom_template.created_at,
-                        updated_at=custom_template.updated_at,
+                        preview_image=(
+                            str(custom_template.preview_image)
+                            if custom_template.preview_image
+                            else None
+                        ),
+                        download_count=int(
+                            getattr(custom_template, "download_count", 0)
+                        ),
+                        created_at=getattr(
+                            custom_template, "created_at", datetime.utcnow()
+                        ),
+                        updated_at=getattr(
+                            custom_template, "updated_at", datetime.utcnow()
+                        ),
                     )
 
             except Exception as e:

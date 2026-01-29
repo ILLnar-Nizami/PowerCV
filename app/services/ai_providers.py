@@ -63,7 +63,7 @@ class AIProviderClient:
         self.api_key = getattr(settings, config["key"].lower(), None)
 
         if not self.api_key:
-            raise MissingApiKeyError(config["key"], self.provider)
+            raise MissingApiKeyError(str(config["key"]), str(self.provider))
 
         logger.info(f"Initialized AI client: {self.provider} ({self.model})")
 

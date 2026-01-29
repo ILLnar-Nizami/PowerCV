@@ -7,13 +7,22 @@ including LinkedIn, Indeed, Glassdoor, and company career pages.
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Callable, Dict, List, Optional
 from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+
+
+def _class_contains(substring: str) -> Callable[[Optional[str]], bool]:
+    """Helper function to create a class checker for BeautifulSoup."""
+
+    def _checker(value: Optional[str]) -> bool:
+        return bool(value and substring in str(value).lower())
+
+    return _checker
 
 
 class JobDescriptionScraper(ABC):
@@ -100,7 +109,7 @@ class LinkedInScraper(JobDescriptionScraper):
         # Fallback to meta description
         meta_desc = soup.find("meta", {"name": "description"})
         if meta_desc:
-            return self._clean_text(meta_desc.get("content", ""))
+            return self._clean_text(str(meta_desc.get("content", "") or ""))
 
         return ""
 
@@ -108,7 +117,7 @@ class LinkedInScraper(JobDescriptionScraper):
         """Extract job title from LinkedIn page."""
         # Try multiple selectors
         selectors = [
-            ("h1", {"class": lambda x: x and "top-card" in str(x).lower()}),
+            ("h1", {"class": _class_contains("top-card")}),
             ("h1", {"class": "top-card__job-title"}),
             ("h1", {}),
         ]
@@ -223,7 +232,7 @@ class IndeedScraper(JobDescriptionScraper):
 
         meta_desc = soup.find("meta", {"name": "description"})
         if meta_desc:
-            return self._clean_text(meta_desc.get("content", ""))
+            return self._clean_text(str(meta_desc.get("content", "") or ""))
 
         return ""
 

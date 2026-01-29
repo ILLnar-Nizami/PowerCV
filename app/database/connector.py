@@ -9,7 +9,7 @@ safe database operations.
 import logging
 import re
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import asyncpg
 import motor.motor_asyncio
@@ -63,7 +63,7 @@ class MongoConnectionManager:
     # Determine if TLS should be enabled
     USE_TLS = "mongodb+srv" in MONGODB_URI
 
-    MONGO_CONFIG = {
+    MONGO_CONFIG: Dict[str, Any] = {
         "maxPoolSize": 10,  # Reduced for security
         "minPoolSize": 1,
         "maxIdleTimeMS": 30000,  # Reduced idle time
