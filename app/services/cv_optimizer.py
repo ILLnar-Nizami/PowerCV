@@ -113,7 +113,9 @@ class CVOptimizer:
                 "email": email,
                 "phone": "",
                 "address": "",
-                "profile_description": "Experienced professional with technical expertise.",
+                "profile_description": (
+                    "Experienced professional with technical expertise."
+                ),
                 "skills": {"hard_skills": [], "soft_skills": []},
                 "experiences": [],
                 "education": [],
@@ -164,7 +166,9 @@ class CVOptimizer:
                 "email": email,
                 "phone": "",
                 "address": "",
-                "profile_description": "Experienced professional with technical expertise.",
+                "profile_description": (
+                    "Experienced professional with technical expertise."
+                ),
                 "skills": {"hard_skills": [], "soft_skills": []},
                 "experiences": [],
                 "education": [],

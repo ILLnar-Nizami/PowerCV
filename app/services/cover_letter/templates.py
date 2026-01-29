@@ -34,8 +34,11 @@ class CoverLetterTemplates:
             "professional_template": {
                 "name": "professional_template",
                 "display_name": "Professional",
-                "description": "Classic professional template suitable for most applications",
-                "template": """{sender_info}
+                "description": (
+                    "Classic professional template suitable for most applications"
+                ),
+                "template": (
+                    """{sender_info}
 {date}
 
 {recipient_info}
@@ -50,13 +53,17 @@ Dear {recipient_salutation},
 
 {closing}
 
-{signature}""",
+{signature}"""
+                ),
             },
             "modern_template": {
                 "name": "modern_template",
                 "display_name": "Modern",
-                "description": "Contemporary design with clean layout and concise formatting",
-                "template": """{sender_info}
+                "description": (
+                    "Contemporary design with clean layout and concise formatting"
+                ),
+                "template": (
+                    """{sender_info}
 {date}
 
 {recipient_info}
@@ -71,13 +78,15 @@ Dear {recipient_salutation},
 
 {closing}
 
-{signature}""",
+{signature}"""
+                ),
             },
             "creative_template": {
                 "name": "creative_template",
                 "display_name": "Creative",
                 "description": "More expressive template for creative industries",
-                "template": """{sender_info}
+                "template": (
+                    """{sender_info}
 {date}
 
 {recipient_info}
@@ -92,13 +101,15 @@ Dear {recipient_salutation},
 
 {closing}
 
-{signature}""",
+{signature}"""
+                ),
             },
             "executive_template": {
                 "name": "executive_template",
                 "display_name": "Executive",
                 "description": "Formal template for senior-level positions",
-                "template": """{sender_info}
+                "template": (
+                    """{sender_info}
 {date}
 
 {recipient_info}
@@ -115,7 +126,8 @@ Dear {recipient_salutation},
 
 Respectfully,
 
-{signature}""",
+{signature}"""
+                ),
             },
         }
 

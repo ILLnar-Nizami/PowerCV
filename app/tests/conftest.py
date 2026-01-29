@@ -249,7 +249,9 @@ def mock_scraper_response() -> Dict[str, Any]:
         "location": "Amsterdam, Netherlands",
         "description": "We are looking for a Senior Python Developer...",
         "source": "linkedin",
-        "url": "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456",
+        "url": (
+            "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456"
+        ),
     }
 
 
@@ -278,7 +280,8 @@ def mock_ai_client_async(mock_ai_response):
 def mock_cover_letter_response():
     """Mock cover letter generation response."""
     return {
-        "cover_letter": """Dear Hiring Manager,
+        "cover_letter": (
+            """Dear Hiring Manager,
 
 I am writing to express my strong interest in the Senior Python Developer position at TechCorp International. With over 5 years of experience in Python development and a proven track record of building scalable microservices architectures, I am confident in my ability to contribute meaningfully to your team.
 
@@ -287,7 +290,8 @@ My experience includes leading the development of high-performance systems using
 I am excited about the opportunity to bring my technical expertise and leadership skills to TechCorp and contribute to your continued success.
 
 Sincerely,
-John Doe""",
+John Doe"""
+        ),
         "word_count": 120,
         "tone": "Professional",
     }

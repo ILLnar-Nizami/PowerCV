@@ -349,7 +349,9 @@ Process the following resume to align with the provided job description. The goa
 
                     # No valid JSON found in the response
                     return {
-                        "error": f"Could not extract valid JSON from response: {content[:100]}..."
+                        "error": (
+                            f"Could not extract valid JSON from response: {content[:100]}..."
+                        )
                     }
             except Exception as e:
                 return {

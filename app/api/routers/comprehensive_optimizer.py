@@ -138,7 +138,9 @@ async def master_optimization(
         )
         return {
             "resume_id": resume_id,
-            "optimized_resume": "Resume optimized successfully",  # Keep for compatibility
+            "optimized_resume": (
+                "Resume optimized successfully"
+            ),  # Keep for compatibility
             "ats_score": result["ats_score"],
             "matching_skills": result["matching_skills"],
             "missing_skills": result["missing_skills"],

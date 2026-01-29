@@ -257,7 +257,9 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": "Internal server error",
-            "detail": "An unexpected error occurred. Please contact support if this persists.",
+            "detail": (
+                "An unexpected error occurred. Please contact support if this persists."
+            ),
         },
     )
 

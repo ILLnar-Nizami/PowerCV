@@ -140,14 +140,18 @@ def mock_scraper_response():
         "title": "Senior Python Developer",
         "company": "TechCorp International",
         "location": "Amsterdam, Netherlands",
-        "description": """We are looking for a Senior Python Developer...
+        "description": (
+            """We are looking for a Senior Python Developer...
 
 Requirements:
 - Python experience
 - Django or FastAPI
-- PostgreSQL knowledge""",
+- PostgreSQL knowledge"""
+        ),
         "source": "linkedin",
-        "url": "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456",
+        "url": (
+            "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456"
+        ),
     }
 
 
@@ -426,7 +430,9 @@ class TestCoverLetterGenerator:
     async def test_generate_returns_dict(self, mock_ai_response: Dict[str, Any]):
         """Test that cover letter generator returns dictionary."""
         mock_cover_response = {
-            "cover_letter": "Dear Hiring Manager,\n\nI am writing to express my interest...",
+            "cover_letter": (
+                "Dear Hiring Manager,\n\nI am writing to express my interest..."
+            ),
             "word_count": 250,
             "tone": "Professional",
         }
@@ -500,15 +506,12 @@ class TestWorkflowOrchestrator:
     ):
         """Test that optimization workflow returns complete structure."""
         # Mock all dependencies
-        with patch(
-            "app.services.workflow_orchestrator.get_redis"
-        ) as MockGetRedis, patch(
-            "app.services.workflow_orchestrator.CVAnalyzer"
-        ) as MockAnalyzer, patch(
-            "app.services.workflow_orchestrator.CVOptimizer"
-        ) as MockOptimizer, patch(
-            "app.services.workflow_orchestrator.CoverLetterGenerator"
-        ) as MockGen:
+        with (
+            patch("app.services.workflow_orchestrator.get_redis") as MockGetRedis,
+            patch("app.services.workflow_orchestrator.CVAnalyzer") as MockAnalyzer,
+            patch("app.services.workflow_orchestrator.CVOptimizer") as MockOptimizer,
+            patch("app.services.workflow_orchestrator.CoverLetterGenerator") as MockGen,
+        ):
 
             mock_redis = AsyncMock()
             mock_redis.get.return_value = None
@@ -558,13 +561,11 @@ class TestWorkflowOrchestrator:
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test workflow without cover letter generation."""
-        with patch(
-            "app.services.workflow_orchestrator.get_redis"
-        ) as MockGetRedis, patch(
-            "app.services.workflow_orchestrator.CVAnalyzer"
-        ) as MockAnalyzer, patch(
-            "app.services.workflow_orchestrator.CVOptimizer"
-        ) as MockOptimizer:
+        with (
+            patch("app.services.workflow_orchestrator.get_redis") as MockGetRedis,
+            patch("app.services.workflow_orchestrator.CVAnalyzer") as MockAnalyzer,
+            patch("app.services.workflow_orchestrator.CVOptimizer") as MockOptimizer,
+        ):
 
             mock_redis = AsyncMock()
             mock_redis.get.return_value = None

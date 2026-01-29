@@ -98,7 +98,9 @@ class TemplateListResponse(BaseModel):
 BUILTIN_TEMPLATES = {
     "professional": {
         "name": "Professional",
-        "description": "Clean, professional template suitable for corporate environments",
+        "description": (
+            "Clean, professional template suitable for corporate environments"
+        ),
         "category": "business",
         "style": "formal",
         "is_custom": False,

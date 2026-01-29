@@ -189,10 +189,18 @@ Be optimistic - consider transferable skills and relevant experience. Return ONL
             Optimized section text
         """
         section_prompts = {
-            "summary": "Write a compelling professional summary that highlights relevant experience and skills for this position.",
-            "experience": "Rewrite these bullet points to be more impactful and results-oriented, using action verbs and quantifiable achievements.",
-            "skills": "Optimize this skills section to align with the job requirements and include relevant keywords.",
-            "general": "Optimize this section to better match the job requirements and stand out to recruiters.",
+            "summary": (
+                "Write a compelling professional summary that highlights relevant experience and skills for this position."
+            ),
+            "experience": (
+                "Rewrite these bullet points to be more impactful and results-oriented, using action verbs and quantifiable achievements."
+            ),
+            "skills": (
+                "Optimize this skills section to align with the job requirements and include relevant keywords."
+            ),
+            "general": (
+                "Optimize this section to better match the job requirements and stand out to recruiters."
+            ),
         }
 
         instruction = section_prompts.get(section_type, section_prompts["general"])

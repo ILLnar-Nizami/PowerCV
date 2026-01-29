@@ -46,7 +46,9 @@ class LinkedInScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -175,7 +177,9 @@ class IndeedScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -288,7 +292,9 @@ class GenericScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:

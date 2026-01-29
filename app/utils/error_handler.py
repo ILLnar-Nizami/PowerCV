@@ -161,9 +161,8 @@ def debug_endpoint(func):
                 debug_info = {
                     "debug": {
                         "execution_time_ms": (
-                            datetime.utcnow() - start_time
-                        ).total_seconds()
-                        * 1000,
+                            (datetime.utcnow() - start_time).total_seconds() * 1000
+                        ),
                         "timestamp": start_time.isoformat(),
                         "function": func.__name__,
                     }
@@ -180,9 +179,8 @@ def debug_endpoint(func):
                 {
                     "function": func.__name__,
                     "execution_time_ms": (
-                        datetime.utcnow() - start_time
-                    ).total_seconds()
-                    * 1000,
+                        (datetime.utcnow() - start_time).total_seconds() * 1000
+                    ),
                     "args_count": len(args),
                     "kwargs_keys": list(kwargs.keys()),
                 },

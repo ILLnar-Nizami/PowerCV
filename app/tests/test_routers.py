@@ -86,18 +86,21 @@ def override_deps(mock_resume_repo, mock_cl_repo, mock_comp_optimizer, mock_ai_g
 # @pytest.mark.skip(reason="Test needs refactoring for correct endpoint and mocking")
 def test_resume_upload(override_deps, mock_resume_repo):
     mock_resume_repo.create_master_cv = AsyncMock(return_value=str(ObjectId()))
-    with patch(
-        "app.services.file_validator.SecureFileValidator.validate_upload",
-        AsyncMock(return_value=(b"t", "t.pdf", "h")),
-    ), patch(
-        "app.services.file_validator.store_file_securely",
-        AsyncMock(return_value="/t.pdf"),
-    ), patch(
-        "app.utils.file_handling.extract_text_from_file",
-        AsyncMock(side_effect=lambda *args, **kwargs: "E"),
-    ), patch(
-        "app.services.master_cv.MasterCV"
-    ) as mock_master_cv:
+    with (
+        patch(
+            "app.services.file_validator.SecureFileValidator.validate_upload",
+            AsyncMock(return_value=(b"t", "t.pdf", "h")),
+        ),
+        patch(
+            "app.services.file_validator.store_file_securely",
+            AsyncMock(return_value="/t.pdf"),
+        ),
+        patch(
+            "app.utils.file_handling.extract_text_from_file",
+            AsyncMock(side_effect=lambda *args, **kwargs: "E"),
+        ),
+        patch("app.services.master_cv.MasterCV") as mock_master_cv,
+    ):
         mock_master_cv.return_value.extract_text_from_uploaded_file = AsyncMock(
             return_value="Extracted text"
         )
@@ -196,13 +199,13 @@ def test_score_optimize(override_deps, mock_resume_repo):
         }
     )
     mock_resume_repo.create_resume = AsyncMock(return_value=str(ObjectId()))
-    with patch("app.services.cv_analyzer.CVAnalyzer") as a, patch(
-        "app.services.workflow_orchestrator.CVWorkflowOrchestrator"
-    ) as o, patch.dict("os.environ", {"API_BASE": "http://m"}), patch(
-        "app.database.repositories.resume_repository.PostgresConnectionManager"
-    ), patch(
-        "app.services.master_cv.MasterCV"
-    ) as MockMasterCV:
+    with (
+        patch("app.services.cv_analyzer.CVAnalyzer") as a,
+        patch("app.services.workflow_orchestrator.CVWorkflowOrchestrator") as o,
+        patch.dict("os.environ", {"API_BASE": "http://m"}),
+        patch("app.database.repositories.resume_repository.PostgresConnectionManager"),
+        patch("app.services.master_cv.MasterCV") as MockMasterCV,
+    ):
         mock_analyzer = AsyncMock()
         mock_analyzer.analyze = AsyncMock(
             return_value={"ats_score": 80, "matching_skills": []}
@@ -275,14 +278,11 @@ def test_create_cl(override_deps, mock_cl_repo, mock_resume_repo):
     mock_redis.setex = AsyncMock()
 
     # Mock CoverLetterData and CoverLetter to avoid validation errors
-    with patch(
-        "app.api.routers.cover_letter.CoverLetterData"
-    ) as MockCoverLetterData, patch(
-        "app.api.routers.cover_letter.CoverLetter"
-    ) as MockCoverLetter, patch(
-        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.ai_providers.get_redis", return_value=mock_redis
+    with (
+        patch("app.api.routers.cover_letter.CoverLetterData") as MockCoverLetterData,
+        patch("app.api.routers.cover_letter.CoverLetter") as MockCoverLetter,
+        patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis),
+        patch("app.services.ai_providers.get_redis", return_value=mock_redis),
     ):
         # Make CoverLetterData return a properly structured mock
         mock_data = MagicMock()
@@ -388,16 +388,16 @@ def test_comp_opt(override_deps, mock_comp_optimizer):
     mock_redis.setex = AsyncMock()
 
     # Mock the workflow orchestrator used by the master optimization endpoint
-    with patch(
-        "app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator"
-    ) as mock_orch, patch(
-        "app.api.routers.comprehensive_optimizer.ResumeRepository"
-    ) as mock_repo_class, patch(
-        "app.database.repositories.resume_repository.PostgresConnectionManager"
-    ), patch(
-        "app.database.repositories.base_repo.MongoConnectionManager"
-    ), patch(
-        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
+    with (
+        patch(
+            "app.api.routers.comprehensive_optimizer.CVWorkflowOrchestrator"
+        ) as mock_orch,
+        patch(
+            "app.api.routers.comprehensive_optimizer.ResumeRepository"
+        ) as mock_repo_class,
+        patch("app.database.repositories.resume_repository.PostgresConnectionManager"),
+        patch("app.database.repositories.base_repo.MongoConnectionManager"),
+        patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis),
     ):
         mock_instance = AsyncMock()
         mock_instance.optimize_cv_for_job = AsyncMock(

@@ -25,7 +25,9 @@ def test_typst_pdf_generation():
             "address": "San Francisco, CA",
             "linkedin": "linkedin.com/in/jane",
             "github": "github.com/jane",
-            "profile_description": "Experienced software engineer with a focus on backend systems.",
+            "profile_description": (
+                "Experienced software engineer with a focus on backend systems."
+            ),
             "languages": ["English (Native)", "German (B1)"],
             "skills": {
                 "hard_skills": ["Rust", "Python", "Typst"],

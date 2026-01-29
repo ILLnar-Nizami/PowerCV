@@ -7,6 +7,7 @@ monitoring, usage optimization, and analytics.
 
 import json
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timedelta
@@ -15,15 +16,15 @@ from typing import Dict, List, Optional, Union
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_openai import ChatOpenAI
 
+from app.database.models.token_usage import TokenUsage, TokenUsageSummary
+
 try:
     from langchain_ollama import ChatOllama
 
     HAS_OLLAMA = True
 except ImportError:
     HAS_OLLAMA = False
-import os
 
-from app.database.models.token_usage import TokenUsage, TokenUsageSummary
 
 # Configure logger
 logger = logging.getLogger(__name__)

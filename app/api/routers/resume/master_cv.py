@@ -508,7 +508,9 @@ async def test_master_cv_endpoint(
         )
 
         optimized_sections = {
-            "summary": f"Experienced professional seeking {test_request.target_role or 'new opportunities'} at {test_request.target_company or 'target company'}",
+            "summary": (
+                f"Experienced professional seeking {test_request.target_role or 'new opportunities'} at {test_request.target_company or 'target company'}"
+            ),
             "experience": "Optimized experience section would go here",
             "skills": "Optimized skills section would go here",
         }

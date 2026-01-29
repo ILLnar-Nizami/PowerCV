@@ -78,7 +78,9 @@ class MongoConnectionManager:
         MONGO_CONFIG.update(
             {
                 "tls": True,
-                "tlsAllowInvalidCertificates": False,  # Strict certificate validation for production
+                "tlsAllowInvalidCertificates": (
+                    False
+                ),  # Strict certificate validation for production
             }
         )
 

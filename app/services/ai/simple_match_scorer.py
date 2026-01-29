@@ -50,7 +50,9 @@ class SimpleMatchScorer:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert ATS (Applicant Tracking System) analyzer and recruiter.",
+                        "content": (
+                            "You are an expert ATS (Applicant Tracking System) analyzer and recruiter."
+                        ),
                     },
                     {"role": "user", "content": prompt},
                 ],
@@ -75,7 +77,9 @@ class SimpleMatchScorer:
                 "score": 50,
                 "matching_skills": [],
                 "missing_skills": [],
-                "recommendation": "Unable to analyze due to an error. Please try again.",
+                "recommendation": (
+                    "Unable to analyze due to an error. Please try again."
+                ),
                 "rationale": f"Analysis failed: {str(e)}",
                 "user_id": user_id,
                 "model_used": self.model_name,
@@ -167,7 +171,9 @@ Be optimistic - consider transferable skills and relevant experience. Return ONL
             "matching_skills": [],
             "missing_skills": [],
             "recommendation": "Analysis completed but response format was unclear.",
-            "rationale": "Score extracted from response but detailed analysis could not be parsed.",
+            "rationale": (
+                "Score extracted from response but detailed analysis could not be parsed."
+            ),
         }
 
     def _ensure_list(self, value) -> List[str]:

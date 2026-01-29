@@ -566,7 +566,9 @@ class CVTemplate:
                 "linkedin": "https://linkedin.com/in/yourname",
                 "github": "https://github.com/yourname",
                 "website": "https://yourname.dev",
-                "summary": "Experienced software engineer with a passion for building scalable, user-friendly applications. Skilled in full-stack development with a focus on clean code and best practices.",
+                "summary": (
+                    "Experienced software engineer with a passion for building scalable, user-friendly applications. Skilled in full-stack development with a focus on clean code and best practices."
+                ),
             },
             "experience": [
                 {
@@ -628,7 +630,9 @@ class CVTemplate:
             "projects": [
                 {
                     "name": "Open Source Project",
-                    "description": "Contributed to popular open source library for data processing",
+                    "description": (
+                        "Contributed to popular open source library for data processing"
+                    ),
                     "technologies": ["Python", "PyPI"],
                     "url": "https://github.com/yourname/project",
                     "achievements": ["500+ GitHub stars", "10k+ monthly downloads"],
@@ -666,7 +670,9 @@ class CVTemplate:
                 "location": "Utrecht, Netherlands",
                 "linkedin": "https://linkedin.com/in/yourname",
                 "github": "https://github.com/yourname",
-                "summary": "Data scientist with expertise in machine learning, statistical analysis, and data visualization. Passionate about turning data into actionable insights.",
+                "summary": (
+                    "Data scientist with expertise in machine learning, statistical analysis, and data visualization. Passionate about turning data into actionable insights."
+                ),
             },
             "experience": [
                 {

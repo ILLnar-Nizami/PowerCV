@@ -340,7 +340,9 @@ class ATSScorerLLM:
                 "score": 50,
                 "matching_skills": [],
                 "missing_skills": [],
-                "recommendation": "Error analyzing match. The candidate appears to have relevant skills but a detailed analysis could not be completed.",
+                "recommendation": (
+                    "Error analyzing match. The candidate appears to have relevant skills but a detailed analysis could not be completed."
+                ),
                 "rationale": "Error during LLM analysis.",
             }
 

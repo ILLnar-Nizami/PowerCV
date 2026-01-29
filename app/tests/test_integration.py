@@ -45,11 +45,11 @@ async def test_full_workflow(sample_cv_text, sample_jd_text, mock_ai_response):
     """Test complete optimization workflow using fixtures."""
     from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
-    with patch("app.services.workflow_orchestrator.get_redis") as mock_get_redis, patch(
-        "app.services.workflow_orchestrator.CVAnalyzer"
-    ) as MockAnalyzer, patch(
-        "app.services.workflow_orchestrator.CVOptimizer"
-    ) as MockOptimizer:
+    with (
+        patch("app.services.workflow_orchestrator.get_redis") as mock_get_redis,
+        patch("app.services.workflow_orchestrator.CVAnalyzer") as MockAnalyzer,
+        patch("app.services.workflow_orchestrator.CVOptimizer") as MockOptimizer,
+    ):
 
         mock_redis = Mock()
         mock_redis.get = AsyncMock(return_value=None)
