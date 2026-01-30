@@ -9,8 +9,15 @@ from app.services.ai_providers import AIProviderClient
 
 @pytest.mark.asyncio
 @patch("app.services.ai_providers.get_settings")
-async def test_chat_completion_success(mock_get_settings):
+@patch("app.services.ai_providers.get_redis")
+async def test_chat_completion_success(mock_get_redis, mock_get_settings):
     """Test successful chat completion with primary provider."""
+    # Mock Redis client
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)  # Cache miss
+    mock_redis.setex = AsyncMock()
+    mock_get_redis.return_value = mock_redis
+    
     # Mock settings with API key
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
@@ -22,6 +29,7 @@ async def test_chat_completion_success(mock_get_settings):
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.content = "Optimized resume content"
+    mock_response.usage = {"prompt_tokens": 10, "completion_tokens": 20}
 
     with patch(
         "app.services.ai_providers.completion", new_callable=AsyncMock
@@ -40,8 +48,15 @@ async def test_chat_completion_success(mock_get_settings):
 
 @pytest.mark.asyncio
 @patch("app.services.ai_providers.get_settings")
-async def test_chat_completion_fallback(mock_get_settings):
+@patch("app.services.ai_providers.get_redis")
+async def test_chat_completion_fallback(mock_get_redis, mock_get_settings):
     """Test fallback to secondary provider when primary fails."""
+    # Mock Redis to avoid event loop issues
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)  # Cache miss
+    mock_redis.setex = AsyncMock()
+    mock_get_redis.return_value = mock_redis
+    
     # Mock settings with API keys
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
@@ -56,6 +71,7 @@ async def test_chat_completion_fallback(mock_get_settings):
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message = MagicMock()
     mock_response.choices[0].message.content = "Fallback optimized content"
+    mock_response.usage = {"prompt_tokens": 10, "completion_tokens": 20}
 
     with patch(
         "app.services.ai_providers.completion", new_callable=AsyncMock
