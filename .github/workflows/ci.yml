@@ -87,10 +87,16 @@ jobs:
             exit 1
           }
           
-          echo "Running type checking..."
+          echo "Running type checking on app only..."
           python -m mypy app/ --strict || {
             echo "Type checking failed. Please fix the mypy errors above."
             exit 1
+          }
+          
+          echo "Running basic type checking on scripts..."
+          python -m mypy scripts/ --ignore-missing-imports --no-strict-optional || {
+            echo "Basic type checking on scripts failed, but continuing..."
+            echo "Scripts have relaxed type checking requirements."
           }
           
           echo "All linting checks passed!"

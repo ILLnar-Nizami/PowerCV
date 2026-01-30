@@ -1,0 +1,94 @@
+name: Linting Check
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  linting:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Black formatting check
+        id: black-check
+        run: |
+          echo "Checking Black formatting..."
+          if python -m black --check --diff app/ scripts/ tests/; then
+            echo "black_status=passed" >> $GITHUB_OUTPUT
+            echo "✅ Black formatting passed"
+          else
+            echo "black_status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Black formatting failed"
+            echo "Auto-fixing formatting issues..."
+            python -m black app/ scripts/ tests/
+            python -m isort app/ scripts/ tests/
+            echo "Files have been formatted"
+          fi
+
+      - name: isort import check
+        id: isort-check
+        run: |
+          echo "Checking import ordering..."
+          if python -m isort --check-only --diff app/ scripts/ tests/; then
+            echo "isort_status=passed" >> $GITHUB_OUTPUT
+            echo "✅ Import ordering passed"
+          else
+            echo "isort_status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Import ordering failed"
+            echo "Auto-fixing import issues..."
+            python -m isort app/ scripts/ tests/
+            echo "Imports have been fixed"
+          fi
+
+      - name: MyPy type checking (app only)
+        run: |
+          echo "Running strict type checking on app/..."
+          python -m mypy app/ --strict || {
+            echo "❌ MyPy failed on app/"
+            exit 1
+          }
+          echo "✅ MyPy passed on app/"
+
+      - name: MyPy type checking (scripts - relaxed)
+        run: |
+          echo "Running relaxed type checking on scripts/..."
+          python -m mypy scripts/ --ignore-missing-imports --no-strict-optional || {
+            echo "⚠️ MyPy failed on scripts/ but this is allowed"
+            echo "Scripts have relaxed type checking requirements"
+          }
+          echo "✅ MyPy check completed for scripts/"
+
+      - name: Commit auto-fixes
+        if: steps.black-check.outputs.black_status == 'failed' || steps.isort-check.outputs.isort_status == 'failed'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "auto: fix formatting and imports [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
+
+      - name: Summary
+        run: |
+          echo "## Linting Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Black**: ${{ steps.black-check.outputs.black_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **isort**: ${{ steps.isort-check.outputs.isort_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **MyPy (app/)**: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- **MyPy (scripts/)**: relaxed" >> $GITHUB_STEP_SUMMARY

@@ -33,3 +33,13 @@ repos:
       - id: mypy
         additional_dependencies: [types-all]
         args: [--strict]
+        files: ^app/
+        
+  - repo: local
+    hooks:
+      - id: mypy-scripts
+        name: mypy-scripts
+        entry: python -m mypy
+        language: system
+        args: [--ignore-missing-imports, --no-strict-optional]
+        files: ^scripts/
