@@ -68,11 +68,32 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Run Python linting
+      - name: Run Python linting and formatting
         run: |
-          python -m black --check app/ scripts/ tests/
-          python -m isort --check-only app/ scripts/ tests/
-          python -m mypy app/ --strict
+          echo "Checking and fixing formatting..."
+          python -m black --check --diff app/ scripts/ tests/ || {
+            echo "Formatting issues found, auto-fixing..."
+            python -m black app/ scripts/ tests/
+            python -m isort app/ scripts/ tests/
+            echo "Files have been formatted. Please check the diff above and commit the changes."
+            exit 1
+          }
+          
+          echo "Checking import ordering..."
+          python -m isort --check-only --diff app/ scripts/ tests/ || {
+            echo "Import ordering issues found, auto-fixing..."
+            python -m isort app/ scripts/ tests/
+            echo "Imports have been fixed. Please check the diff and commit the changes."
+            exit 1
+          }
+          
+          echo "Running type checking..."
+          python -m mypy app/ --strict || {
+            echo "Type checking failed. Please fix the mypy errors above."
+            exit 1
+          }
+          
+          echo "All linting checks passed!"
 
       - name: Run backend tests
         env:
