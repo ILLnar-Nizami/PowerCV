@@ -130,7 +130,7 @@ async def test_ats_score_fallback():
         },
     }
 
-    # Mock the analyzer to return first analysis (async)
+    # Mock the analyzer to return first analysis for both calls (async)
     mock_analyzer.analyze = AsyncMock(return_value=first_analysis)
 
     # Mock Redis to simulate unavailability

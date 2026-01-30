@@ -62,9 +62,24 @@ class CVWorkflowOrchestrator:
 
         # Step 2: Comprehensive Optimization (One-shot)
         logger.info("Step 2/3: Performing comprehensive optimization...")
-        optimized_data = await self.optimizer.optimize_comprehensive(
-            cv_text, jd_text, analysis, email
-        )
+        try:
+            optimized_data = await self.optimizer.optimize_comprehensive(
+                cv_text, jd_text, analysis, email
+            )
+        except Exception as e:
+            logger.warning(f"Optimization failed: {e}. Using original CV data.")
+            # Fall back to original CV data if optimization fails
+            optimized_data = {
+                "user_information": {
+                    "name": "Candidate",
+                    "email": email,
+                    "phone": "",
+                    "summary": analysis.get("summary", ""),
+                    "skills": analysis.get("keyword_analysis", {}).get("matched_keywords", []),
+                    "experiences": [],
+                    "education": [],
+                }
+            }
 
         # Step 3: Cover letter (optional)
         cover_letter = None
