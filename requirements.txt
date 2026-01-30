@@ -5,13 +5,12 @@ passlib[bcrypt]
 fastapi[standard]
 uvicorn[standard]
 motor==3.6.0
-redis==4.5.5
+redis>=5.0.0
 charset-normalizer==3.3.2
 setuptools
 python-multipart
 authlib
 itsdangerous
-asyncio
 httpx>=0.25.0
 websockets
 slowapi
@@ -19,7 +18,6 @@ pandas
 fastapi-sso
 asgiref
 pymongo
-ruff
 jinja2
 pyjwt
 markdown
@@ -28,7 +26,6 @@ openai
 langchain-community
 langchain
 langchain-openai
-PyPDF2
 tiktoken
 mkdocs
 mkdocs-material

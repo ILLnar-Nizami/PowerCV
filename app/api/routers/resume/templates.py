@@ -464,10 +464,14 @@ async def create_custom_template(
     try:
         logger.info("Creating custom template")
 
-        # Get user ID from request (you may need to implement authentication)
-        user_id = request.headers.get(
-            "X-User-ID", "default_user"
-        )  # TODO: Implement proper auth
+        # Get authenticated user from JWT token
+        # For now, extract from header as fallback until full auth integration
+        user_id = request.headers.get("X-User-ID", "default_user")
+        
+        # TODO: Replace with proper dependency injection:
+        # from app.core.security import get_optional_user
+        # current_user = get_optional_user(request)
+        # user_id = current_user["user_id"] if current_user else "default_user"
 
         from app.database.models.custom_template import CustomTemplateCreate
         from app.database.repositories.custom_template_repository import (
@@ -650,12 +654,12 @@ async def download_resume(
                 "resume_id": resume_id,
                 "user_id": request.headers.get("X-User-ID", "default_user"),
             }
+            
+            # TODO: Store download_info in Redis for validation
+            # redis_client.setex(f"download:{download_token}", 3600, json.dumps(download_info))
 
             # Generate secure download URL with token
             download_url = f"/api/v1/resumes/downloads/{download_token}"
-
-            # Store download info (in production, use Redis with expiration)
-            # redis_client.setex(f"download:{download_token}", 3600, json.dumps(download_info))
 
             logger.info(f"Resume {resume_id} download URL generated: {download_url}")
 
