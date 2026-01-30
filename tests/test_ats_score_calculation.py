@@ -14,7 +14,7 @@ async def test_ats_score_calculation():
     mock_redis = AsyncMock()
     mock_redis.get = AsyncMock(return_value=None)  # Cache miss
     mock_redis.setex = AsyncMock()
-    
+
     # Create mock analyzer
     mock_analyzer = MagicMock()
 
@@ -50,14 +50,11 @@ async def test_ats_score_calculation():
     mock_analyzer.analyze = AsyncMock(side_effect=[first_analysis, optimized_analysis])
 
     # Create orchestrator with mocked dependencies
-    with patch(
-        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.ai_providers.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.cv_analyzer.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.cv_optimizer.get_redis", return_value=mock_redis
+    with (
+        patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis),
+        patch("app.services.ai_providers.get_redis", return_value=mock_redis),
+        patch("app.services.cv_analyzer.get_redis", return_value=mock_redis),
+        patch("app.services.cv_optimizer.get_redis", return_value=mock_redis),
     ):
         orchestrator = CVWorkflowOrchestrator()
         orchestrator.analyzer = mock_analyzer
@@ -142,16 +139,13 @@ async def test_ats_score_fallback():
     mock_redis = AsyncMock()
     mock_redis.get = AsyncMock(return_value=None)
     mock_redis.setex = AsyncMock()
-    
+
     # Create orchestrator with mocked dependencies - use correct patch path
-    with patch(
-        "app.services.workflow_orchestrator.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.ai_providers.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.cv_analyzer.get_redis", return_value=mock_redis
-    ), patch(
-        "app.services.cv_optimizer.get_redis", return_value=mock_redis
+    with (
+        patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis),
+        patch("app.services.ai_providers.get_redis", return_value=mock_redis),
+        patch("app.services.cv_analyzer.get_redis", return_value=mock_redis),
+        patch("app.services.cv_optimizer.get_redis", return_value=mock_redis),
     ):
         orchestrator = CVWorkflowOrchestrator()
         orchestrator.analyzer = mock_analyzer
