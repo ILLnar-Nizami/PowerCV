@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from app.database.repositories.resume_repository import ResumeRepository
-from app.services.master_cv import MasterCV
+from app.services.resume.universal_scorer import UniversalResumeScorer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -141,13 +141,13 @@ async def get_orchestrator() -> CVWorkflowOrchestrator:
     return CVWorkflowOrchestrator()
 
 
-async def get_master_cv() -> MasterCV:
-    """Get MasterCV instance.
+async def get_universal_scorer() -> UniversalResumeScorer:
+    """Get UniversalResumeScorer instance.
 
     Returns:
-        MasterCV: MasterCV instance
+        UniversalResumeScorer: UniversalResumeScorer instance
     """
-    return MasterCV()
+    return UniversalResumeScorer()
 
 
 # =============================================================================
@@ -247,7 +247,7 @@ async def score_resume(
     resume_id: str,
     score_request: ScoreResumeRequest,
     repository: ResumeRepository = Depends(get_resume_repository),
-    master_cv: MasterCV = Depends(get_master_cv),
+    universal_scorer: UniversalResumeScorer = Depends(get_universal_scorer),
 ) -> ScoreResponse:
     """Score a resume against a job description.
 
@@ -255,7 +255,7 @@ async def score_resume(
         resume_id: Resume identifier
         request: Scoring request data
         repository: Resume repository instance
-        master_cv: MasterCV instance for scoring
+        universal_scorer: UniversalResumeScorer instance for scoring
 
     Returns:
         ScoreResponse: Scoring results
@@ -287,8 +287,8 @@ async def score_resume(
         # Use resume content if no specific resume_text provided
         resume_text = score_request.resume_text or resume.get("original_content", "")
 
-        # Perform scoring using master CV scoring system
-        scoring_result = await master_cv.score_resume(
+        # Perform scoring using universal resume scorer
+        scoring_result = await universal_scorer.score_resume(
             resume_text=resume_text,
             job_description=score_request.job_description,
         )

@@ -71,21 +71,31 @@ jobs:
       - name: Run Python linting and formatting
         run: |
           echo "Checking and fixing formatting..."
+          black_needs_fix=false
           python -m black --check --diff app/ scripts/ tests/ || {
             echo "Formatting issues found, auto-fixing..."
             python -m black app/ scripts/ tests/
-            python -m isort app/ scripts/ tests/
-            echo "Files have been formatted. Please check the diff above and commit the changes."
-            exit 1
+            black_needs_fix=true
           }
           
           echo "Checking import ordering..."
+          isort_needs_fix=false
           python -m isort --check-only --diff app/ scripts/ tests/ || {
             echo "Import ordering issues found, auto-fixing..."
             python -m isort app/ scripts/ tests/
-            echo "Imports have been fixed. Please check the diff and commit the changes."
-            exit 1
+            isort_needs_fix=true
           }
+          
+          # Commit formatting fixes if needed
+          if [ "$black_needs_fix" = true ] || [ "$isort_needs_fix" = true ]; then
+            echo "Committing formatting fixes..."
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add .
+            git commit -m "auto: fix formatting and imports [skip ci]" || echo "No changes to commit"
+            git push || echo "No changes to push"
+            echo "Formatting fixes committed successfully"
+          fi
           
           echo "Running type checking on app only..."
           python -m mypy app/ --strict || {
