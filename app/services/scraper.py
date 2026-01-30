@@ -7,7 +7,7 @@ including LinkedIn, Indeed, Glassdoor, and company career pages.
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, cast
 from urllib.parse import urlparse
 
 import httpx
@@ -154,7 +154,7 @@ class LinkedInScraper(JobDescriptionScraper):
     def _extract_location(self, soup: BeautifulSoup) -> str:
         """Extract location from LinkedIn page."""
         location_selectors = [
-            ("span", {"class": lambda x: x and "location" in str(x).lower()}),
+            ("span", cast(Any, {"class": lambda x: x and "location" in str(x).lower()})),
             ("span", {"class": "top-card__location"}),
         ]
 
@@ -339,7 +339,7 @@ class GenericScraper(JobDescriptionScraper):
                     soup.find("main")
                     or soup.find("article")
                     or soup.find(
-                        "div", {"class": lambda x: x and "content" in str(x).lower()}
+                        "div", cast(Any, {"class": lambda x: x and "content" in str(x).lower()})
                     )
                 )
                 if main_content:
