@@ -64,8 +64,6 @@ async def test_workflow_orchestrator_rate_limit_fallback():
     with (
         patch("app.services.workflow_orchestrator.get_redis", return_value=mock_redis),
         patch("app.services.ai_providers.get_redis", return_value=mock_redis),
-        patch("app.services.cv_analyzer.get_redis", return_value=mock_redis),
-        patch("app.services.cv_optimizer.get_redis", return_value=mock_redis),
     ):
         orchestrator = CVWorkflowOrchestrator()
 
