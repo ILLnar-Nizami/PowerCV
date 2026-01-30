@@ -401,7 +401,7 @@ Only output valid JSON, no markdown. Ensure you include ALL contact information 
         return experiences
 
     def _extract_education_from_cv(self, cv_text: str) -> list:
-        """Extract education from CV."""
+        """Extract education from CV with dates and location."""
         education = []
 
         edu_pattern = r"(?:EDUCATION|ACADEMIC|QUALIFICATIONS)[:\s]*\n(.*?)(?=\n\n(?:EXPERIENCE|SKILLS|PROJECTS)|$)"
@@ -411,7 +411,7 @@ Only output valid JSON, no markdown. Ensure you include ALL contact information 
             edu_section = match.group(1)
             lines = edu_section.split("\n")
 
-            for line in lines:
+            for i, line in enumerate(lines):
                 line = line.strip()
                 if not line or line.startswith("-") or line.startswith("•"):
                     continue
@@ -427,21 +427,47 @@ Only output valid JSON, no markdown. Ensure you include ALL contact information 
                     if deg_match:
                         degree = deg_match.group(0)
                         institution = ""
+                        location = ""
+                        start_date = ""
+                        end_date = ""
 
                         # Try to find institution name (usually on same line or next)
                         parts = line.split(degree)
                         if len(parts) > 1:
                             remaining = parts[1].strip()
                             if remaining:
-                                institution = remaining.split(",")[0].strip()
+                                # Extract location (usually after comma)
+                                if "," in remaining:
+                                    parts_location = remaining.split(",")
+                                    institution = parts_location[0].strip()
+                                    location = parts_location[1].strip()
+                                else:
+                                    institution = remaining.strip()
+
+                        # Look for dates in current line and next few lines
+                        date_patterns = [
+                            r"(\d{4})\s*[-–]\s*(\d{4}|\s*Present|Current)",  # 2020-2024 or 2020-Present
+                            r"(\d{4})\s*[-–]\s*(\d{4})",  # 2020-2024
+                            r"(\d{4})",  # Single year
+                        ]
+                        
+                        # Check current line and next 2 lines for dates
+                        date_search_text = line + " " + " ".join(lines[i + 1:i + 3])
+                        for date_pattern in date_patterns:
+                            date_match = re.search(date_pattern, date_search_text)
+                            if date_match:
+                                start_date = date_match.group(1)
+                                if len(date_match.groups()) > 1:
+                                    end_date = date_match.group(2).replace("Present", "Current").strip()
+                                break
 
                         education.append(
                             {
                                 "institution": institution,
                                 "degree": degree,
-                                "location": "",
-                                "start_date": "",
-                                "end_date": "",
+                                "location": location,
+                                "start_date": start_date,
+                                "end_date": end_date,
                             }
                         )
                         break
