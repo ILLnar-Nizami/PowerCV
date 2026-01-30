@@ -75,7 +75,9 @@ class CVWorkflowOrchestrator:
                     "email": email,
                     "phone": "",
                     "summary": analysis.get("summary", ""),
-                    "skills": analysis.get("keyword_analysis", {}).get("matched_keywords", []),
+                    "skills": analysis.get("keyword_analysis", {}).get(
+                        "matched_keywords", []
+                    ),
                     "experiences": [],
                     "education": [],
                 }
