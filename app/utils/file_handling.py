@@ -7,9 +7,20 @@ file management for the PowerCV application.
 
 import os
 
-import PyPDF2
-import pytesseract
-from pdf2image import convert_from_path
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
+
+try:
+    import pytesseract
+except ImportError:
+    pytesseract = None
+
+try:
+    from pdf2image import convert_from_path
+except ImportError:
+    convert_from_path = None
 
 
 def extract_text_from_docx(docx_path: str) -> str:
@@ -112,6 +123,9 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     -------
         str: Extracted text content
     """
+    if PyPDF2 is None:
+        return "Error: PyPDF2 library not installed. Install with: pip install pypdf2"
+
     try:
         with open(pdf_path, "rb") as file:
             reader = PyPDF2.PdfReader(file)
@@ -128,6 +142,11 @@ def extract_text_from_pdf(pdf_path: str) -> str:
         text = ""
 
     # If direct extraction failed or didn't get enough text, try OCR
+    if pytesseract is None or convert_from_path is None:
+        if text:
+            return text
+        return "Error: OCR dependencies not installed. Install with: pip install pdf2image pytesseract"
+
     try:
         # Convert PDF to images
         images = convert_from_path(pdf_path)
