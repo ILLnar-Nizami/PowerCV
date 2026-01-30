@@ -467,7 +467,7 @@ async def create_custom_template(
         # Get authenticated user from JWT token
         # For now, extract from header as fallback until full auth integration
         user_id = request.headers.get("X-User-ID", "default_user")
-        
+
         # TODO: Replace with proper dependency injection:
         # from app.core.security import get_optional_user
         # current_user = get_optional_user(request)
@@ -654,7 +654,7 @@ async def download_resume(
                 "resume_id": resume_id,
                 "user_id": request.headers.get("X-User-ID", "default_user"),
             }
-            
+
             # TODO: Store download_info in Redis for validation
             # redis_client.setex(f"download:{download_token}", 3600, json.dumps(download_info))
 

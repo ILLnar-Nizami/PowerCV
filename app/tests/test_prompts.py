@@ -236,7 +236,7 @@ Professional
         # from app.services.ai_providers import AIProviderClient
         # client = AIProviderClient(provider="cerebras")
         # return await client.chat_completion(system_prompt, user_message)
-        
+
         raise NotImplementedError("Implement Cerebras API call here")
 
     def _validate_analyzer_response(self, response: str) -> Dict:
