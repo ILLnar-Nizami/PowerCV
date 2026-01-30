@@ -75,9 +75,13 @@ class CVWorkflowOrchestrator:
                     "email": email,
                     "phone": "",
                     "summary": analysis.get("summary", ""),
-                    "skills": analysis.get("keyword_analysis", {}).get(
-                        "matched_keywords", []
-                    ),
+                    "skills": [
+                        k.get("keyword", "")
+                        for k in analysis.get("keyword_analysis", {}).get(
+                            "matched_keywords", []
+                        )
+                        if k.get("keyword")
+                    ],
                     "experiences": [],
                     "education": [],
                 }
@@ -511,9 +515,15 @@ class CVWorkflowOrchestrator:
         if ui:
             name = ui.get("name", "Candidate")
             lines.append(name.upper())
-            lines.append(ui.get("email", ""))
-            lines.append(ui.get("phone", ""))
-            lines.append(ui.get("address", ""))
+            email = ui.get("email", "")
+            if email:
+                lines.append(email)
+            phone = ui.get("phone", "")
+            if phone:
+                lines.append(phone)
+            address = ui.get("address", "")
+            if address:
+                lines.append(address)
             lines.append("")
 
             profile = ui.get("profile_description") or ui.get("summary")
