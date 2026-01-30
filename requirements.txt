@@ -62,4 +62,3 @@ asyncpg>=0.29.0
 # OCR and PDF processing (actively used)
 pytesseract
 pdf2image
-opencv-python
