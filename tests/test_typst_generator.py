@@ -1,13 +1,14 @@
 """Test Typst PDF generation."""
-from app.services.resume.typst_generator import TypstGenerator
-import pytest
-import sys
+
 import os
-import json
-from pathlib import Path
+import sys
+
+import pytest
+
+from app.services.resume.typst_generator import TypstGenerator
 
 # Add project root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def test_typst_pdf_generation():
@@ -24,11 +25,13 @@ def test_typst_pdf_generation():
             "address": "San Francisco, CA",
             "linkedin": "linkedin.com/in/jane",
             "github": "github.com/jane",
-            "profile_description": "Experienced software engineer with a focus on backend systems.",
+            "profile_description": (
+                "Experienced software engineer with a focus on backend systems."
+            ),
             "languages": ["English (Native)", "German (B1)"],
             "skills": {
                 "hard_skills": ["Rust", "Python", "Typst"],
-                "soft_skills": ["Leadership", "Communication"]
+                "soft_skills": ["Leadership", "Communication"],
             },
             "experiences": [
                 {
@@ -39,8 +42,8 @@ def test_typst_pdf_generation():
                     "end_date": "Present",
                     "four_tasks": [
                         "Built scalable APIs using Rust.",
-                        "Migrated from LaTeX to Typst."
-                    ]
+                        "Migrated from LaTeX to Typst.",
+                    ],
                 }
             ],
             "education": [
@@ -49,12 +52,12 @@ def test_typst_pdf_generation():
                     "degree": "B.S. Computer Science",
                     "start_date": "09/2015",
                     "end_date": "06/2019",
-                    "location": "New York, NY"
+                    "location": "New York, NY",
                 }
-            ]
+            ],
         },
         "projects": [],
-        "certificate": []
+        "certificate": [],
     }
 
     # Initialize generator
@@ -64,7 +67,8 @@ def test_typst_pdf_generation():
     # Check if binary found
     if not generator.typst_bin:
         pytest.skip(
-            "Typst binary not found by generator. Skipping PDF generation test.")
+            "Typst binary not found by generator. Skipping PDF generation test."
+        )
     print(f"Typst binary found at: {generator.typst_bin}")
 
     templates_to_test = ["resume.typ", "modern.typ"]

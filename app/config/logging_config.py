@@ -1,4 +1,5 @@
 """Secure logging configuration for PowerCV."""
+
 import logging
 import re
 from typing import Optional
@@ -9,16 +10,19 @@ class SensitiveDataFilter(logging.Filter):
 
     PATTERNS = [
         # API keys (Deepseek, OpenAI, etc.)
-        (re.compile(r'(api[_-]?key["\']?\s*[:=]\s*["\']?)([a-zA-Z0-9\-_]{20,})'), r'\1***REDACTED***'),
+        (
+            re.compile(r'(api[_-]?key["\']?\s*[:=]\s*["\']?)([a-zA-Z0-9\-_]{20,})'),
+            r"\1***REDACTED***",
+        ),
         # MongoDB connection strings
-        (re.compile(r'(mongodb.*://[^:]+:)([^@]+)(@)'), r'\1***REDACTED***\3'),
+        (re.compile(r"(mongodb.*://[^:]+:)([^@]+)(@)"), r"\1***REDACTED***\3"),
         # Generic API keys (sk-, pk-, etc.)
-        (re.compile(r'(sk-[a-zA-Z0-9]{20,})'), r'***API_KEY_REDACTED***'),
-        (re.compile(r'(pk_[a-zA-Z0-9]{20,})'), r'***API_KEY_REDACTED***'),
+        (re.compile(r"(sk-[a-zA-Z0-9]{20,})"), r"***API_KEY_REDACTED***"),
+        (re.compile(r"(pk_[a-zA-Z0-9]{20,})"), r"***API_KEY_REDACTED***"),
         # Passwords
-        (re.compile(r'(password["\']?\s*[:=]\s*["\']?)([^"\']+)'), r'\1***REDACTED***'),
+        (re.compile(r'(password["\']?\s*[:=]\s*["\']?)([^"\']+)'), r"\1***REDACTED***"),
         # JWT tokens
-        (re.compile(r'(Bearer\s+)([a-zA-Z0-9\-_\.]{50,})'), r'\1***JWT_REDACTED***'),
+        (re.compile(r"(Bearer\s+)([a-zA-Z0-9\-_\.]{50,})"), r"\1***JWT_REDACTED***"),
     ]
 
     def filter(self, record):
@@ -36,7 +40,7 @@ class SensitiveDataFilter(logging.Filter):
 def setup_secure_logging(
     level: int = logging.INFO,
     log_file: Optional[str] = None,
-    format_string: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format_string: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 ) -> logging.Logger:
     """Set up secure logging configuration.
 

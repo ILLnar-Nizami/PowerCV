@@ -24,7 +24,7 @@ from app.utils.token_tracker import TokenTracker
 
 class ComprehensiveResumeOptimizer:
     """Complete AI Resume Optimization System.
-    
+
     Implements the comprehensive optimization system with:
     - System prompt for role establishment
     - Master user prompt with all optimization tasks
@@ -33,7 +33,7 @@ class ComprehensiveResumeOptimizer:
     - Quick start workflows
     - Pro tips and EU alignment
     """
-    
+
     # System prompt for role establishment
     SYSTEM_PROMPT = """You are a senior recruiter, hiring manager, and resume optimization specialist with 15+ years of experience placing candidates in competitive roles in Europe and globally.
 
@@ -50,7 +50,7 @@ Your priorities, in order:
 4) Psychological impact (first impression, authority, social proof, consistency)
 
 Never invent facts or metrics; if information is missing, ask clarifying questions or propose conservative, clearly marked suggestions."""
-    
+
     # Master skills list for Europe 2025
     MASTER_SKILLS_LIST = """**MASTER SKILLS:**
 Programming & Scripting: Python (Expert), Go (Skillful), Bash (Expert)
@@ -64,29 +64,33 @@ Digital Competences: API Design, Performance Optimization, Agile Development
 Business Skills: Project Management, Procurement Strategies, Cost Optimization
 Soft Skills: Communication, Problem-Solving, Teamwork, Adaptability, Technical Leadership
 Languages: English (Highly proficient), Russian (Native), Tatar (Native)"""
-    
+
     def __init__(
         self,
         model_name: Optional[str] = None,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ):
         """Initialize the comprehensive optimizer.
-        
+
         Args:
-            model_name: OpenAI model name to use
-            api_key: OpenAI API key
-            api_base: OpenAI API base URL
+            model_name: Model name to use
+            api_key: API key for the AI provider
+            api_base: API base URL
             user_id: User ID for tracking
         """
         self.model_name = model_name or os.getenv("API_MODEL_NAME", "gpt-oss-120b")
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.api_base = api_base or os.getenv("OPENAI_API_BASE")
+        self.api_key = (
+            api_key or os.getenv("CEREBRAS_API_KEY") or os.getenv("OPENAI_API_KEY")
+        )
+        self.api_base = (
+            api_base or os.getenv("CEREBRAS_API_BASE") or os.getenv("OPENAI_API_BASE")
+        )
         self.user_id = user_id
         self.llm = self._get_openai_model()
         self.output_parser = JsonOutputParser()
-    
+
     def _get_openai_model(self) -> ChatOpenAI:
         """Initialize the OpenAI model with system prompt."""
         if self.model_name:
@@ -97,10 +101,10 @@ Languages: English (Highly proficient), Russian (Native), Tatar (Native)"""
                 api_base=self.api_base,
                 feature="comprehensive_resume_optimization",
                 user_id=self.user_id,
-                metadata={"model": "comprehensive_optimizer"}
+                metadata={"model": "comprehensive_optimizer"},
             )
         return ChatOpenAI(temperature=0)
-    
+
     def _get_master_prompt_template(self) -> PromptTemplate:
         """Get the master user prompt template with all optimization tasks."""
         template = f"""{self.SYSTEM_PROMPT}
@@ -166,18 +170,18 @@ I want you to act as a resume optimization engine using modern prompt-engineerin
 Use markdown with clear sections. End with "READY FOR INTERVIEW" when complete.
 
 {{{{format_instructions}}}}"""
-        
+
         return PromptTemplate(
             template=template,
             input_variables=[
-                "target_role", "target_company", "job_description", 
-                "resume_text", "focus_area"
+                "target_role",
+                "target_company",
+                "job_description",
+                "resume_text",
+                "focus_area",
             ],
-            partial_variables={
-                "format_instructions": self.output_parser.get_format_instructions()
-            }
         )
-    
+
     def _get_ats_keyword_prompt_template(self) -> PromptTemplate:
         """Get the ATS keyword and gap analysis prompt template."""
         template = f"""{self.SYSTEM_PROMPT}
@@ -192,20 +196,30 @@ Job Description:
 Resume:
 {{resume_text}}
 
+IMPORTANT: Return ONLY valid JSON. Do NOT include markdown, explanations, or formatting.
+
+Required JSON structure with these exact keys:
+- keywords: array of strings
+- matching_skills: array of strings
+- missing_skills: array of strings
+- gaps: array of strings
+- recommendation: string
+- ats_score: number
+
 1) Extract 20 keywords from JD, categorize, prioritize
 2) Table: Keyword | Priority | Coverage | Fix
 3) Bullet-level rewrite suggestions for top 5 gaps
 
 {{{{format_instructions}}}}"""
-        
+
         return PromptTemplate(
             template=template,
             input_variables=["job_description", "resume_text"],
             partial_variables={
                 "format_instructions": self.output_parser.get_format_instructions()
-            }
+            },
         )
-    
+
     def _get_hidden_achievements_prompt_template(self) -> PromptTemplate:
         """Get the hidden achievements extraction prompt template."""
         template = f"""{self.SYSTEM_PROMPT}
@@ -221,15 +235,15 @@ Focus: problems solved, scale, before/after, metrics
 Then rewrite as 5 SOAR bullets.
 
 {{{{format_instructions}}}}"""
-        
+
         return PromptTemplate(
             template=template,
             input_variables=["role_description"],
             partial_variables={
                 "format_instructions": self.output_parser.get_format_instructions()
-            }
+            },
         )
-    
+
     def _get_three_version_prompt_template(self) -> PromptTemplate:
         """Get the 3-version resume (Tree-of-Thought) prompt template."""
         template = f"""{self.SYSTEM_PROMPT}
@@ -245,21 +259,21 @@ Resume:
 {{resume_text}}
 
 1) Results-focused ($$/ROI/business impact)
-2) Leadership-focused (teams/mentoring/collaboration)  
+2) Leadership-focused (teams/mentoring/collaboration)
 3) Technical-depth (architecture/scale/innovation)
 
 Each: summary + 4 bullets + when to use.
 
 {{{{format_instructions}}}}"""
-        
+
         return PromptTemplate(
             template=template,
             input_variables=["job_description", "resume_text"],
             partial_variables={
                 "format_instructions": self.output_parser.get_format_instructions()
-            }
+            },
         )
-    
+
     def _get_iterative_improvement_prompt_template(self) -> PromptTemplate:
         """Get the iterative improvement (scoring loop) prompt template."""
         template = f"""{self.SYSTEM_PROMPT}
@@ -278,86 +292,127 @@ Score 0-100: Relevance | Clarity | Metrics | Leadership | Impact
 Top 3 weaknesses → targeted rewrites → new scores
 
 {{{{format_instructions}}}}"""
-        
+
         return PromptTemplate(
             template=template,
             input_variables=["job_description", "resume_text"],
             partial_variables={
                 "format_instructions": self.output_parser.get_format_instructions()
-            }
+            },
         )
-    
+
     async def optimize_resume_master(
         self,
         target_role: str,
         job_description: str,
         resume_text: str,
         target_company: str = "",
-        focus_area: str = "backend/data/DevOps/leadership"
+        focus_area: str = "backend/data/DevOps/leadership",
     ) -> Dict[str, Any]:
         """Execute the master optimization prompt with all tasks.
-        
+
         Args:
             target_role: Target job title
             job_description: Full job description
             resume_text: Current resume text
             target_company: Target company (optional)
             focus_area: Focus area for optimization
-            
+
         Returns:
             Dict containing the complete optimization results
         """
         try:
             prompt = self._get_master_prompt_template()
-            chain = prompt | self.llm | self.output_parser
-            
-            result = await chain.ainvoke({
-                "target_role": target_role,
-                "target_company": target_company,
-                "job_description": job_description,
-                "resume_text": resume_text,
-                "focus_area": focus_area
-            })
-            
-            return result
-            
+            chain = prompt | self.llm
+
+            result = await chain.ainvoke(
+                {
+                    "target_role": target_role,
+                    "target_company": target_company,
+                    "job_description": job_description,
+                    "resume_text": resume_text,
+                    "focus_area": focus_area,
+                }
+            )
+
+            # Extract content from AIMessage
+            content = result.content if hasattr(result, "content") else str(result)
+
+            return {"optimized_resume": content}
+
         except Exception as e:
-            raise Exception(f"Master optimization failed: {str(e)}")
-    
+            error_msg = str(e).lower()
+            if (
+                "429" in error_msg
+                or "too many requests" in error_msg
+                or "rate limit" in error_msg
+            ):
+                raise Exception(
+                    "AI service rate limit exceeded. Please wait a moment and try again."
+                )
+            elif "timeout" in error_msg:
+                raise Exception("AI service request timed out. Please try again.")
+            elif "connection" in error_msg:
+                raise Exception(
+                    "Unable to connect to AI service. Please check your connection and try again."
+                )
+            else:
+                raise Exception(f"Master optimization failed: {str(e)}")
+
     async def analyze_ats_keywords(
-        self,
-        job_description: str,
-        resume_text: str
+        self, job_description: str, resume_text: str
     ) -> Dict[str, Any]:
         """Analyze ATS keywords and gaps.
-        
+
         Args:
             job_description: Job description text
             resume_text: Resume text
-            
+
         Returns:
             Dict containing ATS keyword analysis
         """
         print(f"DEBUG: Starting ATS analysis with JD: {job_description[:100]}...")
         print(f"DEBUG: Resume text: {resume_text[:100]}...")
-        
+
         try:
             prompt = self._get_ats_keyword_prompt_template()
             print("DEBUG: Prompt template retrieved")
             chain = prompt | self.llm | self.output_parser
             print("DEBUG: Chain created")
-            
-            result = await chain.ainvoke({
-                "job_description": job_description,
-                "resume_text": resume_text
-            })
+
+            result = await chain.ainvoke(
+                {"job_description": job_description, "resume_text": resume_text}
+            )
             print(f"DEBUG: Chain result: {result}")
             print(f"DEBUG: Result type: {type(result)}")
-            
-            return result
-            
+
+            # Transform to frontend expected format
+            return self._transform_ats_response(result)
+
         except Exception as e:
             print(f"DEBUG: Exception occurred: {str(e)}")
+
+            # Check for rate limit errors
+            error_str = str(e).lower()
+            if (
+                "429" in error_str
+                or "too_many_requests" in error_str
+                or "rate limit" in error_str
+                or "queue" in error_str
+            ):
+                print("DEBUG: Rate limit detected, returning fallback structure")
+                fallback_data = {
+                    "keywords": [],
+                    "matching_skills": [],
+                    "missing_skills": [],
+                    "gaps": [],
+                    "recommendation": (
+                        "AI service is currently rate limited. Please try again later."
+                    ),
+                    "ats_score": 50,
+                }
+                return self._transform_ats_response(fallback_data)
+
             # If JSON parsing fails, try to extract JSON from markdown
             if "Invalid json output" in str(e):
                 print("DEBUG: JSON parsing failed, trying fallback")
@@ -365,162 +420,187 @@ Top 3 weaknesses → targeted rewrites → new scores
                 try:
                     prompt = self._get_ats_keyword_prompt_template()
                     raw_chain = prompt | self.llm
-                    raw_result = await raw_chain.ainvoke({
-                        "job_description": job_description,
-                        "resume_text": resume_text
-                    })
-                    
+                    raw_result = await raw_chain.ainvoke(
+                        {"job_description": job_description, "resume_text": resume_text}
+                    )
+
                     print(f"DEBUG: Raw LLM result type: {type(raw_result)}")
                     print(f"DEBUG: Raw LLM result: {raw_result}")
-                    
+
                     # Convert AIMessage to string
-                    content = str(raw_result.content) if hasattr(raw_result, 'content') else str(raw_result)
+                    content = (
+                        str(raw_result.content)
+                        if hasattr(raw_result, "content")
+                        else str(raw_result)
+                    )
                     print(f"DEBUG: Converted content: {content[:1000]}...")
-                    
+
                     # Try to extract JSON from markdown
                     import json
                     import re
-                    
+
                     # Look for JSON-like structures in markdown
                     json_patterns = [
-                        r'\{[^{}]*\}',  # Basic JSON object
-                        r'```json\s*\n(.*?)\n```',  # JSON code blocks
+                        r"\{[^{}]*\}",  # Basic JSON object
+                        r"```json\s*\n(.*?)\n```",  # JSON code blocks
                     ]
-                    
+
                     for pattern in json_patterns:
                         matches = re.findall(pattern, content, re.DOTALL)
                         print(f"DEBUG: Pattern {pattern} found {len(matches)} matches")
                         for match in matches:
                             try:
-                                if match.strip().startswith('{'):
+                                if match.strip().startswith("{"):
                                     parsed = json.loads(match.strip())
                                     print(f"DEBUG: Successfully parsed JSON: {parsed}")
-                                    return parsed
+                                    # Transform to frontend expected format
+                                    return self._transform_ats_response(parsed)
                             except Exception as parse_e:
                                 print(f"DEBUG: JSON parse failed: {parse_e}")
                                 continue
-                    
+
                     # If no JSON found, create a basic structure from markdown
                     print("DEBUG: No JSON found, creating fallback structure")
                     print(f"DEBUG: Raw AI content: {content[:1000]}...")  # Debug print
-                    return {
+                    fallback_data = {
                         "keywords": ["analysis", "completed"],
                         "matching_skills": ["skill1", "skill2"],
                         "missing_skills": ["missing1", "missing2"],
                         "gaps": ["gap1", "gap2"],
-                        "recommendation": content[:500] if content else "Analysis completed",
-                        "ats_score": 75
+                        "recommendation": (
+                            content[:500] if content else "Analysis completed"
+                        ),
+                        "ats_score": 75,
                     }
-                    
+                    return self._transform_ats_response(fallback_data)
+
                 except Exception as fallback_e:
                     print(f"DEBUG: Fallback exception: {fallback_e}")
-                    return {
+                    fallback_data = {
                         "keywords": [],
                         "matching_skills": [],
                         "missing_skills": [],
                         "gaps": [],
-                        "recommendation": f"Analysis completed with parsing error: {str(fallback_e)}",
-                        "ats_score": 70
+                        "recommendation": (
+                            f"Analysis completed with parsing error: {str(fallback_e)}"
+                        ),
+                        "ats_score": 70,
                     }
-            
+                    return self._transform_ats_response(fallback_data)
+
             raise Exception(f"ATS keyword analysis failed: {str(e)}")
-    
+
+    def _transform_ats_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Transform ATS analysis response to frontend expected format.
+
+        Args:
+            data: Raw ATS analysis data
+
+        Returns:
+            Dict in frontend expected format
+        """
+        return {
+            "ats_score": data.get("ats_score", 0),
+            "keyword_analysis": {
+                "matched_keywords": data.get("matching_skills", []),
+                "missing_critical": data.get("missing_skills", []),
+            },
+            "recommendations": (
+                [data.get("recommendation", "")] if data.get("recommendation") else []
+            ),
+        }
+
     async def extract_hidden_achievements(
-        self,
-        role_description: str
+        self, role_description: str
     ) -> Dict[str, Any]:
         """Extract hidden achievements from a role.
-        
+
         Args:
             role_description: Description of the role
-            
+
         Returns:
             Dict containing hidden achievements and SOAR bullets
         """
         try:
             prompt = self._get_hidden_achievements_prompt_template()
             chain = prompt | self.llm | self.output_parser
-            
-            result = await chain.ainvoke({
-                "role_description": role_description
-            })
-            
+
+            result = await chain.ainvoke({"role_description": role_description})
+
             return result
-            
+
         except Exception as e:
             raise Exception(f"Hidden achievements extraction failed: {str(e)}")
-    
+
     async def create_three_versions(
-        self,
-        job_description: str,
-        resume_text: str
+        self, job_description: str, resume_text: str
     ) -> Dict[str, Any]:
         """Create 3 resume positioning variants.
-        
+
         Args:
             job_description: Job description text
             resume_text: Resume text
-            
+
         Returns:
             Dict containing 3 resume versions
         """
         try:
             prompt = self._get_three_version_prompt_template()
             chain = prompt | self.llm | self.output_parser
-            
-            result = await chain.ainvoke({
-                "job_description": job_description,
-                "resume_text": resume_text
-            })
-            
+
+            result = await chain.ainvoke(
+                {"job_description": job_description, "resume_text": resume_text}
+            )
+
             return result
-            
+
         except Exception as e:
             raise Exception(f"Three-version creation failed: {str(e)}")
-    
+
     async def iterative_improvement(
-        self,
-        job_description: str,
-        resume_text: str
+        self, job_description: str, resume_text: str
     ) -> Dict[str, Any]:
         """Execute iterative improvement with scoring loop.
-        
+
         Args:
             job_description: Job description text
             resume_text: Resume text
-            
+
         Returns:
             Dict containing iterative improvement results
         """
         try:
             prompt = self._get_iterative_improvement_prompt_template()
             chain = prompt | self.llm | self.output_parser
-            
-            result = await chain.ainvoke({
-                "job_description": job_description,
-                "resume_text": resume_text
-            })
-            
+
+            result = await chain.ainvoke(
+                {"job_description": job_description, "resume_text": resume_text}
+            )
+
             return result
-            
+
         except Exception as e:
             raise Exception(f"Iterative improvement failed: {str(e)}")
-    
+
     def get_quick_start_workflows(self) -> Dict[str, str]:
         """Get quick start workflow descriptions.
-        
+
         Returns:
             Dict containing workflow descriptions
         """
         return {
-            "5_minute_ats": "Use MASTER PROMPT with only Tasks 1-2,5. Pick Version A summary.",
-            "20_minute_ready": "Full MASTER PROMPT. Pick best summary. Use 3 skill categories.",
-            "60_minute_max": "MASTER PROMPT + ITERATIVE LOOP + 3-VERSION RESUME."
+            "5_minute_ats": (
+                "Use MASTER PROMPT with only Tasks 1-2,5. Pick Version A summary."
+            ),
+            "20_minute_ready": (
+                "Full MASTER PROMPT. Pick best summary. Use 3 skill categories."
+            ),
+            "60_minute_max": "MASTER PROMPT + ITERATIVE LOOP + 3-VERSION RESUME.",
         }
-    
+
     def get_pro_tips(self) -> List[str]:
         """Get pro tips for resume optimization.
-        
+
         Returns:
             List of pro tips
         """
@@ -532,12 +612,12 @@ Top 3 weaknesses → targeted rewrites → new scores
             "Every bullet needs a metric (%/time/scale/$/users)",
             "Tailor EVERY resume - generic = zero interviews",
             "Test readability: send to friend before applying",
-            "Track results: sent → responses → interviews"
+            "Track results: sent → responses → interviews",
         ]
-    
+
     def get_eu_2025_alignment(self) -> Dict[str, List[str]]:
         """Get EU 2025 alignment requirements.
-        
+
         Returns:
             Dict containing EU 2025 alignment requirements
         """
@@ -546,33 +626,33 @@ Top 3 weaknesses → targeted rewrites → new scores
                 "standard headings",
                 "keywords from JD",
                 "no graphics/tables",
-                "simple formatting"
+                "simple formatting",
             ],
             "eu_digital_skills": [
                 "cloud platforms",
                 "data literacy",
                 "DevOps practices",
-                "cybersecurity awareness"
+                "cybersecurity awareness",
             ],
             "soft_skills_demand": [
                 "communication",
                 "adaptability",
                 "continuous learning",
                 "teamwork",
-                "problem-solving"
+                "problem-solving",
             ],
             "regional": [
                 "multilingualism advantage",
                 "EU data protection awareness",
-                "cross-cultural competence"
-            ]
+                "cross-cultural competence",
+            ],
         }
 
 
 if __name__ == "__main__":
     # Test the comprehensive optimizer
     optimizer = ComprehensiveResumeOptimizer()
-    
+
     # Example usage
     async def test_optimizer():
         result = await optimizer.optimize_resume_master(
@@ -580,10 +660,11 @@ if __name__ == "__main__":
             job_description="Sample JD...",
             resume_text="Sample resume...",
             target_company="Tech Corp",
-            focus_area="backend"
+            focus_area="backend",
         )
         print(json.dumps(result, indent=2))
-    
+
     # Run test
     import asyncio
+
     asyncio.run(test_optimizer())

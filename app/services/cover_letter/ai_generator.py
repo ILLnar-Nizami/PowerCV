@@ -4,7 +4,7 @@ from typing import Optional
 
 from openai import OpenAI
 
-from app.config import computed_settings as settings
+from app.config import get_settings
 from app.services.llm.prompts.cover_letter_prompts import (
     COVER_LETTER_PROMPT,
     COVER_LETTER_SYSTEM_PROMPT,
@@ -13,19 +13,20 @@ from app.services.llm.prompts.cover_letter_prompts import (
 
 class AICoverLetterGenerator:
     """Service for generating cover letters using AI."""
-    
+
     def __init__(self, model_name: Optional[str] = None):
         """Initialize the AI cover letter generator.
-        
+
         Args:
-            model_name: Name of the CerebrasAI model to use (defaults to API_MODEL_NAME from env)
+            model_name: Name of the CerebrasAI model to use (defaults to quality_model from env)
         """
-        self.model_name = model_name or settings.API_MODEL_NAME
+        settings = get_settings()
+        self.model_name = model_name or settings.quality_model
         self.client = OpenAI(
-            base_url=settings.API_BASE,
-            api_key=settings.CEREBRASAI_API_KEY
+            base_url=settings.cerebras_api_base,
+            api_key=settings.cerebras_api_key,
         )
-    
+
     async def generate_cover_letter(
         self,
         resume_text: str,
@@ -34,10 +35,10 @@ class AICoverLetterGenerator:
         job_title: str,
         tone: str = "professional",
         length: str = "medium",
-        additional_instructions: str = ""
+        additional_instructions: str = "",
     ) -> str:
         """Generate a tailored cover letter using AI.
-        
+
         Args:
             resume_text: The user's resume/CV text
             job_description: The job description to tailor the cover letter to
@@ -46,10 +47,15 @@ class AICoverLetterGenerator:
             tone: Desired tone (e.g., professional, enthusiastic, formal)
             length: Desired length (short, medium, long)
             additional_instructions: Any specific instructions for the AI
-            
+
         Returns:
             Generated cover letter text
         """
+        # Handle empty additional instructions
+        instructions = (
+            additional_instructions if additional_instructions else "None provided"
+        )
+
         # Format the prompt with the provided information
         prompt = COVER_LETTER_PROMPT.format(
             job_title=job_title,
@@ -58,24 +64,25 @@ class AICoverLetterGenerator:
             resume=resume_text,
             tone=tone,
             length=length,
-            additional_instructions=additional_instructions
+            additional_instructions=instructions,
         )
-        
+
         try:
             response = await self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": COVER_LETTER_SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=1500
+                max_tokens=1500,
             )
-            
+
             return response.choices[0].message.content.strip()
-            
+
         except Exception as e:
             raise Exception(f"Failed to generate cover letter: {str(e)}")
+
 
 # Example usage:
 # generator = AICoverLetterGenerator()

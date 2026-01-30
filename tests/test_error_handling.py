@@ -1,12 +1,16 @@
 """Test enhanced error handling and debugging capabilities."""
 
+from unittest.mock import patch
+
 import pytest
-import json
-from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+
 from app.utils.error_handler import (
-    DetailedError, ErrorHandler, ValidationError, ConfigurationError,
-    ErrorContext, create_error_response
+    ConfigurationError,
+    DetailedError,
+    ErrorContext,
+    ErrorHandler,
+    ValidationError,
+    create_error_response,
 )
 from app.utils.validation import ValidationHelper
 
@@ -20,7 +24,7 @@ class TestDetailedError:
             message="Test error",
             error_code="TEST_ERROR",
             context={"key": "value"},
-            user_friendly_message="User friendly message"
+            user_friendly_message="User friendly message",
         )
 
         assert error.message == "Test error"
@@ -32,9 +36,7 @@ class TestDetailedError:
     def test_detailed_error_to_dict(self):
         """Test converting detailed error to dictionary."""
         error = DetailedError(
-            message="Test error",
-            error_code="TEST_ERROR",
-            context={"key": "value"}
+            message="Test error", error_code="TEST_ERROR", context={"key": "value"}
         )
 
         error_dict = error.to_dict()
@@ -53,7 +55,7 @@ class TestErrorHandler:
         error = ValueError("Test error")
         context = {"operation": "test"}
 
-        with patch('app.utils.error_handler.logger') as mock_logger:
+        with patch("app.utils.error_handler.logger") as mock_logger:
             error_details = ErrorHandler.log_error(error, context)
 
             assert error_details["error_type"] == "ValueError"
@@ -66,11 +68,9 @@ class TestErrorHandler:
         """Test creating HTTP exception."""
         error = ValueError("Test error")
 
-        with patch('app.utils.error_handler.logger') as mock_logger:
+        with patch("app.utils.error_handler.logger") as mock_logger:
             http_exception = ErrorHandler.create_http_exception(
-                error,
-                status_code=400,
-                user_message="User message"
+                error, status_code=400, user_message="User message"
             )
 
             assert http_exception.status_code == 400
@@ -82,9 +82,7 @@ class TestErrorHandler:
         error = Exception("Request timeout")
 
         http_exception = ErrorHandler.handle_ai_api_error(
-            error,
-            provider="test_provider",
-            operation="test_operation"
+            error, provider="test_provider", operation="test_operation"
         )
 
         assert http_exception.status_code == 408
@@ -95,9 +93,7 @@ class TestErrorHandler:
         error = Exception("Connection failed")
 
         http_exception = ErrorHandler.handle_ai_api_error(
-            error,
-            provider="test_provider",
-            operation="test_operation"
+            error, provider="test_provider", operation="test_operation"
         )
 
         assert http_exception.status_code == 503
@@ -108,9 +104,7 @@ class TestErrorHandler:
         error = Exception("Authentication failed")
 
         http_exception = ErrorHandler.handle_ai_api_error(
-            error,
-            provider="test_provider",
-            operation="test_operation"
+            error, provider="test_provider", operation="test_operation"
         )
 
         assert http_exception.status_code == 401
@@ -121,9 +115,7 @@ class TestErrorHandler:
         error = Exception("Rate limit exceeded")
 
         http_exception = ErrorHandler.handle_ai_api_error(
-            error,
-            provider="test_provider",
-            operation="test_operation"
+            error, provider="test_provider", operation="test_operation"
         )
 
         assert http_exception.status_code == 429
@@ -136,26 +128,25 @@ class TestValidationHelperSecurity:
     def test_validate_text_input_allows_safe_text(self):
         """Text input: accepts normal, non-malicious content."""
         safe_text = "This is a normal job description with no scripts."
-        result = ValidationHelper.validate_text_input(
-            safe_text, 1000, "test_field")
+        result = ValidationHelper.validate_text_input(safe_text, 1000, "test_field")
         assert result == safe_text
 
     def test_validate_text_input_rejects_malicious_html(self):
         """Text input: rejects XSS / script-like content."""
         malicious_text = '<script>alert("xss")</script> Click this link'
         with pytest.raises(ValueError) as exc_info:
-            ValidationHelper.validate_text_input(
-                malicious_text, 1000, "test_field")
+            ValidationHelper.validate_text_input(malicious_text, 1000, "test_field")
         assert "unsafe content" in str(exc_info.value).lower()
 
     def test_validate_text_input_repetition_warning(self):
         """Text input: detects excessive repetition / spammy content."""
         repetitive_text = "spam " * 200
         with pytest.raises(ValueError) as exc_info:
-            ValidationHelper.validate_text_input(
-                repetitive_text, 1000, "test_field")
-        assert "repetition" in str(exc_info.value).lower(
-        ) or "spam" in str(exc_info.value).lower()
+            ValidationHelper.validate_text_input(repetitive_text, 1000, "test_field")
+        assert (
+            "repetition" in str(exc_info.value).lower()
+            or "spam" in str(exc_info.value).lower()
+        )
 
     def test_validate_file_path_valid(self):
         """File path: accepts a valid, safe path."""
@@ -170,8 +161,10 @@ class TestValidationHelperSecurity:
         allowed_extensions = [".pdf", ".doc", ".docx"]
         with pytest.raises(ValueError) as exc_info:
             ValidationHelper.validate_file_path(path, allowed_extensions)
-        assert "traversal" in str(exc_info.value).lower(
-        ) or "unsafe" in str(exc_info.value).lower()
+        assert (
+            "traversal" in str(exc_info.value).lower()
+            or "unsafe" in str(exc_info.value).lower()
+        )
 
     def test_validate_file_path_rejects_disallowed_extension(self):
         """File path: rejects disallowed file extensions."""
@@ -179,8 +172,10 @@ class TestValidationHelperSecurity:
         allowed_extensions = [".pdf", ".doc", ".docx"]
         with pytest.raises(ValueError) as exc_info:
             ValidationHelper.validate_file_path(path, allowed_extensions)
-        assert "extension" in str(exc_info.value).lower(
-        ) or "allowed" in str(exc_info.value).lower()
+        assert (
+            "extension" in str(exc_info.value).lower()
+            or "allowed" in str(exc_info.value).lower()
+        )
 
     def test_validate_skill_list_from_string(self):
         """Skill list: accepts a comma-separated string and normalizes it."""
@@ -212,28 +207,28 @@ class TestValidationHelperSecurity:
         """JSON structure: rejects non-dict payloads."""
         payload = ["not", "a", "dict"]
         with pytest.raises(ValueError):
-            ValidationHelper.validate_json_structure(
-                payload, required_fields=["id"])
+            ValidationHelper.validate_json_structure(payload, required_fields=["id"])
 
     def test_validate_json_structure_invalid_json_string(self):
         """JSON structure: rejects invalid JSON strings."""
         payload = '{"id": 123, "name": "test",}'  # trailing comma makes it invalid
         with pytest.raises(ValueError):
-            ValidationHelper.validate_json_structure(
-                payload, required_fields=["id"])
+            ValidationHelper.validate_json_structure(payload, required_fields=["id"])
 
     def test_validate_json_structure_missing_required_fields(self):
         """JSON structure: rejects payloads missing required fields."""
         payload = {"id": 123}
         with pytest.raises(ValueError):
             ValidationHelper.validate_json_structure(
-                payload, required_fields=["id", "name"])
+                payload, required_fields=["id", "name"]
+            )
 
     def test_validate_json_structure_valid(self):
         """JSON structure: accepts valid payloads with required fields."""
         payload = {"id": 123, "name": "test"}
         result = ValidationHelper.validate_json_structure(
-            payload, required_fields=["id", "name"])
+            payload, required_fields=["id", "name"]
+        )
         assert result == payload
 
     def test_validate_date_range_invalid_format(self):
@@ -248,8 +243,7 @@ class TestValidationHelperSecurity:
 
     def test_validate_date_range_open_ended(self):
         """Date range: supports open-ended ranges when end is None/empty."""
-        start_dt, end_dt = ValidationHelper.validate_date_range(
-            "2024-01-01", None)
+        start_dt, end_dt = ValidationHelper.validate_date_range("2024-01-01", None)
         assert start_dt is not None
         assert end_dt is None
 
@@ -320,8 +314,7 @@ class TestValidationHelper:
         """Test valid template name."""
         template = "resume.typ"
         available_templates = ["resume.typ", "modern.typ"]
-        result = ValidationHelper.validate_template_name(
-            template, available_templates)
+        result = ValidationHelper.validate_template_name(template, available_templates)
         assert result == template
 
     def test_validate_template_name_invalid(self):
@@ -329,8 +322,7 @@ class TestValidationHelper:
         template = "invalid.typ"
         available_templates = ["resume.typ", "modern.typ"]
         with pytest.raises(ValueError, match="not available"):
-            ValidationHelper.validate_template_name(
-                template, available_templates)
+            ValidationHelper.validate_template_name(template, available_templates)
 
 
 class TestErrorContext:
@@ -338,7 +330,7 @@ class TestErrorContext:
 
     def test_error_context_success(self):
         """Test error context on successful operation."""
-        with patch('app.utils.error_handler.log_performance') as mock_log:
+        with patch("app.utils.error_handler.log_performance") as mock_log:
             with ErrorContext("test_operation", {"key": "value"}):
                 pass
 
@@ -349,7 +341,7 @@ class TestErrorContext:
 
     def test_error_context_failure(self):
         """Test error context on failed operation."""
-        with patch('app.utils.error_handler.ErrorHandler.log_error') as mock_log:
+        with patch("app.utils.error_handler.ErrorHandler.log_error") as mock_log:
             try:
                 with ErrorContext("test_operation", {"key": "value"}):
                     raise ValueError("Test error")
@@ -371,7 +363,7 @@ class TestCreateErrorResponse:
             error_code="TEST_ERROR",
             message="Test message",
             details={"key": "value"},
-            status_code=400
+            status_code=400,
         )
 
         assert response["error"] is True
@@ -387,14 +379,12 @@ class TestValidationError:
     def test_validation_error_creation(self):
         """Test creating validation error."""
         error = ValidationError(
-            field="test_field",
-            message="Test validation error",
-            value="test_value"
+            field="test_field", message="Test validation error", value="test_value"
         )
 
-        assert error.context['field'] == "test_field"
+        assert error.context["field"] == "test_field"
         assert error.message == "Test validation error"
-        assert error.context['value'] == "test_value"
+        assert error.context["value"] == "test_value"
         # assert "Validation error for test_field" in str(error)
 
 
@@ -407,7 +397,7 @@ class TestConfigurationError:
             message="Test config error",
             config_key="TEST_KEY",
             expected_type="string",
-            provider="test_provider"
+            provider="test_provider",
         )
 
         assert error.error_code == "CONFIGURATION_ERROR"

@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": "/home/illnar/.cursor/worktrees/PowerCV/apz",
+      "name": "PowerCV Worktree (apz)"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": false
+    },
+    "git.autoRepositoryDetection": true,
+    "git.worktrees.enabled": true
+  }
+}

@@ -1,5 +1,5 @@
 """Test CV optimization quality and data preservation."""
-import pytest
+
 from app.services.cv_validator import CVValidator
 
 
@@ -19,9 +19,9 @@ def test_preserve_contact_info():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert not validation['valid']
-    assert any('phone' in err.lower() for err in validation['errors'])
-    assert any('nizametdinov@gmail.com' in err for err in validation['errors'])
+    assert not validation["valid"]
+    assert any("phone" in err.lower() for err in validation["errors"])
+    assert any("nizametdinov@gmail.com" in err for err in validation["errors"])
 
 
 def test_no_language_hallucinations():
@@ -36,7 +36,7 @@ def test_no_language_hallucinations():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert any('french' in warn.lower() for warn in validation['warnings'])
+    assert any("french" in warn.lower() for warn in validation["warnings"])
 
 
 def test_preserve_education():
@@ -57,7 +57,7 @@ def test_preserve_education():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert any('master' in err.lower() for err in validation['errors'])
+    assert any("master" in err.lower() for err in validation["errors"])
 
 
 def test_preserve_github_linkedin():
@@ -75,7 +75,7 @@ def test_preserve_github_linkedin():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert any('github' in err.lower() for err in validation['errors'])
+    assert any("github" in err.lower() for err in validation["errors"])
 
 
 def test_no_skill_hallucinations():
@@ -96,7 +96,7 @@ def test_no_skill_hallucinations():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert any('forklift' in warn.lower() for warn in validation['warnings'])
+    assert any("forklift" in warn.lower() for warn in validation["warnings"])
 
 
 def test_certifications_preserved():
@@ -116,8 +116,7 @@ def test_certifications_preserved():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert any('certification' in warn.lower()
-               for warn in validation['warnings'])
+    assert any("certification" in warn.lower() for warn in validation["warnings"])
 
 
 def test_valid_optimization_passes():
@@ -147,5 +146,5 @@ def test_valid_optimization_passes():
 
     validation = CVValidator.validate_optimization(original, optimized)
 
-    assert validation['valid']
-    assert len(validation['errors']) == 0
+    assert validation["valid"]
+    assert len(validation["errors"]) == 0

@@ -1,0 +1,44 @@
+Senior Full Stack Developer
+
+Company: InnovateTech
+Location: Amsterdam, Netherlands
+Type: Full-time
+Salary: €70,000 - €90,000
+
+Job Description:
+InnovateTech is looking for a Senior Full Stack Developer to join our dynamic team. You'll work on cutting-edge web applications, collaborating with designers and product managers to deliver exceptional user experiences.
+
+Key Responsibilities:
+- Design and develop scalable web applications using modern technologies
+- Build RESTful APIs and microservices
+- Implement responsive front-end interfaces
+- Optimize application performance and user experience
+- Participate in code reviews and mentor junior developers
+- Collaborate with cross-functional teams in an agile environment
+
+Requirements:
+- 4+ years of full-stack development experience
+- Proficiency in Python (Django/FastAPI) and JavaScript/TypeScript
+- Experience with React or Vue.js frameworks
+- Strong knowledge of database design (PostgreSQL, MongoDB)
+- Familiarity with Docker, Kubernetes, and cloud platforms (AWS/GCP)
+- Experience with CI/CD pipelines and automated testing
+- Understanding of software architecture and design patterns
+- Excellent problem-solving and communication skills
+
+Nice to have:
+- Experience with GraphQL
+- Knowledge of machine learning/AI integration
+- Open source contributions
+- Agile/Scrum certification
+
+Benefits:
+- Competitive salary and equity package
+- Flexible working hours and remote options
+- Professional development budget
+- Health insurance and pension plan
+- Modern office in Amsterdam city center
+- Team events and company retreats
+
+About InnovateTech:
+Founded in 2018, InnovateTech is a fast-growing startup building AI-powered tools for businesses. We value innovation, collaboration, and work-life balance. Join us in shaping the future of technology!

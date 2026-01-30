@@ -7,7 +7,7 @@
 ) = {
   set document(author: author, title: "Cover Letter")
   set text(font: "Linux Libertine", lang: "en", size: 11pt)
-  set page(margin: (x: 2.5cm, y: 2.5cm))
+  set page(paper: "a4", margin: (x: 2.5cm, y: 2.5cm))
   set par(leading: 0.8em, justify: true)
 
   // Header

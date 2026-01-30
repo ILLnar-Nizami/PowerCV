@@ -103,7 +103,7 @@ class PowerCVCLI:
             sys.exit(1)
 
         logger.info("Starting CV optimization...")
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=False,
@@ -141,7 +141,6 @@ class PowerCVCLI:
         jd_path = Path(args.jd) if args.jd else None
         jd_url = args.url
         output = Path(args.output) if args.output else None
-        tone = args.tone
 
         if not cv_path.exists():
             logger.error(f"CV file not found: {cv_path}")
@@ -164,7 +163,7 @@ class PowerCVCLI:
             sys.exit(1)
 
         logger.info("Generating cover letter...")
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=True,
@@ -203,8 +202,7 @@ class PowerCVCLI:
 
             if output:
                 with open(output, "w", encoding="utf-8") as f:
-                    yaml.dump(result, f, default_flow_style=False,
-                              allow_unicode=True)
+                    yaml.dump(result, f, default_flow_style=False, allow_unicode=True)
                 logger.info(f"Job description saved to: {output}")
             else:
                 print("\n" + "=" * 60)
@@ -255,7 +253,7 @@ class PowerCVCLI:
         logger.info("Starting full optimization...")
 
         # Run optimization workflow
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=True,
@@ -314,10 +312,8 @@ class PowerCVCLI:
         print("OPTIMIZATION COMPLETE")
         print("=" * 60)
         print(f"ATS Score: {result.get('ats_score', 'N/A')}%")
-        print(
-            f"Matched Skills: {', '.join(result.get('matching_skills', [])[:10])}")
-        print(
-            f"Missing Skills: {', '.join(result.get('missing_skills', [])[:5])}")
+        print(f"Matched Skills: {', '.join(result.get('matching_skills', [])[:10])}")
+        print(f"Missing Skills: {', '.join(result.get('missing_skills', [])[:5])}")
         print("\nFiles generated:")
         print(f"  - {cv_output}")
         print(f"  - {cl_output}")
@@ -359,7 +355,8 @@ class PowerCVCLI:
         results = []
         for i, job in enumerate(jobs, 1):
             logger.info(
-                f"Processing job {i}/{len(jobs)}: {job.get('title', 'Unknown')}")
+                f"Processing job {i}/{len(jobs)}: {job.get('title', 'Unknown')}"
+            )
 
             try:
                 # Fetch job description
@@ -371,12 +368,11 @@ class PowerCVCLI:
                     jd_text = jd_data.get("description", "")
 
                 if not jd_text:
-                    logger.warning(
-                        f"No job description for: {job.get('title')}")
+                    logger.warning(f"No job description for: {job.get('title')}")
                     continue
 
                 # Run optimization
-                result = self.orchestrator.optimize_cv_for_job(
+                result = await self.orchestrator.optimize_cv_for_job(
                     cv_text=master_cv,
                     jd_text=jd_text,
                     generate_cover_letter=True,
@@ -422,13 +418,13 @@ class PowerCVCLI:
                 )
 
                 logger.info(
-                    f"   Completed: {job_title} (ATS: {result.get('ats_score')}%)")
+                    f"   Completed: {job_title} (ATS: {result.get('ats_score')}%)"
+                )
 
             except Exception as e:
                 logger.error(f"   Failed: {job.get('title')} - {str(e)}")
                 results.append(
-                    {"job": job.get("title"), "error": str(e),
-                     "status": "failed"}
+                    {"job": job.get("title"), "error": str(e), "status": "failed"}
                 )
 
         # Save batch summary
@@ -554,8 +550,7 @@ jobs:
 """
             with open(batch_config_example, "w", encoding="utf-8") as f:
                 f.write(example_config)
-            logger.info(
-                f"Created example batch config: {batch_config_example}")
+            logger.info(f"Created example batch config: {batch_config_example}")
 
         # Create .env example
         env_example = output_dir / ".env.example"
@@ -608,10 +603,8 @@ APP_PORT=8080
         print("OPTIMIZATION SUMMARY")
         print("=" * 60)
         print(f"ATS Score: {result.get('ats_score', 'N/A')}%")
-        print(
-            f"Matched Skills: {', '.join(result.get('matching_skills', [])[:10])}")
-        print(
-            f"Missing Skills: {', '.join(result.get('missing_skills', [])[:5])}")
+        print(f"Matched Skills: {', '.join(result.get('matching_skills', [])[:10])}")
+        print(f"Missing Skills: {', '.join(result.get('missing_skills', [])[:5])}")
         print(f"\nRecommendation: {result.get('recommendation', 'N/A')[:200]}")
 
 
@@ -646,18 +639,14 @@ Examples:
         """,
     )
 
-    subparsers = parser.add_subparsers(
-        dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Tailor command
-    tailor_parser = subparsers.add_parser(
-        "tailor", help="Tailor CV for a specific job")
+    tailor_parser = subparsers.add_parser("tailor", help="Tailor CV for a specific job")
     tailor_parser.add_argument(
         "--cv", required=True, help="Path to your CV file (txt/md)"
     )
-    tailor_parser.add_argument(
-        "--jd", help="Path to job description file (txt/md)"
-    )
+    tailor_parser.add_argument("--jd", help="Path to job description file (txt/md)")
     tailor_parser.add_argument(
         "--url", help="URL to job posting (LinkedIn, Indeed, etc.)"
     )
@@ -669,18 +658,10 @@ Examples:
     cl_parser = subparsers.add_parser(
         "cover-letter", help="Generate cover letter for a job"
     )
-    cl_parser.add_argument(
-        "--cv", required=True, help="Path to your CV file (txt/md)"
-    )
-    cl_parser.add_argument(
-        "--jd", help="Path to job description file (txt/md)"
-    )
-    cl_parser.add_argument(
-        "--url", help="URL to job posting (LinkedIn, Indeed, etc.)"
-    )
-    cl_parser.add_argument(
-        "--output", "-o", help="Output file path for cover letter"
-    )
+    cl_parser.add_argument("--cv", required=True, help="Path to your CV file (txt/md)")
+    cl_parser.add_argument("--jd", help="Path to job description file (txt/md)")
+    cl_parser.add_argument("--url", help="URL to job posting (LinkedIn, Indeed, etc.)")
+    cl_parser.add_argument("--output", "-o", help="Output file path for cover letter")
     cl_parser.add_argument(
         "--tone",
         default="Professional",
@@ -692,9 +673,7 @@ Examples:
     scrape_parser = subparsers.add_parser(
         "scrape", help="Scrape job description from URL"
     )
-    scrape_parser.add_argument(
-        "--url", required=True, help="URL to job posting"
-    )
+    scrape_parser.add_argument("--url", required=True, help="URL to job posting")
     scrape_parser.add_argument(
         "--output", "-o", help="Output file path for scraped content"
     )
@@ -703,17 +682,14 @@ Examples:
     opt_parser = subparsers.add_parser(
         "optimize", help="Full optimization (CV + Cover Letter)"
     )
+    opt_parser.add_argument("--cv", required=True, help="Path to your CV file (txt/md)")
+    opt_parser.add_argument("--jd", help="Path to job description file (txt/md)")
+    opt_parser.add_argument("--url", help="URL to job posting (LinkedIn, Indeed, etc.)")
     opt_parser.add_argument(
-        "--cv", required=True, help="Path to your CV file (txt/md)"
-    )
-    opt_parser.add_argument(
-        "--jd", help="Path to job description file (txt/md)"
-    )
-    opt_parser.add_argument(
-        "--url", help="URL to job posting (LinkedIn, Indeed, etc.)"
-    )
-    opt_parser.add_argument(
-        "--output", "-o", default="./output", help="Output directory (default: ./output)"
+        "--output",
+        "-o",
+        default="./output",
+        help="Output directory (default: ./output)",
     )
 
     # Batch command
@@ -727,7 +703,10 @@ Examples:
         "--config", required=True, help="Path to batch configuration YAML file"
     )
     batch_parser.add_argument(
-        "--output", "-o", default="./output", help="Output directory (default: ./output)"
+        "--output",
+        "-o",
+        default="./output",
+        help="Output directory (default: ./output)",
     )
 
     # Init command

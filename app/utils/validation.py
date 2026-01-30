@@ -38,9 +38,10 @@ class ValidationHelper:
             parsed = urlparse(url)
 
             # Check scheme
-            if parsed.scheme not in ['http', 'https']:
+            if parsed.scheme not in ["http", "https"]:
                 raise ValueError(
-                    f"URL must use HTTP or HTTPS protocol. Got: {parsed.scheme}")
+                    f"URL must use HTTP or HTTPS protocol. Got: {parsed.scheme}"
+                )
 
             # Check netloc (domain)
             if not parsed.netloc:
@@ -48,16 +49,21 @@ class ValidationHelper:
 
             # Check for common job board domains
             job_board_domains = [
-                'linkedin.com', 'indeed.com', 'glassdoor.com', 'monster.com',
-                'careerbuilder.com', 'ziprecruiter.com', 'dice.com', 'angel.co'
+                "linkedin.com",
+                "indeed.com",
+                "glassdoor.com",
+                "monster.com",
+                "careerbuilder.com",
+                "ziprecruiter.com",
+                "dice.com",
+                "angel.co",
             ]
 
             domain = parsed.netloc.lower()
             is_job_board = any(board in domain for board in job_board_domains)
 
             if not is_job_board:
-                logger.warning(
-                    f"URL may not be from a known job board: {domain}")
+                logger.warning(f"URL may not be from a known job board: {domain}")
 
             # Validate URL length
             if len(url) > 2048:
@@ -72,10 +78,7 @@ class ValidationHelper:
 
     @staticmethod
     def validate_text_input(
-        text: str,
-        max_length: int,
-        field_name: str,
-        min_length: int = 10
+        text: str, max_length: int, field_name: str, min_length: int = 10
     ) -> str:
         """Validate text input with comprehensive checks.
 
@@ -98,35 +101,33 @@ class ValidationHelper:
 
         if len(text) < min_length:
             raise ValueError(
-                f"{field_name} must be at least {min_length} characters long")
+                f"{field_name} must be at least {min_length} characters long"
+            )
 
         if len(text) > max_length:
-            raise ValueError(
-                f"{field_name} is too long (max {max_length} characters)")
+            raise ValueError(f"{field_name} is too long (max {max_length} characters)")
 
         # Check for potentially malicious content
         suspicious_patterns = [
-            r'<script[^>]*>.*?</script>',
-            r'javascript:',
-            r'on\w+\s*=',
-            r'vbscript:',
-            r'data:text/html',
-            r'<?php',
-            r'<%.*%>',
+            r"<script[^>]*>.*?</script>",
+            r"javascript:",
+            r"on\w+\s*=",
+            r"vbscript:",
+            r"data:text/html",
+            r"<?php",
+            r"<%.*%>",
         ]
 
         for pattern in suspicious_patterns:
             if re.search(pattern, text, re.IGNORECASE | re.DOTALL):
-                raise ValueError(
-                    f"{field_name} contains potentially unsafe content")
+                raise ValueError(f"{field_name} contains potentially unsafe content")
 
         # Check for excessive repetition (possible spam/filler)
         words = text.split()
         if len(words) > 50:
             unique_words = set(word.lower() for word in words)
             if len(unique_words) / len(words) < 0.3:
-                logger.warning(
-                    f"{field_name} may contain excessive repetition")
+                logger.warning(f"{field_name} may contain excessive repetition")
                 raise ValueError(f"{field_name} contains excessive repetition")
 
         return text
@@ -150,7 +151,7 @@ class ValidationHelper:
         email = email.strip().lower()
 
         # Basic email regex
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
         if not re.match(email_pattern, email):
             raise ValueError("Invalid email format")
@@ -159,10 +160,10 @@ class ValidationHelper:
         if len(email) > 254:
             raise ValueError("Email is too long")
 
-        if email.startswith('.') or email.endswith('.'):
+        if email.startswith(".") or email.endswith("."):
             raise ValueError("Email cannot start or end with a dot")
 
-        if '..' in email:
+        if ".." in email:
             raise ValueError("Email cannot contain consecutive dots")
 
         return email
@@ -186,7 +187,7 @@ class ValidationHelper:
         phone = phone.strip()
 
         # Remove common formatting characters
-        cleaned = re.sub(r'[^\d+]', '', phone)
+        cleaned = re.sub(r"[^\d+]", "", phone)
 
         # Check minimum length (at least 10 digits for most countries)
         if len(cleaned) < 10:
@@ -196,9 +197,10 @@ class ValidationHelper:
             raise ValueError("Phone number is too long")
 
         # Must start with + for international numbers or be a valid local format
-        if not (cleaned.startswith('+') or re.match(r'^\d{10,15}$', cleaned)):
+        if not (cleaned.startswith("+") or re.match(r"^\d{10,15}$", cleaned)):
             raise ValueError(
-                "Phone number must start with + (international) or be 10-15 digits")
+                "Phone number must start with + (international) or be 10-15 digits"
+            )
 
         return cleaned
 
@@ -225,13 +227,14 @@ class ValidationHelper:
             path = Path(file_path)
 
             # Check for path traversal attempts
-            if '..' in path.parts:
+            if ".." in path.parts:
                 raise ValueError("Path traversal not allowed")
 
             # Check extension
             if path.suffix.lower() not in [ext.lower() for ext in allowed_extensions]:
                 raise ValueError(
-                    f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}")
+                    f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
+                )
 
             # Check filename length
             if len(path.name) > 255:
@@ -272,7 +275,9 @@ class ValidationHelper:
         return template
 
     @staticmethod
-    def validate_json_structure(data: Any, required_fields: List[str]) -> Dict[str, Any]:
+    def validate_json_structure(
+        data: Any, required_fields: List[str]
+    ) -> Dict[str, Any]:
         """Validate JSON structure and required fields.
 
         Args:
@@ -288,6 +293,7 @@ class ValidationHelper:
         if isinstance(data, str):
             try:
                 import json
+
                 data = json.loads(data)
             except json.JSONDecodeError as e:
                 raise ValueError(f"Invalid JSON: {str(e)}")
@@ -295,11 +301,9 @@ class ValidationHelper:
         if not isinstance(data, dict):
             raise ValueError("Data must be a JSON object")
 
-        missing_fields = [
-            field for field in required_fields if field not in data]
+        missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:
-            raise ValueError(
-                f"Missing required fields: {', '.join(missing_fields)}")
+            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
 
         return data
 
@@ -318,7 +322,7 @@ class ValidationHelper:
         """
         if isinstance(skills, str):
             # Split by common delimiters
-            skills_list = re.split(r'[,;]\s*', skills.strip())
+            skills_list = re.split(r"[,;]\s*", skills.strip())
         elif isinstance(skills, list):
             skills_list = skills
         else:
@@ -356,13 +360,13 @@ class ValidationHelper:
         from datetime import datetime
 
         try:
-            start_dt = datetime.strptime(start_date.strip(), '%Y-%m-%d')
+            start_dt = datetime.strptime(start_date.strip(), "%Y-%m-%d")
         except ValueError:
             raise ValueError("Start date must be in YYYY-MM-DD format")
 
         if end_date:
             try:
-                end_dt = datetime.strptime(end_date.strip(), '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date.strip(), "%Y-%m-%d")
             except ValueError:
                 raise ValueError("End date must be in YYYY-MM-DD format")
 
@@ -393,10 +397,10 @@ class ValidationHelper:
 
         # Remove multiple consecutive underscores/spaces
         sanitized = "".join(safe_chars)
-        sanitized = re.sub(r'[_\s]+', '_', sanitized)
+        sanitized = re.sub(r"[_\s]+", "_", sanitized)
 
         # Limit length
-        return sanitized[:100].strip('_')
+        return sanitized[:100].strip("_")
 
 
 class EnhancedValidationError(Exception):
@@ -427,14 +431,13 @@ def validate_pydantic_model(model: BaseModel, data: Dict[str, Any]) -> BaseModel
     except pydantic.ValidationError as e:
         errors = []
         for error in e.errors():
-            field = '.'.join(str(x) for x in error['loc'])
-            message = error['msg']
+            field = ".".join(str(x) for x in error["loc"])
+            message = error["msg"]
             errors.append(f"{field}: {message}")
 
         error_detail = "Validation failed: " + "; ".join(errors)
         logger.warning(f"Pydantic validation error: {error_detail}")
 
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=error_detail
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=error_detail
         )

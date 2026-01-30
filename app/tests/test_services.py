@@ -1,10 +1,18 @@
 """Comprehensive tests for PowerCV services."""
-from unittest.mock import MagicMock, patch
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from app.services.cv_analyzer import CVAnalyzer
 from app.services.cv_optimizer import CVOptimizer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
-from app.services.cv_analyzer import CVAnalyzer
-from app.utils.shared_utils import JSONParser, TextProcessor, MetricsHelper, ErrorHandler
+from app.utils.shared_utils import (
+    ErrorHandler,
+    JSONParser,
+    MetricsHelper,
+    TextProcessor,
+)
 
 
 class TestJSONParser:
@@ -12,7 +20,7 @@ class TestJSONParser:
 
     def test_clean_json_response_with_fences(self):
         """Test cleaning JSON response with markdown fences."""
-        response = "```json\n{\"name\": \"test\"}\n```"
+        response = '```json\n{"name": "test"}\n```'
         result = JSONParser.clean_json_response(response)
         assert result == '{"name": "test"}'
 
@@ -26,7 +34,7 @@ class TestJSONParser:
         """Test cleaning JSON response with array."""
         response = "```json\n[1, 2, 3]\n```"
         result = JSONParser.clean_json_response(response)
-        assert result == '[1, 2, 3]'
+        assert result == "[1, 2, 3]"
 
     def test_safe_json_parse_success(self):
         """Test successful JSON parsing."""
@@ -45,13 +53,13 @@ class TestJSONParser:
         """Test repairing truncated JSON."""
         json_str = '{"name": "test", "items": [1, 2'
         result = JSONParser.repair_json(json_str)
-        assert result.endswith(']}')
+        assert result.endswith("]}")
 
     def test_repair_json_empty(self):
         """Test repairing empty JSON."""
         json_str = ""
         result = JSONParser.repair_json(json_str)
-        assert result == ""
+        assert result == "{}"
 
 
 class TestTextProcessor:
@@ -72,7 +80,7 @@ class TestTextProcessor:
     def test_extract_keywords(self):
         """Test keyword extraction."""
         text = "Python, Java, Python, JavaScript"
-        patterns = [r'[A-Za-z]+']
+        patterns = [r"[A-Za-z]+"]
         result = TextProcessor.extract_keywords(text, patterns)
         # Should have unique keywords
         assert len(result) <= 4
@@ -158,18 +166,21 @@ class TestCVOptimizer:
         opt = CVOptimizer()
         assert opt is not None
 
-    @patch('app.services.cv_optimizer.get_ai_client')
-    def test_optimize_comprehensive(self, mock_client_factory):
+    @patch("app.services.ai_client.get_ai_client")
+    @pytest.mark.asyncio
+    async def test_optimize_comprehensive(self, mock_client_factory):
         """Test comprehensive CV optimization."""
         mock_client = MagicMock()
         mock_client_factory.return_value = mock_client
-        mock_client.chat_completion.return_value = '{"user_information": {"name": "Test"}}'
+        mock_client.optimize = AsyncMock(
+            return_value={"optimized_cv": {"user_information": {"name": "Test"}}}
+        )
 
         opt = CVOptimizer()
-        result = opt.optimize_comprehensive("CV", "JD")
+        result = await opt.optimize_comprehensive("CV", "JD")
         assert "user_information" in result
 
-    @patch('app.services.cv_optimizer.get_ai_client')
+    @patch("app.services.ai_client.get_ai_client")
     def test_optimize_section(self, mock_client_factory):
         """Test section optimization."""
         mock_client = MagicMock()
@@ -181,7 +192,7 @@ class TestCVOptimizer:
             original_section="Original",
             jd_text="Job Description",
             keywords=["python"],
-            optimization_focus="experience"
+            optimization_focus="experience",
         )
         assert "optimized_content" in result
 
@@ -194,16 +205,20 @@ class TestCVAnalyzer:
         analyzer = CVAnalyzer()
         assert analyzer is not None
 
-    @patch('app.services.cv_analyzer.get_ai_client')
-    def test_analyze(self, mock_client_factory):
+    @patch("app.services.ai_client.get_ai_client")
+    @pytest.mark.asyncio
+    async def test_analyze(self, mock_client_factory):
         """Test CV analysis."""
         mock_client = MagicMock()
         mock_client_factory.return_value = mock_client
-        mock_client.chat_completion.return_value = '{"ats_score": 85}'
+        mock_client.analyze = AsyncMock(return_value={"ats_score": 85})
 
         analyzer = CVAnalyzer()
         # Use at least 10 characters to pass validation
-        result = analyzer.analyze("This is a test CV text for analysis", "This is a job description for testing")
+        result = await analyzer.analyze(
+            "This is a test CV text for analysis",
+            "This is a job description for testing",
+        )
         assert "ats_score" in result
 
 
@@ -215,69 +230,95 @@ class TestWorkflowOrchestrator:
         orch = CVWorkflowOrchestrator()
         assert orch is not None
 
-    @patch('app.services.workflow_orchestrator.CoverLetterGenerator')
-    @patch('app.services.workflow_orchestrator.CVAnalyzer')
-    @patch('app.services.workflow_orchestrator.CVOptimizer')
-    def test_optimize_cv_for_job(self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls):
+    @patch("app.services.workflow_orchestrator.get_redis")
+    @patch("app.services.workflow_orchestrator.CoverLetterGenerator")
+    @patch("app.services.workflow_orchestrator.CVAnalyzer")
+    @patch("app.services.workflow_orchestrator.CVOptimizer")
+    @pytest.mark.asyncio
+    async def test_optimize_cv_for_job(
+        self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls, mock_get_redis
+    ):
         """Test CV optimization workflow."""
+        mock_redis = AsyncMock()
+        mock_redis.get.return_value = None
+        mock_get_redis.return_value = mock_redis
         mock_analyzer = MagicMock()
         mock_analyzer_cls.return_value = mock_analyzer
-        mock_analyzer.analyze.return_value = {
-            "ats_score": 75,
-            "matching_skills": ["Python"],
-            "missing_skills": ["Java"],
-            "keyword_analysis": {
-                "matched_keywords": [{"keyword": "Python"}],
-                "missing_critical": []
+        mock_analyzer.analyze = AsyncMock(
+            return_value={
+                "ats_score": 75,
+                "matching_skills": ["Python"],
+                "missing_skills": ["Java"],
+                "keyword_analysis": {
+                    "matched_keywords": [{"keyword": "Python"}],
+                    "missing_critical": [],
+                },
             }
-        }
+        )
 
         mock_opt = MagicMock()
         mock_opt_cls.return_value = mock_opt
-        mock_opt.optimize_comprehensive.return_value = {
-            "user_information": {"name": "Test", "email": "test@test.com"}
-        }
+        mock_opt.optimize_comprehensive = AsyncMock(
+            return_value={
+                "user_information": {"name": "Test", "email": "test@test.com"}
+            }
+        )
 
         mock_cl_gen = MagicMock()
-        mock_cl_gen.generate.return_value = {"content": "Test cover letter"}
+        mock_cl_gen.generate = AsyncMock(return_value={"content": "Test cover letter"})
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
-        result = orch.optimize_cv_for_job("CV text", "JD text", generate_cover_letter=False)
+        result = await orch.optimize_cv_for_job(
+            "CV text", "JD text", generate_cover_letter=False
+        )
 
         assert isinstance(result, dict)
         assert "analysis" in result
         assert "optimized_cv" in result
 
-    @patch('app.services.workflow_orchestrator.CoverLetterGenerator')
-    @patch('app.services.workflow_orchestrator.CVAnalyzer')
-    @patch('app.services.workflow_orchestrator.CVOptimizer')
-    def test_optimize_cv_for_job_with_cover_letter(self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls):
+    @patch("app.services.workflow_orchestrator.get_redis")
+    @patch("app.services.workflow_orchestrator.CoverLetterGenerator")
+    @patch("app.services.workflow_orchestrator.CVAnalyzer")
+    @patch("app.services.workflow_orchestrator.CVOptimizer")
+    @pytest.mark.asyncio
+    async def test_optimize_cv_for_job_with_cover_letter(
+        self, mock_opt_cls, mock_analyzer_cls, mock_cl_cls, mock_get_redis
+    ):
         """Test CV optimization with cover letter generation."""
+        mock_redis = AsyncMock()
+        mock_redis.get.return_value = None
+        mock_get_redis.return_value = mock_redis
         mock_analyzer = MagicMock()
         mock_analyzer_cls.return_value = mock_analyzer
-        mock_analyzer.analyze.return_value = {
-            "ats_score": 75,
-            "matching_skills": ["Python"],
-            "missing_skills": ["Java"],
-            "keyword_analysis": {
-                "matched_keywords": [{"keyword": "Python"}],
-                "missing_critical": []
+        mock_analyzer.analyze = AsyncMock(
+            return_value={
+                "ats_score": 75,
+                "matching_skills": ["Python"],
+                "missing_skills": ["Java"],
+                "keyword_analysis": {
+                    "matched_keywords": [{"keyword": "Python"}],
+                    "missing_critical": [],
+                },
             }
-        }
+        )
 
         mock_opt = MagicMock()
         mock_opt_cls.return_value = mock_opt
-        mock_opt.optimize_comprehensive.return_value = {
-            "user_information": {"name": "Test", "email": "test@test.com"}
-        }
+        mock_opt.optimize_comprehensive = AsyncMock(
+            return_value={
+                "user_information": {"name": "Test", "email": "test@test.com"}
+            }
+        )
 
         mock_cl_gen = MagicMock()
-        mock_cl_gen.generate.return_value = {"content": "Test cover letter"}
+        mock_cl_gen.generate = AsyncMock(return_value={"content": "Test cover letter"})
         mock_cl_cls.return_value = mock_cl_gen
 
         orch = CVWorkflowOrchestrator()
-        result = orch.optimize_cv_for_job("CV text", "JD text", generate_cover_letter=True)
+        result = await orch.optimize_cv_for_job(
+            "CV text", "JD text", generate_cover_letter=True
+        )
 
         assert isinstance(result, dict)
         assert "cover_letter" in result
@@ -301,11 +342,14 @@ class TestEdgeCases:
         result = MetricsHelper.extract_ats_score_from_text("no numbers here")
         assert result == 0
 
-    def test_cv_optimizer_fallback_structure(self):
+    @pytest.mark.asyncio
+    async def test_cv_optimizer_fallback_structure(self):
         """Test CV optimizer returns fallback on invalid response."""
-        with patch('app.services.cv_optimizer.get_ai_client') as mock_client:
-            mock_client.return_value.chat_completion.return_value = "invalid json"
+        with patch("app.services.ai_client.get_ai_client") as mock_client:
+            mock_client.return_value.chat_completion = AsyncMock(
+                side_effect=Exception("API Error")
+            )
 
             opt = CVOptimizer()
-            result = opt.optimize_comprehensive("CV", "JD")
+            result = await opt.optimize_comprehensive("CV", "JD")
             assert "user_information" in result

@@ -1,28 +1,34 @@
 #!/bin/bash
-# setup_dev.sh - Development environment setup script for ATS Resume Optimizer
+# setup_dev.sh - Development environment setup script for PowerCV
 
 set -e  # Exit on error
 
-echo "Setting up development environment..."
+echo "Setting up PowerCV development environment..."
 
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
+# Check if Poetry is installed
+if ! command -v poetry &> /dev/null; then
+    echo "Poetry not found. Installing Poetry..."
+    curl -sSL https://install.python-poetry.org | python3 -
+    export PATH="$HOME/.local/bin:$PATH"
 fi
 
-echo "Installing dependencies..."
-pip install --upgrade pip --break-system-packages
-pip install -r requirements.txt --break-system-packages
+# Install dependencies with Poetry
+echo "Installing dependencies with Poetry..."
+poetry install
 
+# Install pre-commit hooks if config exists
 if [ -f ".pre-commit-config.yaml" ]; then
     echo "Installing pre-commit hooks..."
-    pip install pre-commit --break-system-packages
-    pre-commit install
+    poetry run pre-commit install
 fi
 
 echo "Development environment setup complete!"
 echo "---------------------------------------"
 echo "To activate the virtual environment, run:"
-echo "    source venv/bin/activate"
+echo "    poetry shell"
 echo ""
-echo "After activation, you can run the application with: python main.py"
+echo "To run the application:"
+echo "    ./scripts/run.sh"
+echo ""
+echo "To run tests:"
+echo "    poetry run pytest"

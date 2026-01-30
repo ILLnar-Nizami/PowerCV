@@ -1,6 +1,8 @@
 """Unit tests for utility functions."""
+
 import pytest
-from bson import ObjectId
+from bson.objectid import ObjectId
+
 from app.utils.shared_utils import JSONParser
 from app.utils.validation import ValidationHelper
 
@@ -17,11 +19,10 @@ class TestJSONParser:
 
     def test_safe_json_parse(self):
         """Test safe JSON parsing with fallback."""
-        result = JSONParser.safe_json_parse(
-            '{"key": "value"}', {"fallback": True})
+        result = JSONParser.safe_json_parse('{"key": "value"}', {"fallback": True})
         assert result["key"] == "value"
 
-        result = JSONParser.safe_json_parse('invalid json', {"fallback": True})
+        result = JSONParser.safe_json_parse("invalid json", {"fallback": True})
         assert result["fallback"] is True
 
 
@@ -41,9 +42,11 @@ class TestValidationHelper:
         """Test text input validation."""
         text = "This is a valid text input for testing purposes"
         result = ValidationHelper.validate_text_input(
-            text, max_length=200, field_name="test")
+            text, max_length=200, field_name="test"
+        )
         assert result == text
 
         with pytest.raises(ValueError):
             ValidationHelper.validate_text_input(
-                "short", max_length=200, field_name="test", min_length=10)
+                "short", max_length=200, field_name="test", min_length=10
+            )

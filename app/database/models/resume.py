@@ -88,7 +88,7 @@ class UserInformation(BaseSchema):
     name: str
     main_job_title: str
     profile_description: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     location: Optional[str] = None
     address: Optional[str] = None
@@ -113,8 +113,7 @@ class Project(BaseSchema):
     """
 
     project_name: str
-    two_goals_of_the_project: List[str] = Field(
-        ..., min_length=1, max_length=4)
+    two_goals_of_the_project: List[str] = Field(..., min_length=1, max_length=4)
     project_end_result: str
     tech_stack: Optional[List[str]] = None
 
@@ -208,7 +207,9 @@ class Resume(BaseSchema):
     master_updated_at: Optional[datetime] = None
     # Status fields for application tracking
     application_status: str = Field(
-        default="not_applied", description="Application status: not_applied, applied, answered, rejected, interview")
+        default="not_applied",
+        description="Application status: not_applied, applied, answered, rejected, interview",
+    )
     is_applied: bool = False  # Whether the resume has been sent/applied
     applied_date: Optional[datetime] = None  # When the resume was applied
     is_answered: bool = False  # Whether there's been a response

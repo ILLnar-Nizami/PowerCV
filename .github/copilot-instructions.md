@@ -1,269 +1,380 @@
-# Copilot Instructions - Best Development Practices
+# PowerCV Copilot Instructions
 
-*My Github Username is:* **AnalyticAce**
+**For**: AI agents helping develop PowerCV (CV optimization platform)  
+**Updated**: 2026-01-20 | **Version**: 3.2
 
-This guide establishes development standards and best practices for our tech stack: Python, FastAPI, HTML/CSS, Jinja2, Alpine.js, and AI integrations. Following these practices ensures maintainable, sustainable, and high-quality systems.
+---
 
-## General Instructions
-- Always prioritize readability and clarity.
-- For algorithm-related code, include explanations of the approach used.
-- Write code with good maintainability practices, including comments on why certain design decisions were made.
-- Handle edge cases and write clear exception handling.
-- For libraries or external dependencies, mention their usage and purpose in comments.
-- If possible use available tools to search libary documentation to write and suggestion updated code.
-- Use consistent naming conventions and follow language-specific best practices.
-- Write concise, efficient, and idiomatic code that is also understandable.
+## System Overview
 
-## Python Development
+PowerCV is an **AI-powered CV optimizer** that tailors resumes to job descriptions, generates cover letters, and exports PDFs. It combines FastAPI backend (Python 3.12), React 19 frontend (TypeScript), MongoDB, Redis, and AI providers (Cerebras/OpenAI/Deepseek).
 
-### Code Style & Structure
-- Provide docstrings following PEP 257 conventions and use ruff
-- Structure projects using a clear module hierarchy
-- Use the typing module for type annotations (e.g., List[str], Dict[str, int]).
-- Create meaningful docstrings (Google style recommended)
-- Break down complex functions into smaller, more manageable functions.
-- Maintain proper indentation (use 4 spaces for each level of indentation).
-- Place function and class docstrings immediately after the def or class keyword.
-- Use blank lines to separate functions, classes, and code blocks where appropriate.
+**Key Objectives**: Parse CVs → Analyze job fit (ATS scoring) → Optimize content → Generate outputs (PDF/JSON/HTML)  
+**Tech Stack**: FastAPI + Motor (async MongoDB) + Redis + React/Vite/Tailwind + Docker + n8n workflows
 
-### Python Best Practices
-- Prefer explicit code over implicit
-- Use virtual environments (venv, poetry, or pipenv)
-- Implement comprehensive error handling with specific exception types
-- Follow SOLID principles for OOP code
-- Leverage dataclasses for data containers
-- Use enums for related constants
+---
 
-### Testing and Edge Cases
-- Write unit tests with pytest (aim for >80% coverage)
-- Implement integration and end-to-end tests
-- Use test fixtures for reusable test components
-- Mock external dependencies and services
-- Practice TDD where applicable
-- Always include test cases for critical paths of the application.
-- Account for common edge cases like empty inputs, invalid data types, and large datasets.
-- Include comments for edge cases and the expected behavior in those cases.
-- Write unit tests for functions and document them with docstrings explaining the test cases.
+## Essential Architecture
 
-## FastAPI Development
+### Backend: Workflow-Centric Design
+**File**: `app/services/workflow_orchestrator.py` (619 lines)  
+**Core Pattern**:
+```python
+# Three-stage pipeline (analyze → optimize → generate)
+orchestrator = CVWorkflowOrchestrator()
+result = orchestrator.optimize_cv_for_job(
+    cv_text=request.cv_text,           # Candidate resume
+    jd_text=request.jd_text,           # Job description
+    generate_cover_letter=True         # Optional cover letter
+)
+# Returns: {analysis, optimized_cv, ats_score, cover_letter, matching_skills, missing_skills}
+```
 
-### API Design
-- Follow RESTful principles
-- Use Pydantic models for request/response validation
-- Implement proper status codes and error responses
-- Version your APIs (path-based preferred: /api/v1/...)
-- Organize endpoints using APIRouter for logical grouping
+**Service Layer** (`app/services/`):
+- `cv_analyzer.py` - ATS scoring, keyword extraction, gap analysis
+- `cv_optimizer.py` - Comprehensive section rewriting (one-shot via Cerebras)
+- `cover_letter_gen.py` - Professional letter generation with tone control
+- `workflow_orchestrator.py` - Orchestrates the three services + handles retries/rate limits
+- `cerebras_client.py` - Wrapper for Cerebras API (primary AI provider)
 
-### FastAPI Features
-- Leverage dependency injection for shared components
-- Use background tasks for non-blocking operations
-- Implement middleware for cross-cutting concerns
-- Utilize FastAPI's built-in OpenAPI documentation
-- Set up proper CORS handling
+**API Routes** (`app/api/routers/`):
+- `/api/v2/optimize` - Full workflow (POST, return resume_id for PDF generation)
+- `/api/v2/analyze` - ATS scoring only
+- `/api/v2/cover-letter` - Cover letter generation
+- `/api/optimize-resume` - Legacy endpoint (maps to v2)
+- Resume CRUD in `resume/router.py` (download PDFs, list versions)
 
-### Performance
-- Use async/await for I/O-bound operations
-- Implement caching for expensive operations
-- Use connection pooling for database access
-- Monitor endpoint performance
-- Consider pagination for large result sets
+**Database** (`app/database/`):
+- MongoDB models in `models/resume.py` - Stores CV history, ATS scores, optimized content
+- `connector.py` - Singleton connection manager (Motor async client)
+- Repositories pattern: `ResumeRepository`, `CoverLetterRepository`
 
-## Frontend Development
+### Frontend: Component-Driven State
+**File**: `frontend/src/` (React 19 + TypeScript strict + Tailwind)
 
-### HTML Best Practices
-- Use semantic HTML5 elements
-- Ensure proper accessibility (ARIA attributes, proper heading structure)
-- Validate markup with W3C validator
-- Implement responsive design principles
-- Keep markup clean and minimal
+**Key Components**:
+- `components/optimization/` - TailorForm, ATS analyzer UI, resume previewer
+- `components/dashboard/` - Resume history, version comparison
+- `stores/` - Zustand state (CV uploads, optimization results)
+- `api/` - Axios client with interceptors (base URL: `/api/v2/`)
 
-### CSS Structure
-- Follow a naming convention (BEM recommended)
-- Use CSS custom properties for theming
-- Implement mobile-first responsive design
-- Minimize specificity conflicts
-- Consider utility-first approach for complex UIs
+**React Query Integration** (TanStack):
+```typescript
+const mutation = useMutation({
+  mutationFn: (data) => api.post('/api/v2/optimize', data),
+  onSuccess: (result) => store.setResumes([...store.resumes, result])
+});
+```
 
-### Jinja2 Templating
-- Create a base template with blocks for content sections
-- Use macros for reusable components
-- Keep logic in templates minimal
-- Leverage template inheritance
-- Use includes for partial templates
-- Handle empty states gracefully
+### Orchestration: Docker Compose
+**Services** (`docker-compose.yml`):
+- `powercv` - FastAPI app (port 8081 → 8080)
+- `mongodb` - Data store (port 27018 → 27017)
+- `redis` - Caching & rate limiting (port 6379)
+- `n8n` - Workflow automation UI (port 5678)
 
-### Alpine.js Implementation
-- Use for interactive components that don't require complex state management
-- Follow progressive enhancement principles
-- Keep Alpine components focused on a single responsibility
-- Use x-data for component state
-- Prefer declarative templates over imperative code
+**Health Checks**: All containers include healthchecks; PowerCV depends on MongoDB + Redis  
+**Volumes**: `./data` (persistence), `./n8n_workflows` (automation), `./n8n_data` (n8n state)
 
-## AI Engineering
+---
 
-### Model Integration
-- Abstract AI services behind clean interfaces
-- Implement circuit breakers for external AI services
-- Version your prompts and store them separately from code
-- Log interactions with AI services for debugging
-- Implement fallbacks for AI service failures
+## Critical Patterns
 
-### Prompt Engineering
-- Create clear, specific prompts with examples
-- Use structured outputs when possible (JSON, etc.)
-- Implement prompt versioning
-- Test prompts with diverse inputs
-- Document prompt design decisions
+### 1. AI Response Parsing (Common Gotcha)
+**Problem**: Cerebras/OpenAI sometimes return truncated JSON or text-wrapped responses.
 
-### Responsible AI
-- Implement content filtering and safety measures
-- Consider bias and fairness in AI implementations
-- Provide clear indicators when content is AI-generated
-- Implement user feedback mechanisms
-- Set up monitoring for AI system outputs
+**Solution** (`app/utils/shared_utils.py`):
+```python
+# Repair truncated JSON
+def safe_json_parse(text):
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Attempt repair
+        repaired = JSONParser.repair_json(text)  # Close braces/brackets
+        return json.loads(repaired)
 
-## Version Control & Commit Practices
+# For cover letters: parse text format with markers
+def _parse_cover_letter_response(text):
+    marker = "=== FINAL COVER LETTER ==="
+    if marker in text:
+        return text.split(marker)[-1].strip()
+    # Fallback to raw text
+    return text
+```
 
-### Commit Message Structure
-- Use a structured format: <type>(<scope>): <subject>
-- Keep first line under 72 characters
-- Add detailed description after subject when needed
-- Reference issue numbers where applicable
+### 2. Rate Limiting & Caching
+**Pattern**: Cache analysis results by CV+JD hash to avoid redundant API calls.
+```python
+# In workflow_orchestrator.py
+cache_key = f"analysis:{hash(cv_text)}:{hash(jd_text)}"
+cached = redis.get(cache_key)
+if cached:
+    return json.loads(cached)
+# Run analysis, then cache for 3600s
+result = analyzer.analyze(cv_text, jd_text)
+redis.setex(cache_key, 3600, json.dumps(result))
+```
 
-### Commit Types
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation changes
-- style: Code style changes (formatting, etc.)
-- refactor: Code change that neither fixes a bug nor adds a feature
-- perf: Performance improvements
-- test: Adding or modifying tests
-- chore: Build process or tooling changes
-- ci: CI configuration changes
-- revert: Reverting previous changes
+### 3. Email Field Validation
+**Context**: Optimization saves resumes to MongoDB; empty emails cause validation errors.
 
-### Scope Guidelines
-- Use module/component name when applicable (auth, users, ui, etc.)
-- Use * for changes spanning multiple modules
-- Optional but recommended for clarity
+**Fix** (`app/database/models/resume.py`):
+```python
+email: Optional[str] = None  # Make optional
+```
 
-### Commit Message Examples
-- feat(auth): implement OAuth2 login flow
-- fix(api): correct status code for validation errors
-- docs(readme): update deployment instructions
-- refactor(models): simplify user schema
-- test(endpoints): add tests for profile update
+**In optimizer** (`app/api/routers/comprehensive_optimizer.py`):
+```python
+# Clean email before saving
+if not user_info.email or user_info.email.strip() == "":
+    user_info.email = None
+```
 
-### Commit Content Best Practices
-- Make atomic commits (one logical change per commit)
-- Separate refactoring commits from feature commits
-- Never commit secrets or sensitive data
-- Verify changes before committing (run tests)
-- Keep commits small and focused
+### 4. PDF Generation Filenames
+**New Format** (2026-01-19): `{type}_{initial}{surname}_{company}_{role}_{date}.pdf`
 
-### Smart Commit Messages
-- Include details that reflect code modifications:
- - feat(database): add migration for user preferences table
- - fix(validation): handle null values in email validator
- - refactor(services): extract authentication logic to dedicated module
-- Reference performance impacts if applicable:
- - perf(queries): optimize user search by adding index (50% faster)
+**Implementation** (`app/services/export.py`):
+```python
+def generate_pdf_filename(resume_data, template_type="resume"):
+    name = resume_data.get("name", "candidate")
+    company = resume_data.get("target_company", "target")
+    role = resume_data.get("target_role", "role")
+    # Sanitize for filesystem
+    return f"{template_type}_{name_to_initials(name)}_{company}_{role}_{date.today()}.pdf"
+```
 
-### Branch Naming Conventions
-- Use prefixes to indicate branch type:
- - feature/ for new features
- - bugfix/ for bug fixes
- - hotfix/ for urgent production fixes
- - release/ for release preparation
- - docs/ for documentation updates
-- Include issue number when available:
- - feature/AUTH-123-oauth-integration
- - bugfix/CORE-456-fix-memory-leak
-- Use kebab-case for readability
+### 5. Async-First Backend
+**Rule**: All endpoints async, use Motor (async MongoDB driver), no blocking I/O.
 
-### Pre-Push Review Checklist
-- Run all tests before pushing
-- Check code style compliance
-- Verify commit messages follow conventions
-- Review changed files for accidental inclusions
-- Ensure all TODOs have associated tickets
+```python
+# Correct:
+async def optimize_cv_v2(request: OptimizationRequest):
+    result = await orchestrator.optimize_cv_for_job(...)  # Await
+    resume_id = await repo.create_resume(resume_data)    # Await
+    return result
 
-### Code Change Analysis for Commits
-- For API changes: feat(api): add endpoint for user preferences [POST /users/{id}/preferences]
-- For UI changes: feat(ui): implement responsive navigation menu
-- For dependency updates: chore(deps): update FastAPI to 0.95.0
-- For schema changes: feat(models): add email verification fields to User model
-- For bug fixes: fix(auth): prevent token refresh after password change [CVE-2023-1234]
+# Wrong: Never block
+def sync_optimize():  # ❌ Blocks event loop
+    result = orchestrator.optimize_cv_for_job(...)
+```
 
-## DevOps & Deployment
+---
 
-### Containerization
-- Use Docker for consistent environments
-- Create optimized multi-stage builds
-- Minimize container image size
-- Follow the principle of one service per container
-- Use docker-compose for local development
+## Developer Workflows
 
-### CI/CD
-- Implement automated testing in CI pipelines
-- Use trunk-based development
-- Automate deployments with proper staging environments
-- Implement infrastructure as code
-- Set up monitoring and alerting
+### Quick Start (Local Dev)
+```bash
+# 1. Backend
+cd /home/illnar/Projects/PowerCV
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+export PYTHONPATH=$PYTHONPATH:.
+python -m uvicorn app.main:app --reload --port 8080
 
-### Security
-- Store secrets in environment variables or secure vaults
-- Implement proper authentication and authorization
-- Regularly update dependencies
-- Scan for vulnerabilities
-- Follow OWASP security guidelines
+# 2. Frontend (new terminal)
+cd frontend
+npm install && npm run dev  # Runs on http://localhost:5173
 
-## Project Management
+# 3. MongoDB (if local)
+docker run -d --name mongodb -p 27017:27017 mongo:latest
 
-### Documentation
-- Maintain comprehensive README.md files
-- Document system architecture and data flows
-- Create API documentation (auto-generated + manual)
-- Implement change logs
-- Use diagrams for complex systems (C4 model recommended)
+# 4. Redis (if local)
+docker run -d --name redis -p 6379:6379 redis:latest
+```
 
-### Code Review Process
-- Establish code review checklist
-- Use pull requests for all changes
-- Enforce style guidelines through automation
-- Focus reviews on logic and architecture
-- Provide constructive feedback
+### Testing
+```bash
+# Backend: pytest (goal: 90%+ coverage)
+pytest tests/ -v --cov=app --cov-fail-under=90
 
-### Knowledge Sharing
-- Schedule regular knowledge sharing sessions
-- Document architectural decisions (ADRs)
-- Create onboarding guides for new team members
-- Maintain a technical wiki or knowledge base
-- Encourage pair programming for complex features
+# Frontend: Vitest
+cd frontend && npm run test:coverage
 
-## Monitoring & Maintenance
+# Integration: Start containers
+docker-compose up -d
+curl http://localhost:8080/health  # Should return {status: "healthy"}
+```
+
+### Common Commands
+```bash
+# View service logs
+docker-compose logs -f powercv
+
+# Reset database
+docker-compose exec mongodb mongosh --eval "db.resumes.deleteMany({})"
+
+# Check AI provider connectivity
+python -c "from app.services.cerebras_client import CerebrasClient; print(CerebrasClient().test_connection())"
+
+# Format code
+ruff format . && ruff check . --fix
+
+# Type checking
+mypy . --strict
+```
+
+---
+
+## Project-Specific Conventions
+
+### File Naming
+- **Services**: Verb + noun (e.g., `cv_analyzer.py`, `cover_letter_gen.py`)
+- **Routers**: Plural nouns (e.g., `resume/`, `cover_letter.py`)
+- **Models**: Entity names (e.g., `resume.py` → `Resume` class)
+
+### Error Handling
+**Use `ErrorHandler` class** (`app/utils/error_handler.py`):
+```python
+from app.utils.error_handler import ErrorHandler, ErrorContext
+
+# For AI provider errors:
+try:
+    result = ai_client.call()
+except Exception as e:
+    raise ErrorHandler.handle_ai_api_error(
+        e,
+        provider="cerebras",
+        operation="optimization",
+        context={"cv_length": len(cv_text)}
+    )
+
+# For context tracking:
+with ErrorContext("operation_name", {"key": "value"}):
+    # Code here; errors logged with context
+    pass
+```
 
 ### Logging
-- Implement structured logging
-- Use appropriate log levels
-- Include contextual information in logs
-- Set up centralized log collection
-- Implement log rotation
+**Use**: `app.config.logging_config.logger` (structured JSON logging)
+```python
+from app.config.logging_config import logger
 
-### Observability
-- Set up application metrics collection
-- Implement distributed tracing
-- Create dashboards for key metrics
-- Set up alerts for critical issues
-- Monitor API performance and errors
+logger.info("Starting optimization", extra={"cv_length": 1500, "jd_length": 800})
+logger.warning("Rate limit approaching", extra={"remaining": 5})
+logger.error("AI API failed", exc_info=True)  # Logs traceback
+```
 
-### Database Management
-- Use migrations for schema changes
-- Implement indexes for frequent queries
-- Set up database backups
-- Monitor database performance
-- Use connection pooling
+### Pydantic Models
+**Location**: `app/database/models/` for database, inline for request/response
 
-## Conclusion
+**Pattern** (Python 3.12):
+```python
+from pydantic import BaseModel, Field, field_validator
 
-These practices provide a foundation for building maintainable, sustainable systems using our tech stack. Adapt these guidelines to your specific project needs while maintaining the core principles of clean code, good documentation, and responsible development practices.
+class CVTailorRequest(BaseModel):
+    cv_text: str = Field(..., min_length=100, max_length=25000)
+    jd_text: str = Field(..., min_length=50, max_length=15000)
+    
+    @field_validator("cv_text")
+    @classmethod
+    def validate_cv_not_just_spaces(cls, v):
+        if not v.strip():
+            raise ValueError("CV cannot be empty")
+        return v
+```
+
+### Frontend TypeScript
+**Rules**: Strict mode ON, no `any` type
+```typescript
+// frontend/tsconfig.json: strict: true
+
+// Correct:
+interface UserData { name: string; email?: string; }
+const user: UserData = { name: "John" };
+
+// Wrong:
+const user: any = getData();  // ❌ Breaks type safety
+```
+
+---
+
+## Critical Files & Their Purposes
+
+| File | Purpose | When to Edit |
+|------|---------|--------------|
+| `app/main.py` | FastAPI app setup, routes, lifespan | Adding new API endpoints |
+| `app/services/workflow_orchestrator.py` | Three-stage CV pipeline | Changing optimization logic |
+| `app/api/routers/resume/router.py` | Resume CRUD + PDF download | Modifying resume endpoints |
+| `app/database/connector.py` | MongoDB connection pool | Database config changes |
+| `docker-compose.yml` | Container orchestration | Service scaling, env vars |
+| `frontend/src/App.tsx` | React root, routing | UI structure changes |
+| `mkdocs.yml` | Documentation nav | Adding new docs |
+| `.github/workflows/` | CI/CD pipeline | Test/deploy automation |
+| `data/templates/*.typ` | Typst PDF templates | Resume layout changes |
+
+---
+
+## Pre-Implementation Checklist
+
+**Before you code**, verify:
+```bash
+# 1. Environment & dependencies
+ls .env && echo "✓ .env exists" || echo "✗ Copy env-template.txt → .env"
+python -c "import fastapi; import motor; print('✓ Dependencies OK')"
+
+# 2. Services running (for integration)
+docker-compose ps | grep -E "powercv|mongodb|redis"
+
+# 3. Existing tests pass
+pytest tests/ --co -q | head -5 && echo "✓ Tests found"
+
+# 4. Code style baseline
+ruff check app/ | head -3 || echo "✓ No ruff errors"
+```
+
+---
+
+## Key Metrics & Targets
+
+- **API Response Time**: CV optimization p95 < 10 seconds (cached < 2s)
+- **ATS Score Range**: 60–95 (realistic, not all 99s)
+- **Keyword Match**: >70% of job requirements appear in optimized CV
+- **PDF Generation**: <3 seconds for Typst compilation
+- **Test Coverage**: ≥90% on `app/` (exclude migrations)
+- **Docker Image**: <500MB
+- **Frontend Bundle**: <200KB gzipped
+
+---
+
+## Common Pitfalls & Solutions
+
+| Issue | Root Cause | Fix |
+|-------|-----------|-----|
+| `JSONDecodeError` in optimization | Truncated AI response | Use `safe_json_parse()` with repair logic |
+| 500 error on resume save | Invalid email field | Make `email: Optional[str] = None` |
+| Slow API response | No Redis caching | Add `cache_key = hash(cv+jd); redis.get()` |
+| Frontend auth fails | CORS not configured | Check `CORSMiddleware` in `app/main.py` |
+| PDF filenames are placeholders | Missing export.py function | Use `generate_pdf_filename()` helper |
+| n8n workflows unreachable | Webhook URL mismatch | Set `N8N_WEBHOOK_URL=http://n8n:5678` in `.env` |
+
+---
+
+## Deployment Notes
+
+- **Local**: `python -m uvicorn app.main:app --reload` + `npm run dev`
+- **Docker**: `docker-compose up -d` (mounts volumes for persistence)
+- **CI/CD**: GitHub Actions (`.github/workflows/`) runs pytest + docker build
+- **Scaling**: Redis for distributed caching, MongoDB connection pooling via Motor
+
+---
+
+## Useful References
+
+- **Cerebras API**: https://docs.cerebras.ai/ (models: gpt-oss-120b recommended)
+- **FastAPI Docs**: http://localhost:8080/docs (auto-generated from route docstrings)
+- **MongoDB Motor**: Motor async driver for PyMongo
+- **React Query**: TanStack documentation for data fetching patterns
+- **Tailwind**: https://tailwindcss.com/ (use only utility classes, no custom CSS in components)
+
+---
+
+## What SUCCESS Looks Like
+
+✅ New feature passes pytest (90%+ coverage)  
+✅ Docker builds <500MB  
+✅ API response <10s for full optimization  
+✅ No hardcoded secrets in code (use `.env`)  
+✅ CHANGELOG.md updated with impact metrics  
+✅ Frontend TypeScript strict mode passes  
+✅ All existing tests still pass

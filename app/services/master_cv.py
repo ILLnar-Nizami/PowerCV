@@ -311,8 +311,12 @@ class MasterCV:
             lines.append("## Work Experience")
             for job in experience:
                 lines.append("")
-                lines.append(f"### {job.get('role', 'Role')} - {job.get('company', 'Company')}")
-                lines.append(f"*{job.get('period', 'Period')} | {job.get('location', 'Location')}*")
+                lines.append(
+                    f"### {job.get('role', 'Role')} - {job.get('company', 'Company')}"
+                )
+                lines.append(
+                    f"*{job.get('period', 'Period')} | {job.get('location', 'Location')}*"
+                )
                 if job.get("achievements"):
                     for achievement in job.get("achievements", []):
                         lines.append(f"- {achievement}")
@@ -334,7 +338,9 @@ class MasterCV:
             lines.append("## Education")
             for edu in education:
                 lines.append("")
-                lines.append(f"### {edu.get('degree', 'Degree')} in {edu.get('field', 'Field')}")
+                lines.append(
+                    f"### {edu.get('degree', 'Degree')} in {edu.get('field', 'Field')}"
+                )
                 lines.append(f"**{edu.get('institution', 'Institution')}**")
                 lines.append(f"*{edu.get('period', 'Period')}*")
 
@@ -348,7 +354,9 @@ class MasterCV:
                 lines.append(f"### {project.get('name', 'Project')}")
                 lines.append(project.get("description", ""))
                 if project.get("technologies"):
-                    lines.append(f"**Technologies:** {', '.join(project.get('technologies', []))}")
+                    lines.append(
+                        f"**Technologies:** {', '.join(project.get('technologies', []))}"
+                    )
                 if project.get("url"):
                     lines.append(f"**Link:** {project.get('url')}")
                 if project.get("achievements"):
@@ -361,7 +369,9 @@ class MasterCV:
             lines.append("")
             lines.append("## Awards & Recognition")
             for award in awards:
-                lines.append(f"- **{award.get('title', 'Award')}** ({award.get('year', 'Year')}): {award.get('description', '')}")
+                lines.append(
+                    f"- **{award.get('title', 'Award')}** ({award.get('year', 'Year')}): {award.get('description', '')}"
+                )
 
         return "\n".join(lines)
 
@@ -399,7 +409,9 @@ class MasterCV:
                 matching.append(job)
         return matching
 
-    def get_experience_by_company(self, company_keywords: List[str]) -> List[Dict[str, Any]]:
+    def get_experience_by_company(
+        self, company_keywords: List[str]
+    ) -> List[Dict[str, Any]]:
         """Get experience entries matching company keywords.
 
         Args:
@@ -415,7 +427,9 @@ class MasterCV:
                 matching.append(job)
         return matching
 
-    def get_relevant_experience(self, job_requirements: List[str]) -> List[Dict[str, Any]]:
+    def get_relevant_experience(
+        self, job_requirements: List[str]
+    ) -> List[Dict[str, Any]]:
         """Get experience entries relevant to job requirements.
 
         Args:
@@ -449,7 +463,9 @@ class MasterCV:
         scored.sort(key=lambda x: -x[0])
         return [job for _, job in scored]
 
-    def extract_for_job(self, job_keywords: List[str], max_years: int = 10) -> Dict[str, Any]:
+    def extract_for_job(
+        self, job_keywords: List[str], max_years: int = 10
+    ) -> Dict[str, Any]:
         """Extract relevant CV sections for a specific job.
 
         Args:
@@ -472,7 +488,11 @@ class MasterCV:
         skills = self.data.get("skills", {})
         relevant_skills = {}
         for category, skill_list in skills.items():
-            matching = [s for s in skill_list if any(kw.lower() in s.lower() for kw in job_keywords)]
+            matching = [
+                s
+                for s in skill_list
+                if any(kw.lower() in s.lower() for kw in job_keywords)
+            ]
             if matching:
                 relevant_skills[category] = matching
 
@@ -484,7 +504,10 @@ class MasterCV:
             "projects": [
                 p
                 for p in self.data.get("projects", [])
-                if any(kw.lower() in p.get("description", "").lower() for kw in job_keywords)
+                if any(
+                    kw.lower() in p.get("description", "").lower()
+                    for kw in job_keywords
+                )
             ][:3],
         }
 
@@ -543,7 +566,9 @@ class CVTemplate:
                 "linkedin": "https://linkedin.com/in/yourname",
                 "github": "https://github.com/yourname",
                 "website": "https://yourname.dev",
-                "summary": "Experienced software engineer with a passion for building scalable, user-friendly applications. Skilled in full-stack development with a focus on clean code and best practices.",
+                "summary": (
+                    "Experienced software engineer with a passion for building scalable, user-friendly applications. Skilled in full-stack development with a focus on clean code and best practices."
+                ),
             },
             "experience": [
                 {
@@ -582,8 +607,15 @@ class CVTemplate:
                 "databases": ["PostgreSQL", "MongoDB", "Redis"],
                 "devops": ["Docker", "Kubernetes", "AWS", "CI/CD", "Git"],
                 "soft": ["Team Leadership", "Problem Solving", "Communication"],
-                "languages": ["English (Native)", "Dutch (Intermediate)", "German (Basic)"],
-                "certifications": ["AWS Solutions Architect", "Docker Certified Associate"],
+                "languages": [
+                    "English (Native)",
+                    "Dutch (Intermediate)",
+                    "German (Basic)",
+                ],
+                "certifications": [
+                    "AWS Solutions Architect",
+                    "Docker Certified Associate",
+                ],
             },
             "education": [
                 {
@@ -598,7 +630,9 @@ class CVTemplate:
             "projects": [
                 {
                     "name": "Open Source Project",
-                    "description": "Contributed to popular open source library for data processing",
+                    "description": (
+                        "Contributed to popular open source library for data processing"
+                    ),
                     "technologies": ["Python", "PyPI"],
                     "url": "https://github.com/yourname/project",
                     "achievements": ["500+ GitHub stars", "10k+ monthly downloads"],
@@ -636,7 +670,9 @@ class CVTemplate:
                 "location": "Utrecht, Netherlands",
                 "linkedin": "https://linkedin.com/in/yourname",
                 "github": "https://github.com/yourname",
-                "summary": "Data scientist with expertise in machine learning, statistical analysis, and data visualization. Passionate about turning data into actionable insights.",
+                "summary": (
+                    "Data scientist with expertise in machine learning, statistical analysis, and data visualization. Passionate about turning data into actionable insights."
+                ),
             },
             "experience": [
                 {
@@ -654,13 +690,20 @@ class CVTemplate:
                 },
             ],
             "skills": {
-                "technical": ["Machine Learning", "Statistical Analysis", "A/B Testing"],
+                "technical": [
+                    "Machine Learning",
+                    "Statistical Analysis",
+                    "A/B Testing",
+                ],
                 "programming": ["Python", "R", "SQL", "Scala"],
                 "frameworks": ["TensorFlow", "PyTorch", "Scikit-learn", "Pandas"],
                 "databases": ["PostgreSQL", "MongoDB", "BigQuery"],
                 "devops": ["Docker", "AWS", "MLflow", "Git"],
                 "soft": ["Data Storytelling", "Cross-functional Collaboration"],
-                "certifications": ["AWS Machine Learning Specialty", "TensorFlow Developer"],
+                "certifications": [
+                    "AWS Machine Learning Specialty",
+                    "TensorFlow Developer",
+                ],
             },
             "education": [
                 {

@@ -1,5 +1,5 @@
 """Test JSON repair logic."""
-import pytest
+
 from app.utils.shared_utils import JSONParser
 
 
@@ -33,20 +33,21 @@ def test_repair_open_string():
 
 def test_repair_complex_cv_structure():
     """Test repairing a complex CV-like structure."""
-    truncated = '''{
+    truncated = """{
   "user_information": {
     "name": "Candidate",
     "skills": {
       "hard": ["Python", "Go"],
-      "soft": ["Lead'''
+      "soft": ["Lead"""
 
     repaired = JSONParser.repair_json(truncated)
     import json
+
     parsed = json.loads(repaired)
 
-    assert parsed['user_information']['name'] == "Candidate"
-    assert parsed['user_information']['skills']['hard'] == ["Python", "Go"]
-    assert parsed['user_information']['skills']['soft'] == ["Lead"]
+    assert parsed["user_information"]["name"] == "Candidate"
+    assert parsed["user_information"]["skills"]["hard"] == ["Python", "Go"]
+    assert parsed["user_information"]["skills"]["soft"] == ["Lead"]
 
 
 if __name__ == "__main__":

@@ -1,0 +1,10 @@
+{
+  "workspacePath": "/home/illnar/Projects/PowerCV",
+  "git": {
+    "enabled": true,
+    "worktrees": {
+      "enabled": false,
+      "autoApply": false
+    }
+  }
+}

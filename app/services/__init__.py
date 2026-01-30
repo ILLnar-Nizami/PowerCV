@@ -6,7 +6,7 @@ key functionality.
 """
 
 from app.services.ai_client import get_ai_client
-from app.services.ai_providers import AIClient
+from app.services.ai_providers import AIProviderClient
 from app.services.cerebras_client import CerebrasClient
 from app.services.cover_letter_gen import CoverLetterGenerator
 from app.services.cv_analyzer import CVAnalyzer
@@ -22,7 +22,7 @@ from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 __all__ = [
     # AI Clients
     "get_ai_client",
-    "AIClient",
+    "AIProviderClient",
     "CerebrasClient",
     # Workflow
     "CVWorkflowOrchestrator",

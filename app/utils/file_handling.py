@@ -7,9 +7,20 @@ file management for the PowerCV application.
 
 import os
 
-import PyPDF2
-import pytesseract
-from pdf2image import convert_from_path
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
+
+try:
+    import pytesseract
+except ImportError:
+    pytesseract = None
+
+try:
+    from pdf2image import convert_from_path
+except ImportError:
+    convert_from_path = None
 
 
 def extract_text_from_docx(docx_path: str) -> str:
@@ -23,11 +34,12 @@ def extract_text_from_docx(docx_path: str) -> str:
     """
     try:
         from docx import Document
+
         doc = Document(docx_path)
         text = []
         for paragraph in doc.paragraphs:
             text.append(paragraph.text)
-        return '\n'.join(text)
+        return "\n".join(text)
     except ImportError:
         return "Error: python-docx package is required for DOCX support. Install with: pip install python-docx"
     except Exception as e:
@@ -44,7 +56,7 @@ def extract_text_from_markdown(md_path: str) -> str:
         str: Extracted text content
     """
     try:
-        with open(md_path, 'r', encoding='utf-8') as file:
+        with open(md_path, "r", encoding="utf-8") as file:
             return file.read()
     except Exception as e:
         return f"Error reading Markdown file: {str(e)}"
@@ -60,12 +72,12 @@ def extract_text_from_txt(txt_path: str) -> str:
         str: Extracted text content
     """
     try:
-        with open(txt_path, 'r', encoding='utf-8') as file:
+        with open(txt_path, "r", encoding="utf-8") as file:
             return file.read()
     except UnicodeDecodeError:
         # Try with different encoding
         try:
-            with open(txt_path, 'r', encoding='latin-1') as file:
+            with open(txt_path, "r", encoding="latin-1") as file:
                 return file.read()
         except Exception as e:
             return f"Error reading TXT file: {str(e)}"
@@ -85,13 +97,13 @@ def extract_text_from_file(file_path: str, file_extension: str) -> str:
     """
     file_extension = file_extension.lower()
 
-    if file_extension == '.pdf':
+    if file_extension == ".pdf":
         return extract_text_from_pdf(file_path)
-    elif file_extension == '.docx':
+    elif file_extension == ".docx":
         return extract_text_from_docx(file_path)
-    elif file_extension in ['.md', '.markdown']:
+    elif file_extension in [".md", ".markdown"]:
         return extract_text_from_markdown(file_path)
-    elif file_extension == '.txt':
+    elif file_extension == ".txt":
         return extract_text_from_txt(file_path)
     else:
         return f"Unsupported file format: {file_extension}"
@@ -111,6 +123,9 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     -------
         str: Extracted text content
     """
+    if PyPDF2 is None:
+        return "Error: PyPDF2 library not installed. Install with: pip install pypdf2"
+
     try:
         with open(pdf_path, "rb") as file:
             reader = PyPDF2.PdfReader(file)
@@ -127,6 +142,11 @@ def extract_text_from_pdf(pdf_path: str) -> str:
         text = ""
 
     # If direct extraction failed or didn't get enough text, try OCR
+    if pytesseract is None or convert_from_path is None:
+        if text:
+            return text
+        return "Error: OCR dependencies not installed. Install with: pip install pdf2image pytesseract"
+
     try:
         # Convert PDF to images
         images = convert_from_path(pdf_path)

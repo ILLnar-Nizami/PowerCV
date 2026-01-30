@@ -30,54 +30,59 @@ class JSONParser:
         response = response.strip()
 
         # Remove ```json and ``` markers
-        if '```' in response:
-            match = re.search(
-                r'```(?:json)?\s*([\s\S]*?)\s*```', response, re.DOTALL)
+        if "```" in response:
+            match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response, re.DOTALL)
             if match:
                 response = match.group(1)
             else:
                 # Fallback: remove fences manually
-                response = re.sub(r'```(?:json)?', '', response)
-                response = response.replace('```', '')
+                response = re.sub(r"```(?:json)?", "", response)
+                response = response.replace("```", "")
 
         # Find JSON object or array boundaries
-        json_start = response.find('{')
-        array_start = response.find('[')
+        json_start = response.find("{")
+        array_start = response.find("[")
 
         # Determine if we are looking for an object or an array
-        start_char = '{'
-        end_char = '}'
+        start_char = "{"
+        end_char = "}"
         start_idx = json_start
 
-        if (array_start != -1 and json_start == -1) or (array_start != -1 and array_start < json_start):
-            start_char = '['
-            end_char = ']'
+        if (array_start != -1 and json_start == -1) or (
+            array_start != -1 and array_start < json_start
+        ):
+            start_char = "["
+            end_char = "]"
             start_idx = array_start
 
-        json_end = response.rfind(end_char)
-
-        if start_idx == -1 or json_end == -1 or json_end <= start_idx:
+        if start_idx == -1:
             # If no structure found, return as is (might be raw string)
             return response.strip()
 
-        response = response[start_idx:json_end + 1]
+        json_end = response.rfind(end_char)
+
+        if json_end == -1 or json_end <= start_idx:
+            # Case of truncated JSON (no closing brace/bracket found)
+            response = response[start_idx:]
+        else:
+            response = response[start_idx : json_end + 1]
+
         response = response.strip()
 
         # Fix common JSON issues safely
         # 1. Fix trailing commas before closing braces/brackets
-        response = re.sub(r',\s*\}', '}', response)
-        response = re.sub(r',\s*\]', ']', response)
+        response = re.sub(r",\s*\}", "}", response)
+        response = re.sub(r",\s*\]", "]", response)
 
         # 2. Fix missing commas between key-value pairs (handles string, number, bool, null values)
-        response = re.sub(
-            r'([0-9]|"|true|false|null)\s*\n\s*"', r'\1, "', response)
+        response = re.sub(r'([0-9]|"|true|false|null)\s+(?=")', r"\1, ", response)
 
         # 3. Fix missing commas between closing brace and next key
         response = re.sub(r'\}\s*\n?\s*"([^"]+)"\s*:', r'}, "\1":', response)
 
-        # 4. Remove potential single-line comments // or # (risky but common in AI output)
-        response = re.sub(r'^\s*//.*$', '', response, flags=re.MULTILINE)
-        response = re.sub(r'^\s*#.*$', '', response, flags=re.MULTILINE)
+        # 4. Remove potential single-line comments // or #
+        response = re.sub(r"^\s*//.*$", "", response, flags=re.MULTILINE)
+        response = re.sub(r"^\s*#.*$", "", response, flags=re.MULTILINE)
 
         return response
 
@@ -91,42 +96,60 @@ class JSONParser:
         Returns:
             str: Repaired JSON string
         """
-        # Count open braces/brackets
-        open_braces = json_str.count('{') - json_str.count('}')  # noqa: F841
+        if not json_str:
+            return "{}"
 
-        # Determine last open char to decide closing order (heuristic)
-        # This is a simple stack-based approach
+        # 1. Basic balancing check and cleanup of trailing partial keys/values
+        json_str = json_str.strip()
+
+        # If it ends with a comma, remove it
+        if json_str.endswith(","):
+            json_str = json_str[:-1].strip()
+
+        # If it ends with a colon (truncated key), append null value
+        if json_str.endswith(":"):
+            json_str += " null"
+
+        # 2. Handle truncated string values
+        # Count quotes to see if we're in an unclosed string
+        quote_count = 0
+        escaped = False
+        for char in json_str:
+            if char == '"' and not escaped:
+                quote_count += 1
+            if char == "\\" and not escaped:
+                escaped = True
+            else:
+                escaped = False
+
+        if quote_count % 2 != 0:
+            json_str += '"'
+
+        # 3. Use stack to track unclosed brackets and braces
         stack = []
         in_string = False
         escape = False
 
-        # Re-scan to build closing stack correctly
         for char in json_str:
             if char == '"' and not escape:
                 in_string = not in_string
-            elif char == '\\' and in_string:
+            elif char == "\\" and in_string:
                 escape = not escape
-                continue  # Skip next char check
+                continue
             elif not in_string:
-                if char == '{':
-                    stack.append('}')
-                elif char == '[':
-                    stack.append(']')
-                elif char == '}':
-                    if stack and stack[-1] == '}':
+                if char == "{":
+                    stack.append("}")
+                elif char == "[":
+                    stack.append("]")
+                elif char == "}":
+                    if stack and stack[-1] == "}":
                         stack.pop()
-                elif char == ']':
-                    if stack and stack[-1] == ']':
+                elif char == "]":
+                    if stack and stack[-1] == "]":
                         stack.pop()
-
             escape = False
 
-        # Perform repair
-        if in_string:
-            # Close the open string first
-            json_str += '"'
-
-        # Append needed closing characters in reverse order
+        # Close any open structures in reverse order
         while stack:
             json_str += stack.pop()
 
@@ -144,30 +167,52 @@ class JSONParser:
             Parsed JSON or fallback structure
         """
         if not response:
-            return fallback_structure.copy() if hasattr(fallback_structure, 'copy') else fallback_structure
+            return (
+                fallback_structure.copy()
+                if hasattr(fallback_structure, "copy")
+                else fallback_structure
+            )
 
         try:
             cleaned = JSONParser.clean_json_response(response)
             parsed = json.loads(cleaned)
             logger.debug(
-                f"Successfully parsed JSON response ({len(str(parsed))} chars)")
+                f"Successfully parsed JSON response ({len(str(parsed))} chars)"
+            )
             return parsed
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON response: {str(e)}")
             logger.error(f"Error location: Line {e.lineno}, Column {e.colno}")
             logger.error(f"Error details: {e.msg}")
-            logger.error(
-                f"Raw response (first 2000 chars):\n{response[:2000]}")
-            if 'cleaned' in locals():
+            logger.error(f"Raw response (first 2000 chars):\n{response[:2000]}")
+            if "cleaned" in locals():
                 logger.debug(
-                    f"Cleaned response attempt (first 1000 chars):\n{cleaned[:1000]}")
+                    f"Cleaned response attempt (first 1000 chars):\n{cleaned[:1000]}"
+                )
             else:
                 logger.debug("Cleaned response not available")
 
+            # Attempt to repair truncated JSON
+            try:
+                repaired = JSONParser.repair_json(cleaned)
+                parsed = json.loads(repaired)
+                logger.debug("Successfully parsed JSON after repair")
+                return parsed
+            except json.JSONDecodeError as repair_e:
+                logger.error(f"Repair also failed: {str(repair_e)}")
+                logger.debug(
+                    f"Repaired response (first 1000 chars):\n{repaired[:1000]}"
+                )
+
             if fallback_structure is not None:
                 logger.warning(
-                    f"Using fallback structure due to JSON parse error: {type(fallback_structure).__name__}")
-                return fallback_structure.copy() if hasattr(fallback_structure, 'copy') else fallback_structure
+                    f"Using fallback structure due to JSON parse error: {type(fallback_structure).__name__}"
+                )
+                return (
+                    fallback_structure.copy()
+                    if hasattr(fallback_structure, "copy")
+                    else fallback_structure
+                )
 
             # Return minimal fallback with more context
             return {
@@ -175,21 +220,25 @@ class JSONParser:
                 "error_details": str(e),
                 "error_line": e.lineno,
                 "error_column": e.colno,
-                "raw_response": response[:500]
+                "raw_response": response[:500],
             }
         except Exception as e:
             logger.error(
-                f"Unexpected error during JSON parsing: {type(e).__name__}: {str(e)}")
+                f"Unexpected error during JSON parsing: {type(e).__name__}: {str(e)}"
+            )
             if fallback_structure is not None:
-                logger.warning(
-                    "Using fallback structure due to unexpected error")
-                return fallback_structure.copy() if hasattr(fallback_structure, 'copy') else fallback_structure
+                logger.warning("Using fallback structure due to unexpected error")
+                return (
+                    fallback_structure.copy()
+                    if hasattr(fallback_structure, "copy")
+                    else fallback_structure
+                )
 
             return {
                 "error": "Unexpected JSON Parsing Error",
                 "error_type": type(e).__name__,
                 "error_details": str(e),
-                "raw_response": response[:500]
+                "raw_response": response[:500],
             }
 
 
@@ -251,7 +300,7 @@ class TextProcessor:
         if not cv_text:
             return None
 
-        lines = cv_text.split('\n')
+        lines = cv_text.split("\n")
         section_start = None
         section_lines = []
 
@@ -262,23 +311,24 @@ class TextProcessor:
             line_stripped = line.strip()
 
             # Check if this line matches any of our section headers
-            is_header = any(header in line_stripped.upper()
-                            for header in upper_headers)
+            is_header = any(header in line_stripped.upper() for header in upper_headers)
 
             # Additional check: header should be reasonably short and likely a standalone line or bold
             if is_header and len(line_stripped) < 50:
                 if section_start is not None and section_lines:
                     # Found new section, return the previous one
-                    return '\n'.join(section_lines).strip()
+                    return "\n".join(section_lines).strip()
                 section_start = i
                 section_lines = []
             elif section_start is not None:
                 # Stop if we encounter a line that looks like a new section header
-                if (line_stripped and
-                    len(line_stripped) < 40 and
-                    line_stripped.isupper() and
-                    not line_stripped.startswith(('•', '-', '*', '>')) and
-                        not any(char.isdigit() for char in line_stripped)):
+                if (
+                    line_stripped
+                    and len(line_stripped) < 40
+                    and line_stripped.isupper()
+                    and not line_stripped.startswith(("•", "-", "*", ">"))
+                    and not any(char.isdigit() for char in line_stripped)
+                ):
                     # This looks like a new section header
                     break
 
@@ -286,7 +336,7 @@ class TextProcessor:
                 section_lines.append(line)
 
         if section_start is not None and section_lines:
-            return '\n'.join(section_lines).strip()
+            return "\n".join(section_lines).strip()
 
         return None
 
@@ -303,7 +353,7 @@ class TextProcessor:
         if not cv_text:
             return None
 
-        lines = cv_text.split('\n')
+        lines = cv_text.split("\n")
         contact_lines = []
         found_contact = False
 
@@ -311,12 +361,23 @@ class TextProcessor:
             line_stripped = line.strip()
 
             # Look for contact information patterns
-            if any(pattern in line_stripped.lower() for pattern in ['@', '.com', 'phone:', 'tel:', 'location:', 'linkedin:', 'github:']):
+            if any(
+                pattern in line_stripped.lower()
+                for pattern in [
+                    "@",
+                    ".com",
+                    "phone:",
+                    "tel:",
+                    "location:",
+                    "linkedin:",
+                    "github:",
+                ]
+            ):
                 found_contact = True
                 contact_lines.append(line_stripped)
             elif found_contact and line_stripped:
                 # Continue collecting related lines
-                if any(char in line_stripped for char in ['@', '+', 'www.', 'http']):
+                if any(char in line_stripped for char in ["@", "+", "www.", "http"]):
                     contact_lines.append(line_stripped)
                 elif len(contact_lines) < 5:  # Limit initial contact block
                     contact_lines.append(line_stripped)
@@ -324,12 +385,16 @@ class TextProcessor:
                     break
             elif found_contact and not line_stripped:
                 # Empty line might end contact section, but allow one empty line if short
-                if len(contact_lines) > 0 and i < len(lines) - 1 and lines[i + 1].strip():
+                if (
+                    len(contact_lines) > 0
+                    and i < len(lines) - 1
+                    and lines[i + 1].strip()
+                ):
                     continue
                 break
 
         if contact_lines:
-            return '\n'.join(contact_lines).strip()
+            return "\n".join(contact_lines).strip()
 
         return None
 
@@ -338,7 +403,9 @@ class ErrorHandler:
     """Utility class for consistent error handling."""
 
     @staticmethod
-    def log_and_raise_error(logger: logging.Logger, message: str, exception_class: type = Exception):
+    def log_and_raise_error(
+        logger: logging.Logger, message: str, exception_class: type = Exception
+    ):
         """Log error and raise exception.
 
         Args:
@@ -350,7 +417,9 @@ class ErrorHandler:
         raise exception_class(message)
 
     @staticmethod
-    def create_error_response(error_message: str, error_code: str = "UNKNOWN_ERROR") -> Dict[str, Any]:
+    def create_error_response(
+        error_message: str, error_code: str = "UNKNOWN_ERROR"
+    ) -> Dict[str, Any]:
         """Create standardized error response.
 
         Args:
@@ -364,7 +433,7 @@ class ErrorHandler:
             "error": True,
             "error_code": error_code,
             "message": error_message,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
@@ -372,7 +441,9 @@ class MetricsHelper:
     """Utility class for metrics and scoring."""
 
     @staticmethod
-    def calculate_ats_score(matched_keywords: List[Dict], total_keywords: List[str]) -> int:
+    def calculate_ats_score(
+        matched_keywords: List[Dict], total_keywords: List[str]
+    ) -> int:
         """Calculate ATS score based on keyword matching.
 
         Args:
@@ -406,17 +477,17 @@ class MetricsHelper:
 
         if isinstance(score_text, str):
             # Try to find "X/100" first
-            match_base = re.search(r'(\d+)\s*/\s*100', score_text)
+            match_base = re.search(r"(\d+)\s*/\s*100", score_text)
             if match_base:
                 return min(100, max(0, int(match_base.group(1))))
 
             # Try to find "X%"
-            match_percent = re.search(r'(\d+)\s*%', score_text)
+            match_percent = re.search(r"(\d+)\s*%", score_text)
             if match_percent:
                 return min(100, max(0, int(match_percent.group(1))))
 
             # Extract first number found
-            match = re.search(r'(\d+)', score_text)
+            match = re.search(r"(\d+)", score_text)
             if match:
                 score = int(match.group(1))
                 return min(100, max(0, score))

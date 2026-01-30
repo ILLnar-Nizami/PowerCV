@@ -3,9 +3,9 @@
 
 import json
 import time
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 
 class PromptType(Enum):
@@ -46,16 +46,13 @@ class CerebrasPromptTester:
     def _load_prompt_file(self, filepath: str) -> str:
         """Load prompt from markdown file"""
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 return f.read()
         except FileNotFoundError:
             raise FileNotFoundError(f"Prompt file not found: {filepath}")
 
     def test_analyzer_prompt(
-        self,
-        cv_text: str,
-        jd_text: str,
-        system_prompt: str
+        self, cv_text: str, jd_text: str, system_prompt: str
     ) -> PromptTestResult:
         """Test CV Analyzer prompt"""
         start_time = time.time()
@@ -78,13 +75,11 @@ class CerebrasPromptTester:
 
             # Validate response
             validation_result = self._validate_analyzer_response(response)
-            errors.extend(validation_result['errors'])
-            warnings.extend(validation_result['warnings'])
+            errors.extend(validation_result["errors"])
+            warnings.extend(validation_result["warnings"])
 
             quality_score = self._calculate_quality_score(
-                validation_result,
-                response_time,
-                len(response)
+                validation_result, response_time, len(response)
             )
 
             return PromptTestResult(
@@ -95,7 +90,7 @@ class CerebrasPromptTester:
                 errors=errors,
                 warnings=warnings,
                 quality_score=quality_score,
-                output=response
+                output=response,
             )
 
         except Exception as e:
@@ -107,7 +102,7 @@ class CerebrasPromptTester:
                 errors=[f"API Error: {str(e)}"],
                 warnings=[],
                 quality_score=0.0,
-                output=""
+                output="",
             )
 
     def test_optimizer_prompt(
@@ -115,7 +110,7 @@ class CerebrasPromptTester:
         original_section: str,
         jd_text: str,
         focus_keywords: List[str],
-        system_prompt: str
+        system_prompt: str,
     ) -> PromptTestResult:
         """Test CV Optimizer prompt"""
         start_time = time.time()
@@ -141,16 +136,13 @@ Emphasize technical keywords, quantify achievements, improve STAR structure
             response_time = time.time() - start_time
 
             validation_result = self._validate_optimizer_response(
-                response,
-                focus_keywords
+                response, focus_keywords
             )
-            errors.extend(validation_result['errors'])
-            warnings.extend(validation_result['warnings'])
+            errors.extend(validation_result["errors"])
+            warnings.extend(validation_result["warnings"])
 
             quality_score = self._calculate_quality_score(
-                validation_result,
-                response_time,
-                len(response)
+                validation_result, response_time, len(response)
             )
 
             return PromptTestResult(
@@ -161,7 +153,7 @@ Emphasize technical keywords, quantify achievements, improve STAR structure
                 errors=errors,
                 warnings=warnings,
                 quality_score=quality_score,
-                output=response
+                output=response,
             )
 
         except Exception as e:
@@ -173,14 +165,11 @@ Emphasize technical keywords, quantify achievements, improve STAR structure
                 errors=[f"API Error: {str(e)}"],
                 warnings=[],
                 quality_score=0.0,
-                output=""
+                output="",
             )
 
     def test_cover_letter_prompt(
-        self,
-        candidate_data: Dict,
-        job_data: Dict,
-        system_prompt: str
+        self, candidate_data: Dict, job_data: Dict, system_prompt: str
     ) -> PromptTestResult:
         """Test Cover Letter Generator prompt"""
         start_time = time.time()
@@ -211,13 +200,11 @@ Professional
             response_time = time.time() - start_time
 
             validation_result = self._validate_cover_letter_response(response)
-            errors.extend(validation_result['errors'])
-            warnings.extend(validation_result['warnings'])
+            errors.extend(validation_result["errors"])
+            warnings.extend(validation_result["warnings"])
 
             quality_score = self._calculate_quality_score(
-                validation_result,
-                response_time,
-                len(response)
+                validation_result, response_time, len(response)
             )
 
             return PromptTestResult(
@@ -228,7 +215,7 @@ Professional
                 errors=errors,
                 warnings=warnings,
                 quality_score=quality_score,
-                output=response
+                output=response,
             )
 
         except Exception as e:
@@ -240,28 +227,15 @@ Professional
                 errors=[f"API Error: {str(e)}"],
                 warnings=[],
                 quality_score=0.0,
-                output=""
+                output="",
             )
 
     def _call_cerebras_api(self, system_prompt: str, user_message: str) -> str:
         """Call Cerebras API (stub - implement with actual API client)"""
-        # TODO: Replace with actual Cerebras API call integration test
-        # Example using requests:
-        # import requests
-        # response = requests.post(
-        #     f"{self.api_base}/chat/completions",
-        #     headers={"Authorization": f"Bearer {self.api_key}"},
-        #     json={
-        #         "model": self.model,
-        #         "messages": [
-        #             {"role": "system", "content": system_prompt},
-        #             {"role": "user", "content": user_message}
-        #         ],
-        #         "temperature": 0.7,
-        #         "max_tokens": 2000
-        #     }
-        # )
-        # return response.json()['choices'][0]['message']['content']
+        # NOTE: This is a test stub. In production, use the actual AI client:
+        # from app.services.ai_providers import AIProviderClient
+        # client = AIProviderClient(provider="cerebras")
+        # return await client.chat_completion(system_prompt, user_message)
 
         raise NotImplementedError("Implement Cerebras API call here")
 
@@ -275,18 +249,18 @@ Professional
             data = json.loads(response)
         except json.JSONDecodeError:
             errors.append("Response is not valid JSON")
-            return {'errors': errors, 'warnings': warnings}
+            return {"errors": errors, "warnings": warnings}
 
         # Check required fields
         required_fields = [
-            'ats_score',
-            'summary',
-            'keyword_analysis',
-            'experience_analysis',
-            'skill_gaps',
-            'strengths',
-            'optimization_priorities',
-            'recommendations'
+            "ats_score",
+            "summary",
+            "keyword_analysis",
+            "experience_analysis",
+            "skill_gaps",
+            "strengths",
+            "optimization_priorities",
+            "recommendations",
         ]
 
         for field in required_fields:
@@ -294,24 +268,21 @@ Professional
                 errors.append(f"Missing required field: {field}")
 
         # Validate ats_score range
-        if 'ats_score' in data:
-            if not (0 <= data['ats_score'] <= 100):
-                errors.append(
-                    f"Invalid ats_score: {data['ats_score']} (must be 0-100)")
+        if "ats_score" in data:
+            if not (0 <= data["ats_score"] <= 100):
+                errors.append(f"Invalid ats_score: {data['ats_score']} (must be 0-100)")
 
         # Validate array lengths
-        if 'strengths' in data and len(data['strengths']) < 3:
+        if "strengths" in data and len(data["strengths"]) < 3:
             warnings.append("Less than 3 strengths identified")
 
-        if 'recommendations' in data and len(data['recommendations']) < 3:
+        if "recommendations" in data and len(data["recommendations"]) < 3:
             warnings.append("Less than 3 recommendations provided")
 
-        return {'errors': errors, 'warnings': warnings}
+        return {"errors": errors, "warnings": warnings}
 
     def _validate_optimizer_response(
-        self,
-        response: str,
-        required_keywords: List[str]
+        self, response: str, required_keywords: List[str]
     ) -> Dict:
         """Validate optimizer output"""
         errors = []
@@ -323,9 +294,9 @@ Professional
 
         # Check for required sections
         required_sections = [
-            '=== OPTIMIZED SECTION ===',
-            '=== CHANGES MADE ===',
-            '=== KEYWORD COVERAGE ==='
+            "=== OPTIMIZED SECTION ===",
+            "=== CHANGES MADE ===",
+            "=== KEYWORD COVERAGE ===",
         ]
 
         for section in required_sections:
@@ -340,20 +311,25 @@ Professional
                 missing_keywords.append(keyword)
 
         if missing_keywords:
-            warnings.append(
-                f"Keywords not incorporated: {', '.join(missing_keywords)}")
+            warnings.append(f"Keywords not incorporated: {', '.join(missing_keywords)}")
 
         # Check for action verbs in optimized section
         action_verbs = [
-            'developed', 'engineered', 'architected', 'implemented',
-            'designed', 'optimized', 'automated', 'led', 'mentored'
+            "developed",
+            "engineered",
+            "architected",
+            "implemented",
+            "designed",
+            "optimized",
+            "automated",
+            "led",
+            "mentored",
         ]
 
         if not any(verb in response_lower for verb in action_verbs):
-            warnings.append(
-                "No strong action verbs detected in optimized section")
+            warnings.append("No strong action verbs detected in optimized section")
 
-        return {'errors': errors, 'warnings': warnings}
+        return {"errors": errors, "warnings": warnings}
 
     def _validate_cover_letter_response(self, response: str) -> Dict:
         """Validate cover letter output"""
@@ -361,57 +337,62 @@ Professional
         warnings = []
 
         # Check for required sections
-        if '=== FINAL COVER LETTER ===' not in response:
+        if "=== FINAL COVER LETTER ===" not in response:
             errors.append("Missing final cover letter section")
 
-        if '=== KEYWORD COVERAGE ===' not in response:
+        if "=== KEYWORD COVERAGE ===" not in response:
             errors.append("Missing keyword coverage section")
 
         # Extract letter content
-        if '=== FINAL COVER LETTER ===' in response:
-            letter_start = response.find('=== FINAL COVER LETTER ===')
-            letter_end = response.find('===', letter_start + 30)
-            letter_content = response[letter_start:
-                                      letter_end] if letter_end > 0 else response[letter_start:]
+        if "=== FINAL COVER LETTER ===" in response:
+            letter_start = response.find("=== FINAL COVER LETTER ===")
+            letter_end = response.find("===", letter_start + 30)
+            letter_content = (
+                response[letter_start:letter_end]
+                if letter_end > 0
+                else response[letter_start:]
+            )
 
             # Count words
             word_count = len(letter_content.split())
             if word_count < 200:
                 errors.append(
-                    f"Cover letter too short: {word_count} words (minimum 200)")
+                    f"Cover letter too short: {word_count} words (minimum 200)"
+                )
             elif word_count > 400:
                 warnings.append(
-                    f"Cover letter too long: {word_count} words (recommended max 350)")
+                    f"Cover letter too long: {word_count} words (recommended max 350)"
+                )
 
             # Check for placeholder text
-            placeholders = ['[Company Name]', '[Position]', '[Hiring Manager]']
+            placeholders = ["[Company Name]", "[Position]", "[Hiring Manager]"]
             for placeholder in placeholders:
                 if placeholder in letter_content:
                     warnings.append(f"Placeholder not replaced: {placeholder}")
 
             # Check structure
-            if 'Dear' not in letter_content and 'Hello' not in letter_content:
+            if "Dear" not in letter_content and "Hello" not in letter_content:
                 warnings.append("Missing proper greeting")
 
-            if 'Sincerely' not in letter_content and 'Best regards' not in letter_content:
+            if (
+                "Sincerely" not in letter_content
+                and "Best regards" not in letter_content
+            ):
                 warnings.append("Missing proper closing")
 
-        return {'errors': errors, 'warnings': warnings}
+        return {"errors": errors, "warnings": warnings}
 
     def _calculate_quality_score(
-        self,
-        validation_result: Dict,
-        response_time: float,
-        response_length: int
+        self, validation_result: Dict, response_time: float, response_length: int
     ) -> float:
         """Calculate overall quality score (0-100)"""
         score = 100.0
 
         # Deduct for errors (critical)
-        score -= len(validation_result['errors']) * 20
+        score -= len(validation_result["errors"]) * 20
 
         # Deduct for warnings (minor)
-        score -= len(validation_result['warnings']) * 5
+        score -= len(validation_result["warnings"]) * 5
 
         # Deduct for slow response (> 10 seconds)
         if response_time > 10:
@@ -430,7 +411,7 @@ Professional
         test_section: str,
         test_keywords: List[str],
         candidate_data: Dict,
-        job_data: Dict
+        job_data: Dict,
     ) -> Dict[PromptType, PromptTestResult]:
         """Run complete test suite for all prompts"""
         prompts = self.load_prompts()
@@ -486,12 +467,16 @@ Professional
 """
 
         from datetime import datetime
-        report = report.format(
-            date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+        report = report.format(date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         for prompt_type, result in results.items():
             status_class = "success" if result.success else "failure"
-            score_class = "score-good" if result.quality_score >= 80 else "score-ok" if result.quality_score >= 60 else "score-bad"
+            score_class = (
+                "score-good"
+                if result.quality_score >= 80
+                else "score-ok" if result.quality_score >= 60 else "score-bad"
+            )
 
             report += f"""
         <div class="test-result {status_class}">
@@ -596,8 +581,8 @@ if __name__ == "__main__":
         "achievements": [
             "Automated ETL pipelines with 100% deployment success",
             "Designed Dockerized microservices architecture",
-            "Mentored junior developers in Python best practices"
-        ]
+            "Mentored junior developers in Python best practices",
+        ],
     }
 
     job_data = {
@@ -608,14 +593,13 @@ if __name__ == "__main__":
             "Python expertise with Flask/FastAPI",
             "Microservices architecture",
             "Docker and Kubernetes",
-            "CI/CD pipeline experience"
-        ]
+            "CI/CD pipeline experience",
+        ],
     }
 
     # Run tests
     results = tester.run_full_test_suite(
-        test_cv, test_jd, test_section, test_keywords,
-        candidate_data, job_data
+        test_cv, test_jd, test_section, test_keywords, candidate_data, job_data
     )
 
     # Generate report
@@ -629,4 +613,5 @@ if __name__ == "__main__":
     for prompt_type, result in results.items():
         status = " PASS" if result.success else " FAIL"
         print(
-            f"{prompt_type.value.upper()}: {status} (Score: {result.quality_score:.1f}/100)")
+            f"{prompt_type.value.upper()}: {status} (Score: {result.quality_score:.1f}/100)"
+        )

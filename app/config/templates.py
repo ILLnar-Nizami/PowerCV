@@ -15,58 +15,46 @@ class TemplateConfig:
         "resume.typ": {
             "description": "Clean, traditional layout",
             "type": "typst",
-            "status": "active"
+            "status": "active",
         },
         "modern.typ": {
             "description": "Contemporary two-column design",
             "type": "typst",
-            "status": "active"
+            "status": "active",
         },
-        "brilliant-cv/cv.typ": {
+        "brilliant-cv/template/cv.typ": {
             "description": "Professional template with icons",
             "type": "typst",
-            "status": "active"
-        },
-        "awesome-cv/cv.tex": {
-            "description": "LaTeX-based elegant design",
-            "type": "latex",
-            "status": "template_ready"
+            "status": "active",
         },
         "simple-xd-resume/cv.typ": {
             "description": "Minimal ATS-friendly design",
             "type": "typst",
-            "status": "active"
+            "status": "active",
         },
         "rendercv-classic/cv.typ": {
             "description": "Highly customizable classic design",
             "type": "typst",
-            "status": "active"
+            "status": "active",
         },
         "rendercv-modern/cv.typ": {
             "description": "Modern minimalist design",
             "type": "typst",
-            "status": "active"
+            "status": "active",
         },
     }
 
     # Alias mappings for template selection
     ALIASES = {
-        # Legacy aliases
-        "classic": "resume.typ",
-        "simple": "resume.typ",
-
         # Template-specific aliases
         "modern": "modern.typ",
-        "brilliant-cv": "brilliant-cv/cv.typ",
-        "brilliant": "brilliant-cv/cv.typ",
-        "awesome-cv": "awesome-cv/cv.tex",
-        "awesome": "awesome-cv/cv.tex",
+        "brilliant-cv": "brilliant-cv/template/cv.typ",
+        "brilliant": "brilliant-cv/template/cv.typ",
         "simple-xd-resume": "simple-xd-resume/cv.typ",
         "simple-xd": "simple-xd-resume/cv.typ",
-        "xd": "simple-xd-resume/cv.typ",
         "rendercv-classic": "rendercv-classic/cv.typ",
-        "rendercv": "rendercv-classic/cv.typ",
         "rendercv-modern": "rendercv-modern/cv.typ",
+        "rendercv": "rendercv-classic/cv.typ",
     }
 
     @classmethod
@@ -77,8 +65,10 @@ class TemplateConfig:
     @classmethod
     def get_template_pattern(cls) -> str:
         """Get regex pattern for template validation."""
-        escaped_templates = [template.replace(".", r"\.").replace("/", r"\/")
-                           for template in cls.get_valid_templates()]
+        escaped_templates = [
+            template.replace(".", r"\.").replace("/", r"\/")
+            for template in cls.get_valid_templates()
+        ]
         return f"^({'|'.join(escaped_templates)})$"
 
     @classmethod
@@ -109,9 +99,13 @@ class TemplateConfig:
         data = []
         for template_path, info in cls.TEMPLATES.items():
             status_emoji = "" if info["status"] == "active" else ""
-            data.append({
-                "template": template_path,
-                "description": info["description"],
-                "status": f"{status_emoji} {info['status'].replace('_', ' ').title()}"
-            })
+            data.append(
+                {
+                    "template": template_path,
+                    "description": info["description"],
+                    "status": (
+                        f"{status_emoji} {info['status'].replace('_', ' ').title()}"
+                    ),
+                }
+            )
         return data

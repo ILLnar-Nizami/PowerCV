@@ -1,0 +1,47 @@
+# Mock Job Description for Testing
+
+Senior Python Developer - TechCorp International
+
+Location: Amsterdam, Netherlands
+Employment Type: Full-time
+Experience Level: Senior (5+ years)
+
+About the Role:
+We are looking for a Senior Python Developer to join our growing team in Amsterdam. You will be responsible for designing, developing, and maintaining our core platform services.
+
+Requirements:
+- 5+ years of professional experience with Python
+- Strong experience with Django or FastAPI frameworks
+- Proficiency with PostgreSQL and database design
+- Experience with Docker and containerization
+- Bachelor's degree in Computer Science or related field
+- Excellent problem-solving skills
+- Strong communication skills in English
+
+Nice to Have:
+- Experience with Kubernetes
+- Knowledge of machine learning or AI/ML libraries
+- Team leadership experience
+- Experience with AWS or other cloud platforms
+- Knowledge of TypeScript or React
+- Experience with microservices architecture
+
+What We Offer:
+- Competitive salary €70,000 - €90,000 per year
+- Flexible working hours
+- Remote work options
+- Professional development budget
+- Modern office in Amsterdam
+- Company pension scheme
+- 25 vacation days + public holidays
+
+Application Process:
+1. Submit your CV and cover letter
+2. Initial phone screening
+3. Technical interview
+4. On-site interview with the team
+5. Offer decision
+
+Join us to work on cutting-edge technology and make a real impact!
+
+TechCorp International is an equal opportunity employer.

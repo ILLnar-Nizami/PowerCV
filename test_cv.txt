@@ -1,0 +1,54 @@
+# Mock CV for Testing
+NAME=John Doe
+EMAIL=john.doe@example.com
+PHONE=+31 6 12345678
+LOCATION=Amsterdam, Netherlands
+
+John Doe
+john.doe@example.com | +31 6 12345678 | Amsterdam, Netherlands
+linkedin.com/in/johndoe | github.com/johndoe
+
+PROFESSIONAL SUMMARY
+Senior Software Engineer with 5+ years of experience in full-stack development, specializing in Python, JavaScript, and cloud technologies. Proven track record of building scalable microservices and leading technical teams.
+
+WORK EXPERIENCE
+
+Senior Software Engineer - TechCorp BV, Amsterdam
+2022 - Present
+- Led development of microservices architecture using Python and Docker
+- Improved system performance by 40% through optimization of database queries
+- Mentored 5 junior developers and established code review practices
+- Implemented CI/CD pipelines reducing deployment time by 60%
+
+Software Engineer - StartupXYZ, Rotterdam
+2020 - 2022
+- Developed full-stack web applications using React and Node.js
+- Built RESTful APIs serving 100k+ daily requests
+- Designed and implemented database schemas for PostgreSQL
+- Collaborated with cross-functional teams of 10+ members
+
+Junior Developer - WebAgency, Amsterdam
+2018 - 2020
+- Built responsive websites using HTML, CSS, and JavaScript
+- Maintained and updated legacy codebases
+- Assisted in database management and migrations
+
+EDUCATION
+
+Bachelor of Computer Science - University of Amsterdam
+2014 - 2018
+
+SKILLS
+- Languages: Python, JavaScript, TypeScript, SQL, HTML, CSS
+- Frameworks: React, Django, FastAPI, Node.js, Express
+- Databases: PostgreSQL, MongoDB, Redis
+- DevOps: Docker, Kubernetes, AWS, CI/CD, Git
+- Tools: Git, Docker Compose, Terraform, Jenkins
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect - Amazon, 2023
+- Docker Certified Associate, 2022
+
+PROJECTS
+- OpenSource Contributor - Various Python libraries on GitHub
+- Personal Portfolio Website - Built with React and Node.js

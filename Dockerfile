@@ -1,5 +1,5 @@
 # Build Frontend
-FROM node:20-slim AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 WORKDIR /frontend
 COPY frontend/package*.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Builder stage for Python dependencies
-FROM python:3.12-slim AS builder
+FROM python:3.12-alpine AS builder
 
 # Set build arguments
 ARG PIP_NO_CACHE_DIR=1
@@ -17,20 +17,23 @@ ARG PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 
 # Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    python3-dev \
+    && rm -rf /var/cache/apk/*
 
 # Copy requirements
 COPY requirements.txt .
 
 # Install Python dependencies in a virtual environment
+# Note: AI dependencies moved to ai-service/
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip wheel && \
-    /opt/venv/bin/pip install -r requirements.txt
+    /opt/venv/bin/pip install -r requirements.txt && \
+    rm -rf /var/cache/apk/*
 
 # Final stage
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -39,10 +42,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 # Install runtime dependencies (including Typst and standard utils)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     curl \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    typst
 
 WORKDIR /app
 
@@ -57,8 +60,8 @@ COPY ./app /app/app
 COPY --from=frontend-builder /frontend/dist /app/app/static/frontend
 
 # Create a non-root user
-RUN groupadd --system app && \
-    useradd --system --gid app --home-dir /app --shell /bin/bash app && \
+RUN addgroup -S app && \
+    adduser -S -G app app && \
     chown -R app:app /app
 
 USER app

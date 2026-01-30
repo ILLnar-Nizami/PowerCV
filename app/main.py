@@ -5,46 +5,49 @@ and handles application startup and shutdown events. It serves as the central
 coordination point for the entire application.
 """
 
+from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
+import sentry_sdk
 from dotenv import load_dotenv
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routers.comprehensive_optimizer import comprehensive_router
+# Add parser router import comprehensive_router
+from app.api.routers import comprehensive_optimizer, parser
 from app.api.routers.cover_letter import cover_letter_router
-from app.api.routers.resume import resume_router, ResumeRepository
+from app.api.routers.resume.crud import ResumeRepository
+from app.api.routers.resume.router import resume_router
 from app.api.routers.token_usage import router as token_usage_router
+
+# Import the old resume router from resume.py
 from app.config.logging_config import logger
 from app.config.settings import get_settings
 from app.config.templates import TemplateConfig
-from app.core.exceptions import ConfigurationError, MissingApiKeyError
 from app.database.connector import MongoConnectionManager
 from app.database.models.resume import Resume
 from app.middleware.debugging import setup_debugging_middleware
-from app.middleware.rate_limit import init_rate_limiting
 from app.routes.n8n_integration import router as n8n_router
-from app.services.master_cv import MasterCV
-from app.services.scraper import extract_keywords_from_jd
+from app.services.ai_client import analyze_cv, generate_cover_letter, optimize_cv
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 from app.utils.error_handler import ErrorContext, ErrorHandler, debug_endpoint
-# Legacy web routes removed - frontend is now React + Vite
-# from app.web.core import core_web_router
-# from app.web.dashboard import web_router
 
 # Load environment variables from .env file
 load_dotenv(override=True)
 
 
 # Initialize Jinja2 templates for HTML rendering
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # Initialize orchestrator
 orchestrator = CVWorkflowOrchestrator()
@@ -54,16 +57,22 @@ orchestrator = CVWorkflowOrchestrator()
 
 # Request models
 class OptimizationRequest(BaseModel):
-    cv_text: str = Field(..., min_length=100, max_length=25000,
-                         description="CV text to optimize")
-    jd_text: str = Field(..., min_length=50, max_length=15000,
-                         description="Job description text")
+    cv_text: str = Field(
+        ..., min_length=100, max_length=25000, description="CV text to optimize"
+    )
+    jd_text: str = Field(
+        ..., min_length=50, max_length=15000, description="Job description text"
+    )
     generate_cover_letter: bool = Field(
-        default=True, description="Whether to generate cover letter")
+        default=True, description="Whether to generate cover letter"
+    )
     template: str = Field(
         default="resume.typ",
         pattern=TemplateConfig.get_template_pattern(),
-        description=f"Template to use for CV generation ({', '.join(TemplateConfig.get_valid_templates())})"
+        description=f"Template to use for CV generation ({', '.join(TemplateConfig.get_valid_templates())})",
+    )
+    email: Optional[str] = Field(
+        default=None, description="Candidate email for the optimized CV"
     )
 
     model_config = ConfigDict(
@@ -72,7 +81,8 @@ class OptimizationRequest(BaseModel):
                 "cv_text": "John Doe\nSenior Software Engineer...",
                 "jd_text": "We are looking for a Senior Software Engineer...",
                 "generate_cover_letter": True,
-                "template": "resume.typ"
+                "template": "resume.typ",
+                "email": "john@example.com",
             }
         }
     )
@@ -82,8 +92,11 @@ class CoverLetterRequest(BaseModel):
     candidate_data: dict = Field(..., description="Candidate information")
     job_data: dict = Field(..., description="Job information")
 
-    tone: str = Field(default="Professional", pattern="^(Professional|Enthusiastic|Formal|Casual)$",
-                      description="Tone for cover letter")
+    tone: str = Field(
+        default="Professional",
+        pattern="^(Professional|Enthusiastic|Formal|Casual)$",
+        description="Tone for cover letter",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -91,28 +104,26 @@ class CoverLetterRequest(BaseModel):
                 "candidate_data": {
                     "name": "John Doe",
                     "current_title": "Software Engineer",
-                    "top_skills": ["Python", "JavaScript"]
+                    "top_skills": ["Python", "JavaScript"],
                 },
-                "job_data": {
-                    "company": "TechCorp",
-                    "position": "Senior Developer"
-                },
-                "tone": "Professional"
+                "job_data": {"company": "TechCorp", "position": "Senior Developer"},
+                "tone": "Professional",
             }
         }
     )
 
-    @field_validator('tone')
+    @field_validator("tone")
     @classmethod
     def validate_tone(cls, v):
         valid_tones = ["Professional", "Enthusiastic", "Formal", "Casual"]
         if v not in valid_tones:
-            raise ValueError(f'tone must be one of: {valid_tones}')
+            raise ValueError(f"tone must be one of: {valid_tones}")
         return v
 
 
 class OptimizationResponse(BaseModel):
     """Response model for resume optimization."""
+
     success: bool
     data: Optional[Dict[str, Any]] = None
     message: str
@@ -121,12 +132,8 @@ class OptimizationResponse(BaseModel):
         json_schema_extra={
             "example": {
                 "success": True,
-                "data": {
-                    "analysis": {},
-                    "optimized_cv": {},
-                    "ats_score": 85
-                },
-                "message": "Resume optimization completed successfully"
+                "data": {"analysis": {}, "optimized_cv": {}, "ats_score": 85},
+                "message": "Resume optimization completed successfully",
             }
         }
     )
@@ -135,7 +142,7 @@ class OptimizationResponse(BaseModel):
 async def startup_logic(app: FastAPI) -> None:
     """Execute startup logic for the FastAPI application.
 
-    Initialize database connections and other resources needed by the application.
+    Initialize database connections, Sentry, and other resources needed by the application.
 
     Args:
         app: The FastAPI application instance
@@ -144,9 +151,30 @@ async def startup_logic(app: FastAPI) -> None:
     ------
         Exception: If any startup operation fails
     """
+    # Initialize Sentry
+    settings = get_settings()
+    if settings.sentry_dsn:
+        try:
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                integrations=[
+                    StarletteIntegration(),
+                    FastApiIntegration(),
+                ],
+                traces_sample_rate=1.0,
+                environment="production" if not settings.debug else "development",
+            )
+            logger.info("Sentry initialized")
+        except Exception as e:
+            logger.warning(f"Sentry initialization failed: {e}")
+
     try:
         connection_manager = MongoConnectionManager.get_instance()
         app.state.mongo = connection_manager
+
+        # Initialize repositories
+        app.state.resume_repo = ResumeRepository()
+        logger.info("Resume repository initialized")
     except Exception as e:
         logger.error(f"Error during startup: {e}")
         raise
@@ -169,83 +197,43 @@ async def shutdown_logic(app: FastAPI) -> None:
         logger.info("Shutting down background tasks.")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for FastAPI startup and shutdown."""
+    # Startup logic
+    await startup_logic(app)
+    yield
+    # Shutdown logic
+    await shutdown_logic(app)
+
+
 app = FastAPI(
     title="PowerCV API",
     summary="",
-    description=""" 
+    description="""
     PowerCV is a resume generation system that adapts resumes to specific job descriptions.
     It leverages AI to provide customized resume content based on user input.
     """,
-    license_info={"name": "MIT License",
-                  "url": "https://opensource.org/licenses/MIT"},
+    license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     version="2.0.0",
-    docs_url=None,
+    docs_url="/docs",
+    lifespan=lifespan,
 )
 
-# Initialize rate limiting
-init_rate_limiting(app)
+# Rate limiting disabled - Cerebras has generous limits (30 req/min, 900/hour)
+# init_rate_limiting(app)
 
 # Setup debugging middleware
 settings = get_settings()
 setup_debugging_middleware(app, enable_debug=settings.debug)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Handle application startup and configuration validation."""
-    try:
-        # Test database connection (always required)
-        from app.database.connector import MongoConnectionManager
-        manager = MongoConnectionManager.get_instance()
-
-        # Check if AI provider is configured (optional for development)
-        from app.config import get_settings
-        settings = get_settings()
-        ai_provider_configured = bool(
-            settings.cerebras_api_key or settings.api_key or settings.openai_api_key)
-
-        if ai_provider_configured:
-            # Test AI client configuration only if API keys are present
-            from app.services.ai_providers import AIClient
-            AIClient()
-            logger.info(
-                "Application startup completed successfully with AI providers")
-        else:
-            logger.warning(
-                "No AI provider API keys configured - AI features will be unavailable")
-            logger.info("Application startup completed (development mode)")
-
-    except (ConfigurationError, MissingApiKeyError) as e:
-        logger.error(f"Configuration error during startup: {e}")
-        error_msg = f"""
-{"=" * 60}
- CONFIGURATION ERROR
-{"=" * 60}
-Error: {e}
-
-Please check your environment configuration:
-"""
-        if hasattr(e, 'config_key'):
-            error_msg += f"  - Missing or invalid: {e.config_key}\n"
-        if hasattr(e, 'provider'):
-            error_msg += f"  - For AI provider: {e.provider}\n"
-        error_msg += "\nUpdate your .env file or environment variables.\n"
-        error_msg += "=" * 60
-
-        logger.error(error_msg)
-        # Re-raise as RuntimeError to cause startup failure
-        raise RuntimeError(f"Application configuration error: {e}") from e
-
-    except Exception as e:
-        logger.error(f"Unexpected error during startup: {e}")
-        logger.error("=" * 60)
-        logger.error(" STARTUP ERROR")
-        logger.error("=" * 60)
-        logger.error(f"Unexpected error: {e}")
-        logger.error("Check application logs for details.")
-        logger.error("=" * 60)
-        import sys
-        sys.exit(1)
+# DEPRECATED: @app.on_event("startup") is deprecated in FastAPI 0.100+
+# Replaced with lifespan context manager below
+# @app.on_event("startup")
+# async def startup_event():
+#     """Handle application startup and configuration validation."""
+#     # Startup logic moved to lifespan context manager
 
 
 # Global exception handler for security
@@ -261,16 +249,17 @@ async def global_exception_handler(request: Request, exc: Exception):
         JSON response with sanitized error
     """
     # Log the full error securely (sensitive data is filtered by SensitiveDataFilter)
-    logger.error(
-        f"Unhandled exception on {request.url.path}: {type(exc).__name__}")
+    logger.error(f"Unhandled exception on {request.url.path}: {type(exc).__name__}")
 
     # NEVER expose internal error details in production
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": "Internal server error",
-            "detail": "An unexpected error occurred. Please contact support if this persists."
-        }
+            "detail": (
+                "An unexpected error occurred. Please contact support if this persists."
+            ),
+        },
     )
 
 
@@ -310,8 +299,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     # For other errors on web routes, show a simple error page
     return templates.TemplateResponse(
         "404.html",
-        {"request": request, "status_code": exc.status_code,
-            "detail": str(exc.detail)},
+        {"request": request, "status_code": exc.status_code, "detail": str(exc.detail)},
         status_code=exc.status_code,
     )
 
@@ -330,11 +318,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """
     # Log validation errors securely (don't expose sensitive input data)
     logger.warning(
-        f"Validation error on {request.url.path}: {len(exc.errors())} errors")
+        f"Validation error on {request.url.path}: {len(exc.errors())} errors"
+    )
 
     # Log detailed validation errors for debugging (but don't expose to client)
     for error in exc.errors():
-        field_path = '.'.join(str(x) for x in error['loc'])
+        field_path = ".".join(str(x) for x in error["loc"])
         logger.warning(f"Validation error in {field_path}: {error['msg']}")
 
     # For API routes, return sanitized error
@@ -342,7 +331,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         # Don't expose detailed validation errors that might contain sensitive data
         return JSONResponse(
             status_code=422,
-            content={"detail": "Invalid input data. Please check your request."}
+            content={"detail": "Invalid input data. Please check your request."},
         )
 
     # For web routes, show an error page with validation details
@@ -384,52 +373,25 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:3001",
         "http://localhost:5173",
-        "http://localhost:8080",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
-        "http://127.0.0.1:8080",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-app.mount("/templates", StaticFiles(directory="app/templates"), name="templates")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
-
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    """Serve custom Swagger UI HTML for API documentation.
-
-    Returns:
-    -------
-        HTMLResponse: Custom Swagger UI HTML
-
-    Raises:
-    ------
-        FileNotFoundError: If the custom Swagger template is not found
-    """
-    try:
-        with open("app/templates/custom_swagger.html") as f:
-            template = f.read()
-
-        return HTMLResponse(
-            template.replace("{{ title }}", "PowerCV API Documentation").replace(
-                "{{ openapi_url }}", "/openapi.json"
-            )
-        )
-    except FileNotFoundError:
-        return HTMLResponse(
-            content="Custom Swagger template not found", status_code=500
-        )
-    except Exception as e:
-        return HTMLResponse(
-            content=f"Error loading documentation: {str(e)}", status_code=500
-        )
+app.mount(
+    "/templates",
+    StaticFiles(directory=str(Path(__file__).parent / "templates")),
+    name="templates",
+)
+app.mount(
+    "/static",
+    StaticFiles(directory=str(Path(__file__).parent / "static")),
+    name="static",
+)
 
 
 @app.get("/health", tags=["Health"], summary="Health Check")
@@ -441,8 +403,7 @@ async def health_check():
         JSONResponse: Status information about the application.
     """
     return JSONResponse(
-        content={"status": "healthy",
-                 "version": app.version, "service": "PowerCV"}
+        content={"status": "healthy", "version": app.version, "service": "PowerCV"}
     )
 
 
@@ -470,53 +431,72 @@ async def get_resume_repository(request: Request) -> ResumeRepository:
         ResumeRepository: An instance of the resume repository
     """
     from app.database.repositories.resume_repository import ResumeRepository
+
     return ResumeRepository()
 
 
-@app.post("/api/v2/optimize", tags=["CV Optimization v2"], summary="Complete CV optimization workflow")
+@app.post(
+    "/api/v2/optimize",
+    tags=["CV Optimization v2"],
+    summary="Complete CV optimization workflow",
+)
 @debug_endpoint
-async def optimize_cv_v2(request: OptimizationRequest, repo: ResumeRepository = Depends(get_resume_repository)):
+async def optimize_cv_v2(
+    request: OptimizationRequest,
+    repo: ResumeRepository = Depends(get_resume_repository),
+):
     """CV optimization endpoint utilizing modular prompts.
     Saves the optimized result and returns a resume ID for download.
     """
     try:
-        with ErrorContext("cv_optimization_v2", {
-            "template": request.template,
-            "generate_cover_letter": request.generate_cover_letter,
-            "cv_length": len(request.cv_text),
-            "jd_length": len(request.jd_text)
-        }):
-            orchestrator = get_orchestrator()
-            result = orchestrator.optimize_cv_for_job(
+        with ErrorContext(
+            "cv_optimization_v2",
+            {
+                "template": request.template,
+                "generate_cover_letter": request.generate_cover_letter,
+                "cv_length": len(request.cv_text),
+                "jd_length": len(request.jd_text),
+            },
+        ):
+            result = await optimize_cv(
                 cv_text=request.cv_text,
                 jd_text=request.jd_text,
-                generate_cover_letter=request.generate_cover_letter
+                email=request.email,
             )
 
-            # Save the optimized result to database for PDF generation
             optimized_data = result.get("optimized_cv", {})
-            if optimized_data:
-                # Create a new resume entry with the optimized data
-                resume_data = Resume(
-                    user_id="local-user",
-                    title=f"Optimized Resume - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                    original_content=request.cv_text,
-                    job_description=request.jd_text,
-                    optimized_data=optimized_data,
-                    target_company="",  # Could be extracted from request if available
-                    target_role="",    # Could be extracted from request if available
-                    ats_score=result.get("ats_score", 0),
-                    matching_skills=result.get("matching_skills", []),
-                    missing_skills=result.get("missing_skills", []),
-                    recommendation=result.get("recommendation", ""),
-                    optimized_content="",  # Could be generated from optimized_data
-                )
+            ats_score = result.get("ats_score", 0)
+            original_ats_score = result.get("original_ats_score", 0)
 
-                resume_id = await repo.create_resume(resume_data)
-                if resume_id:
-                    # Add resume_id to the result
-                    result["resume_id"] = resume_id
-                    logger.info(f"Created optimized resume with ID: {resume_id}")
+            resume_id = None
+            if optimized_data:
+                try:
+                    resume_data = Resume(
+                        user_id="local-user",
+                        title=f"Optimized Resume - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                        original_content=request.cv_text,
+                        job_description=request.jd_text,
+                        optimized_data=optimized_data,
+                        target_company="",
+                        target_role="",
+                        matching_score=ats_score,
+                        matching_skills=[],
+                        missing_skills=[],
+                        recommendation=f"Improved ATS score from {original_ats_score} to {ats_score}",
+                    )
+
+                    resume_id = await repo.create_resume(resume_data)
+                    if resume_id:
+                        result["resume_id"] = resume_id
+                        logger.info(f"Created optimized resume with ID: {resume_id}")
+                except Exception as save_error:
+                    logger.warning(
+                        f"Failed to save optimized resume to DB: {save_error}"
+                    )
+                    result["resume_id"] = None
+                    result["save_warning"] = (
+                        "Resume optimized but could not be saved to database"
+                    )
 
             return result
     except Exception as e:
@@ -525,24 +505,26 @@ async def optimize_cv_v2(request: OptimizationRequest, repo: ResumeRepository = 
             e,
             provider="workflow_orchestrator",
             operation="cv_optimization",
-            context={"template": request.template}
+            context={"template": request.template},
         )
 
 
-@app.post("/api/v2/analyze", tags=["CV Analysis v2"], summary="Analyze CV against job description")
+@app.post(
+    "/api/v2/analyze",
+    tags=["CV Analysis v2"],
+    summary="Analyze CV against job description",
+)
 @debug_endpoint
 async def analyze_cv_v2(request: OptimizationRequest):
     """Analyze CV without optimization.
     Returns ATS score, keyword analysis, and recommendations.
     """
     try:
-        with ErrorContext("cv_analysis_v2", {
-            "cv_length": len(request.cv_text),
-            "jd_length": len(request.jd_text)
-        }):
-            orchestrator = get_orchestrator()
-            analysis = orchestrator.analyzer.analyze(
-                request.cv_text, request.jd_text)
+        with ErrorContext(
+            "cv_analysis_v2",
+            {"cv_length": len(request.cv_text), "jd_length": len(request.jd_text)},
+        ):
+            analysis = await analyze_cv(request.cv_text, request.jd_text)
             return analysis
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}", exc_info=True)
@@ -550,26 +532,27 @@ async def analyze_cv_v2(request: OptimizationRequest):
             e,
             provider="cv_analyzer",
             operation="cv_analysis",
-            context={"cv_length": len(request.cv_text)}
+            context={"cv_length": len(request.cv_text)},
         )
 
 
-@app.post("/api/v2/cover-letter", tags=["Cover Letter v2"], summary="Generate cover letter")
+@app.post(
+    "/api/v2/cover-letter", tags=["Cover Letter v2"], summary="Generate cover letter"
+)
 @debug_endpoint
 async def generate_cover_letter_v2(request: CoverLetterRequest):
-    """Generate cover letter based on candidate and job data.
-    """
+    """Generate cover letter based on candidate and job data."""
     try:
-        with ErrorContext("cover_letter_generation_v2", {
-            "tone": request.tone,
-            "candidate_name": request.candidate_data.get("name", "Unknown"),
-            "company": request.job_data.get("company", "Unknown")
-        }):
-            orchestrator = get_orchestrator()
-            result = orchestrator.cover_letter_gen.generate(
-                request.candidate_data,
-                request.job_data,
-                request.tone
+        with ErrorContext(
+            "cover_letter_generation_v2",
+            {
+                "tone": request.tone,
+                "candidate_name": request.candidate_data.get("name", "Unknown"),
+                "company": request.job_data.get("company", "Unknown"),
+            },
+        ):
+            result = await generate_cover_letter(
+                request.candidate_data, request.job_data, request.tone
             )
             return result
     except Exception as e:
@@ -578,92 +561,31 @@ async def generate_cover_letter_v2(request: CoverLetterRequest):
             e,
             provider="cover_letter_generator",
             operation="cover_letter_generation",
-            context={"tone": request.tone}
+            context={"tone": request.tone},
         )
-
-# Legacy/General endpoints
-
-
-@app.post("/api/optimize-resume", response_model=OptimizationResponse)
-async def optimize_resume(request: OptimizationRequest):
-    """Main endpoint for comprehensive resume optimization.
-    """
-    try:
-        # Log request context for debugging without exposing sensitive data
-        cv_length = len(request.cv_text) if request.cv_text else 0
-        jd_length = len(request.jd_text) if request.jd_text else 0
-        logger.info(
-            f"Received resume optimization request (template: {request.template})",
-            extra={
-                "cv_length": cv_length,
-                "jd_length": jd_length,
-                "generate_cover_letter": request.generate_cover_letter,
-                "template": request.template
-            }
-        )
-        orchestrator = get_orchestrator()
-        result = orchestrator.optimize_cv_for_job(
-            cv_text=request.cv_text,
-            jd_text=request.jd_text,
-            generate_cover_letter=request.generate_cover_letter
-        )
-        return OptimizationResponse(
-            success=True,
-            data=result,
-            message="Resume optimization completed successfully"
-        )
-    except Exception as e:
-        logger.error(f"Error in optimize_resume: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/analyze-cv")
-async def analyze_cv(request: OptimizationRequest):
-    """Standalone endpoint for CV analysis only.
-    """
-    try:
-        orchestrator = get_orchestrator()
-        analysis = orchestrator.analyzer.analyze(
-            request.cv_text, request.jd_text)
-        return {"success": True, "analysis": analysis}
-    except Exception as e:
-        logger.error(f"Error in analyze_cv: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/generate-cover-letter")
-async def generate_cover_letter(request: OptimizationRequest):
-    """Standalone endpoint for cover letter generation.
-    """
-    try:
-        orchestrator = get_orchestrator()
-        # Minimal data for generator
-        candidate_data = {"name": "Candidate", "top_skills": []}
-        job_data = {"position": "Professional", "requirements": []}
-
-        result = orchestrator.cover_letter_gen.generate(
-            candidate_data, job_data)
-        return {"success": True, "cover_letter": result}
-    except Exception as e:
-        logger.error(f"Error in generate_cover_letter: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Automation endpoints
 
 
-@app.post("/api/v1/scrape", tags=["Scraping"], summary="Scrape job description from URL")
-async def scrape_job_description(url: str = Body(..., description="URL to job posting")):
+@app.post(
+    "/api/v1/scrape", tags=["Scraping"], summary="Scrape job description from URL"
+)
+async def scrape_job_description(
+    url: str = Body(..., description="URL to job posting"),
+):
     """Scrape job description from a LinkedIn, Indeed, or other job board URL.
 
     Returns extracted job title, company, location, and full description.
     """
     try:
         from app.utils.shared_utils import ValidationHelper
+
         # Validate URL
         validated_url = ValidationHelper.validate_url(url)
 
         from app.services.scraper import fetch_job_description
+
         result = await fetch_job_description(validated_url)
         return result
 
@@ -673,97 +595,127 @@ async def scrape_job_description(url: str = Body(..., description="URL to job po
     except Exception as e:
         logger.error(f"Scraping error: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to scrape job description: {str(e)}")
-
-
-@app.post("/api/v1/extract-keywords", tags=["Analysis"], summary="Extract keywords from job description")
-async def extract_keywords(jd_text: str = Body(..., min_length=50, max_length=5000, description="Job description text")):
-    """Extract skills and requirements from a job description.
-
-    Useful for identifying what to highlight in your CV.
-    """
-    try:
-        from app.utils.shared_utils import ValidationHelper
-        # Validate input
-        validated_text = ValidationHelper.validate_text_input(
-            jd_text, 5000, "job description")
-
-        from app.services.scraper import extract_keywords_from_jd
-        result = await extract_keywords_from_jd(validated_text)
-        return result
-
-    except ValueError as e:
-        logger.error(f"Input validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Keyword extraction error: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/v1/optimize-structured", tags=["Optimization"], summary="Optimize using structured CV data")
-async def optimize_structured_cv(
-    master_cv_file: str = Body(..., description="Path to structured CV file"),
-    jd_text: str = Body(..., description="Job description text"),
-    generate_cover_letter: bool = Query(
-        default=True, description="Whether to generate cover letter")
-):
-    """Optimize CV using structured master CV format(JSON/YAML).
-
-    This endpoint reads a structured CV file and generates a tailored version
-    for the provided job description.
-    """
-    try:
-        from pathlib import Path
-
-        # Load structured CV
-        cv_path = Path(master_cv_file)
-        if not cv_path.exists():
-            raise HTTPException(status_code=404, detail="CV file not found")
-
-        master_cv = MasterCV.from_file(str(cv_path))
-
-        # Extract relevant sections for this job
-        jd_analysis = await extract_keywords_from_jd(jd_text)
-        keywords = jd_analysis.get("skills", [])
-
-        extracted_data = master_cv.extract_for_job(keywords)
-
-        # Run optimization
-        local_orchestrator = CVWorkflowOrchestrator()
-
-        # Convert extracted data to text for optimization
-        cv_text = master_cv.to_markdown()
-
-        result = local_orchestrator.optimize_cv_for_job(
-            cv_text=cv_text,
-            jd_text=jd_text,
-            generate_cover_letter=generate_cover_letter
+            status_code=500, detail=f"Failed to scrape job description: {str(e)}"
         )
-
-        return {
-            "extracted_cv": extracted_data,
-            "optimization_result": result
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Structured optimization error: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Include routers - These must come BEFORE the catch-all route
 app.include_router(resume_router)
+
 app.include_router(cover_letter_router)
 # Add token usage tracking API endpoints
 app.include_router(token_usage_router)
 # Add comprehensive optimizer API endpoints
-app.include_router(comprehensive_router)
+app.include_router(comprehensive_optimizer.comprehensive_router)
+app.include_router(parser.router)  # Register parser router
 # Add n8n integration endpoints
 app.include_router(n8n_router)
-# Legacy web routers removed - frontend is now React + Vite
-# app.include_router(core_web_router)
-# app.include_router(web_router)
+
+
+# Legacy endpoint for frontend compatibility - /api/resume/{id}
+# This handles both master CVs and regular resumes
+@app.get("/api/resume/{resume_id}")
+async def legacy_resume_endpoint(resume_id: str, request: Request):
+    """Legacy endpoint for frontend compatibility - supports both master CVs and regular resumes."""
+    from bson.objectid import ObjectId
+    from fastapi import HTTPException
+
+    try:
+        repo = request.app.state.resume_repo
+        object_id = ObjectId(resume_id)
+
+        # Try to get from database
+        doc = await repo.get_by_id(object_id)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Resume not found")
+
+        # Check document type
+        doc_type = doc.get("document_type", "")
+
+        if doc_type == "master_cv":
+            # Return master CV format for preview
+            return {
+                "id": str(doc["_id"]),
+                "title": doc.get("title", "Untitled"),
+                "original_content": doc.get("content", ""),
+                "optimized_content": None,
+                "target_company": doc.get("target_company", ""),
+                "target_role": doc.get("target_role", ""),
+                "matching_score": doc.get("matching_score"),
+            }
+        else:
+            # Regular resume
+            return {
+                "id": str(doc["_id"]),
+                "title": doc.get("title", "Untitled"),
+                "original_content": doc.get("original_content", ""),
+                "optimized_content": doc.get("optimized_content") or "",
+                "target_company": doc.get("target_company", ""),
+                "target_role": doc.get("target_role", ""),
+                "matching_score": doc.get("matching_score"),
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in legacy resume endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Legacy endpoint for PDF download - /api/resume/{id}/download
+@app.get("/api/resume/{resume_id}/download")
+async def legacy_download_endpoint(
+    resume_id: str,
+    request: Request,
+    template: str = Query("modern.typ", description="Template to use"),
+):
+    """Legacy endpoint for PDF download - redirects to the actual download handler."""
+    from fastapi import HTTPException
+    from fastapi.responses import RedirectResponse
+
+    try:
+        # Validate resume exists
+        from bson.objectid import ObjectId
+
+        repo = request.app.state.resume_repo
+        object_id = ObjectId(resume_id)
+        doc = await repo.get_by_id(object_id)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Resume not found")
+
+        # Check if resume has optimized data
+        optimized_data = doc.get("optimized_data")
+        if not optimized_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Resume has not been optimized yet. Please optimize first.",
+            )
+
+        # Redirect to actual download endpoint
+        return RedirectResponse(
+            url=f"/api/v1/resumes/{resume_id}/download?template={template}",
+            status_code=301,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in legacy download endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Test endpoint for Sentry error tracking
+@app.get("/test-sentry-error", include_in_schema=False)
+async def test_sentry_error():
+    """Test endpoint to trigger a sample error for Sentry validation."""
+    try:
+        # Simulate an error
+        raise ValueError("This is a test error for Sentry integration.")
+    except Exception as e:
+        logger.error(f"Test error for Sentry: {e}")
+        raise
 
 
 # Catch-all for not found pages - IMPORTANT: This must come AFTER including all routers
@@ -783,5 +735,5 @@ async def catch_all(request: Request, path: str):
     """
     return JSONResponse(
         status_code=404,
-        content={"detail": f"Path '/{path}' not found. API endpoints are under /api/"}
+        content={"detail": f"Path '/{path}' not found. API endpoints are under /api/"},
     )

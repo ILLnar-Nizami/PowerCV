@@ -10,7 +10,7 @@ def test_imports():
     from app.middleware.debugging import DebuggingMiddleware
     from app.utils.error_handler import DetailedError, ErrorHandler
     from app.utils.validation import ValidationHelper
-    
+
     # Basic sanity checks so linters don't flag unused imports
     assert ErrorHandler is not None
     assert DetailedError is not None

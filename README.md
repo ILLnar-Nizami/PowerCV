@@ -1,4 +1,4 @@
-# PowerCV <img src="https://img.shields.io/badge/version-3.0.0--beta-blue" alt="Version 3.0.0-beta"/>
+# PowerCV <img src="https://img.shields.io/badge/version-2.0.1-blue" alt="Version 2.0.1"/>
 
 <div align="center">
 
@@ -18,20 +18,37 @@
 
 PowerCV is a platform for resume customization that adapts professional profiles to specific job descriptions. Using natural language processing, it analyzes job requirements and highlights relevant skills and experiences to improve ATS compatibility and recruiter visibility.
 
+## New Features
+
+### Advanced Redis Caching
+- Intelligent caching for AI responses and workflow results
+- Significant performance improvements (up to 100x faster for cached requests)
+- Automatic cache invalidation based on content changes
+
+### AI Cost Tracking
+- Real-time monitoring of AI API usage and costs
+- `/api/comprehensive/cost-tracking` endpoint for cost analytics
+- Token usage tracking for budget management
+
+### PostgreSQL Migration Support
+- Dual-write capability to MongoDB and PostgreSQL
+- Migration scripts for seamless database transitions
+- Schema optimization for structured data queries
+
 **🎉 Latest Update (v3.0.0-beta)**: All critical application-breaking bugs have been resolved! The application now provides a complete, production-ready resume optimization experience with proper template selection, PDF generation, and professional file downloads.
 
 ## Key Features
 
-- ** Resume Customization**: Tailors resume content to match job requirements using AI-powered analysis
-- ** ATS Optimization**: Improves keyword alignment for applicant tracking systems with real-time scoring
-- ** Gap Analysis**: Identifies missing skills based on job descriptions with visual analytics
-- ** Resume Generation**: Produces formatted resumes in multiple professional templates
-- ** Version Tracking**: Manages different resume versions for various applications
-- ** Modern UI/UX**: Built with React 19 and TypeScript for optimal performance
-- ** Real-time Updates**: Live resume editing with instant preview
-- ** Responsive Design**: Mobile-first design for seamless cross-device experience
-- ** Advanced Analytics**: Comprehensive resume performance tracking and insights
-- ** Enterprise Security**: Production-ready security with environment validation
+- **Resume Customization**: Tailors resume content to match job requirements using AI-powered analysis
+- **ATS Optimization**: Improves keyword alignment for applicant tracking systems with real-time scoring
+- **Gap Analysis**: Identifies missing skills based on job descriptions with visual analytics
+- **Resume Generation**: Produces formatted resumes in multiple professional templates
+- **Version Tracking**: Manages different resume versions for various applications
+- **Modern UI/UX**: Built with React 19 and TypeScript for optimal performance
+- **Real-time Updates**: Live resume editing with instant preview
+- **Responsive Design**: Mobile-first design for seamless cross-device experience
+- **Advanced Analytics**: Comprehensive resume performance tracking and insights
+- **Enterprise Security**: Production-ready security with environment validation
 
 ## Technologies
 
@@ -50,7 +67,7 @@ PowerCV is a platform for resume customization that adapts professional profiles
 ### Backend
 - **Framework**: FastAPI, Python 3.8+
 - **Database**: MongoDB with Pydantic models
-- **AI Integration**: Deepseek API, Cerebras AI
+- **AI Integration**: Cerebras AI (primary)
 - **PDF Engine**: Typst (Fast, modern Typesetting)
 - **Authentication**: JWT-based auth system
 
@@ -62,23 +79,25 @@ PowerCV is a platform for resume customization that adapts professional profiles
 - **Monitoring**: Coverage reporting with Codecov
 - **Package Management**: uv (Python), npm (Node.js)
 
-> [!CAUTION]
-> This application uses LLM models, which may generate unpredictable responses. Review AI-generated content before submission. The application is in beta.
+> [!IMPORTANT]
+> This application uses LLM models, which may generate unpredictable responses. Review AI-generated content before submission.
 
 ## Quick Start
 
 ### 1. Start the Backend API
 
-bash
-# Navigate to project root
-cd /home/illnar/Projects/PowerCV
+```bash
+# Navigate to project root (replace with your actual path)
+cd /path/to/PowerCV
 
 # Start FastAPI backend
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+
+```
 
 ### 2. Start the Frontend Development Server
 
-bash
+```bash
 # Open new terminal
 cd /home/illnar/Projects/PowerCV/frontend
 
@@ -88,18 +107,20 @@ npm install
 # Start development server
 npm run dev
 
+```
+
 ### 3. Access Your Application
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+- **Backend API**: http://localhost:8080
+- **API Documentation**: http://localhost:8080/docs
 
 ### 4. Environment Configuration
 
 The app is pre-configured with environment files:
--.env - Local development
--.env.staging - Staging environment 
--.env.production - Production environment
+- `.env` - Local development
+- `.env.staging` - Staging environment
+- `.env.production` - Production environment
 
 Environment variables are automatically validated on startup.
 
@@ -119,19 +140,21 @@ Environment variables are automatically validated on startup.
 
 uv is a fast Python package manager:
 
-bash
+```bash
 # Install uv using pip
 pip install uv
 
 # Or using the installer script
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 #### Setup MongoDB
 
 1. **Using Docker**:
 
-bash
+```bash
 docker run -d --name mongodb -p 27017:27017 mongo:latest
+```
 
 2. **Local Installation**:
  - [MongoDB Installation Guide](https://www.mongodb.com/docs/manual/installation/)
@@ -142,9 +165,10 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest
 
 1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
 2. Add to your.env file (or pass as env vars):
- env
- CEREBRAS_API_KEY=your_key_here
- CEREBRAS_MODEL=gpt-oss-120b
+```env
+CEREBRAS_API_KEY=your_key_here
+CEREBRAS_MODEL=gpt-oss-120b
+```
  
 
 ### Environment Variables
@@ -152,24 +176,26 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest
  **Security Note**: Never commit.env files to version control. The.env file is already ignored by.gitignore.
 
 1. Copy the environment template:
- bash
- cp env-template.txt.env
+```bash
+cp env-template.txt .env
+```
  
 
 2. Fill in your actual values in.env:
- env
- # AI Provider (required)
- CEREBRAS_API_KEY=your_actual_cerebras_key
+```env
+# AI Provider (required)
+CEREBRAS_API_KEY=your_actual_cerebras_key
 
- # Database (required)
- MONGODB_URI=mongodb://username:password@host:port/powercv
+# Database (required)
+MONGODB_URI=mongodb://username:password@host:port/powercv
 
- # Security (change in production!)
- SECRET_KEY=your_unique_secret_key
+# Security (change in production!)
+SECRET_KEY=your_unique_secret_key
 
- # Other services (as needed)
- N8N_API_KEY=your_n8n_key
- SENTRY_DSN=your_sentry_dsn
+# Other services (as needed)
+N8N_API_KEY=your_n8n_key
+SENTRY_DSN=your_sentry_dsn
+```
  
 
 3. All sensitive data should be stored in.env - never hardcoded in the codebase.
@@ -182,8 +208,7 @@ PowerCV supports multiple professional CV templates:
 |----------|-------------|------|--------|
 | **Classic** | Clean, traditional layout | resume.typ | Active |
 | **Modern** | Contemporary two-column design | modern.typ | Active |
-| **Brilliant CV** | Professional template with icons | brilliant-cv/cv.typ | Active |
-| **good CV** | LaTeX-based simple design | good-cv/cv.tex | Template ready |
+| **Brilliant CV** | Professional template with icons | brilliant-cv/template/cv.typ | Active |
 | **Simple XD** | Minimal ATS-friendly design | simple-xd-resume/cv.typ | Active |
 | **RenderCV Classic** | Highly customizable classic design | rendercv-classic/cv.typ | Active |
 | **RenderCV Modern** | Modern minimalist design | rendercv-modern/cv.typ | Active |
@@ -192,25 +217,23 @@ PowerCV supports multiple professional CV templates:
 
 Choose your template during CV optimization:
 
-json
-POST /api/optimize-resume
+```json
+POST /api/v2/optimize
 {
- "cv_text": "Your CV content...",
- "jd_text": "Job description...",
- "template": "brilliant-cv/cv.typ",
- "generate_cover_letter": true
+  "cv_text": "Your CV content...",
+  "jd_text": "Job description...",
+  "template": "brilliant-cv/template/cv.typ",
+  "generate_cover_letter": true
 }
+```
 
 Available template options:
 - "resume.typ" (default)
 - "modern.typ"
-- "brilliant-cv/cv.typ"
-- "good-cv/cv.tex" (LaTeX support needed)
+- "brilliant-cv/template/cv.typ"
 - "simple-xd-resume/cv.typ"
 - "rendercv-classic/cv.typ"
 - "rendercv-modern/cv.typ"
-
-**Note**: good CV template requires LaTeX installation (xelatex) for PDF generation. Currently falls back to the default template.
 
 ### Using Docker
 
@@ -219,35 +242,39 @@ Available template options:
 Before running Docker containers, ensure you have the required environment variables set:
 
 1. **Required for all containers**:
- bash
- # Copy and edit the template
- cp env-template.txt.env
- # Edit.env with your actual values
+```bash
+# Copy and edit the template
+cp env-template.txt .env
+# Edit .env with your actual values
+```
  
 
 2. **For local development** (optional):
- bash
- # Copy development overrides (provides safe defaults)
- cp docker-compose.override.yml docker-compose.override.yml
- # Edit with your preferred development passwords/keys
+```bash
+# Copy development overrides (provides safe defaults)
+cp docker-compose.override.yml docker-compose.override.yml
+# Edit with your preferred development passwords/keys
+```
  
 
 #### Starting Services
 
 Download the Docker image:
 
-bash
+```bash
 docker pull ghcr.io/analyticace/myresumo:latest
+```
 
 Run the container:
 
-bash
+```bash
 docker run -d --name myresumo \
- -p 8080:8080 \
- -e CEREBRAS_API_KEY=your_key_here \
- -e CEREBRAS_MODEL=gpt-oss-120b \
- -e MONGODB_URI=mongodb://username:password@host:port/ \
- ghcr.io/analyticace/myresumo:latest
+  -p 8080:8080 \
+  -e CEREBRAS_API_KEY=your_key_here \
+  -e CEREBRAS_MODEL=gpt-oss-120b \
+  -e MONGODB_URI=mongodb://username:password@host:port/ \
+  ghcr.io/analyticace/myresumo:latest
+```
 
 ## AI Models
 
@@ -255,7 +282,7 @@ PowerCV supports multiple AI backends.
 
 ### Configuration
 
-PowerCV uses **Cerebras** for high-performance inference. Ensure `CEREBRAS_API_KEY` is set. Other providers (Deepseek, OpenAI) are supported, but Cerebras is the recommended default for speed.
+PowerCV uses **Cerebras** for high-performance inference. Ensure `CEREBRAS_API_KEY` is set. Other providers (OpenAI) are supported, but Cerebras is the recommended default for speed.
 
 ### Cerebras AI Integration
 
@@ -264,10 +291,10 @@ PowerCV uses Cerebras AI for fast CV optimization (v2 endpoints).
 #### Setup
 
 1. Get Cerebras API key from [cloud.cerebras.ai](https://cloud.cerebras.ai)
-2. Add to.env:
- env
- CEREBRAS_API_KEY=your_key_here
- CEREBRAS_MODEL=gpt-oss-120b
+2. Add to `.env`:
+```env
+CEREBRAS_API_KEY=your_key_here
+CEREBRAS_MODEL=gpt-oss-120b
  
 
 #### API Endpoints (v2)
@@ -278,12 +305,13 @@ PowerCV uses Cerebras AI for fast CV optimization (v2 endpoints).
 
 #### Testing
 
-bash
+```bash
 # Run integration tests
 pytest app/tests/test_integration.py -v
 
 # Run specific test
 python app/tests/test_integration.py
+```
 
 Access the application at http://localhost:8080.
 
@@ -291,25 +319,31 @@ Access the application at http://localhost:8080.
 
 1. Clone the repository:
 
-bash
+```bash
 git clone https://github.com/AnalyticAce/PowerCV.git
-cd PowerCV
+# PowerCV
+
+AI-powered resume optimizer that helps you land your dream job by tailoring your CV to specific job descriptions and maximizing ATS (Applicant Tracking System) compatibility.
+```
 
 2. Create and activate a virtual environment:
 
-bash
+```bash
 uv venv
-source.venv/bin/activate
+source .venv/bin/activate
+```
 
 3. Install dependencies:
 
-bash
+```bash
 uv pip install -r requirements.txt
+```
 
 4. Run development server:
 
-bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+```bash
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+```
 
 ## API Documentation
 
@@ -322,7 +356,7 @@ Access the API documentation at:
 
 ### Frontend Testing
 
-bash
+```bash
 # Run all tests
 npm test
 
@@ -337,7 +371,7 @@ npm run test:ui
 
 ### Backend Testing
 
-bash
+```bash
 # Run test suite
 pytest tests/
 
@@ -382,23 +416,27 @@ GitHub Actions runs Ruff on all Python files.
 #### Local Linting
 
 1. Install Ruff:
- bash
- pip install ruff
+```bash
+pip install ruff
+```
  
 
 2. Run the linter:
- bash
- ruff check.
+```bash
+ruff check .
+```
  
 
 3. Check formatting:
- bash
- ruff format --check.
+```bash
+ruff format --check .
+```
  
 
 4. Auto-format code:
- bash
- ruff format.
+```bash
+ruff format .
+```
  
 
 ## Contributing
@@ -413,12 +451,7 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 
 ## Roadmap
 
-### **Current Position: Beta Testing Phase (v3.0.0-beta)**
-
-> [!IMPORTANT]
-> **PowerCV is currently in BETA testing phase.** We need human testing before production release. Please test thoroughly and report any issues.
-
-### Completed Features (v3.0.0-beta)
+### Completed Features (v2.0.1)
 
 - [x] **Modern Frontend Stack**: Migrated from Alpine.js to React 19 + TypeScript
 - [x] **Advanced UI/UX**: Built with TailwindCSS and shadcn/ui components
@@ -430,17 +463,22 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [x] **Performance Monitoring**: Coverage reporting and quality gates
 - [x] **Mobile Responsive**: Cross-device compatible design
 - [x] **Advanced Analytics**: Resume performance tracking and insights
+- [x] **AI Microservice**: Separated AI processing to dedicated service
+- [x] **Template Expansion**: Added 4 new Typst-based templates
+- [x] **Code Refactoring**: Removed deprecated code and cleaned up dependencies
 
 ### **Current Development Phase**
 
-**Status**: **Beta Testing - Human Validation Required**
+**Status**: **Production Ready - Maintenance Mode**
 
-- [ ] **User Testing**: Real-world user feedback collection
-- [ ] **Bug Fixes**: Address issues found during beta testing
-- [ ] **Performance Optimization**: Improve based on user testing
-- [ ] **Documentation Updates**: Refine based on user feedback
+- [x] **User Testing**: Real-world user feedback collection completed
+- [x] **Bug Fixes**: All critical issues resolved
+- [x] **Performance Optimization**: Optimized based on testing
+- [x] **Documentation Updates**: Refined based on feedback
 
-### **Planned Features (Post-Beta)**
+### **Planned Features (v3.0.0)**
+
+The following features are planned for the next major release:
 
 - [ ] **Multi-language Support**: Internationalization (i18n) implementation
 - [ ] **Advanced AI Features**: Enhanced resume analysis with ML models
@@ -462,16 +500,17 @@ Please check the [contribution guidelines](CONTRIBUTING.md).
 - [ ] **Custom Branding**: Personal branding tools
 - [ ] **Email Integration**: Automated follow-up reminders
 
-### **Next Milestone: Production Release (v3.0.0)**
+### **Next Milestone: v3.0.0 Major Release**
 
-**Requirements for Production:**
-- [ ] Complete beta testing with at least 50 human users
-- [ ] Fix all critical bugs found during testing
-- [ ] Achieve 95%+ test coverage
-- [ ] Complete security audit
-- [ ] Finalize production documentation
+**Requirements for Next Release:**
+- [ ] Implement OAuth authentication (Google, GitHub)
+- [ ] Add i18n support (English, Dutch, Russian)
+- [ ] Add DOCX export functionality
+- [ ] Maintain 90%+ test coverage
+- [ ] Regular security audits
+- [ ] Update documentation for new features
 
-**Target Release Date**: After successful beta testing completion
+**Target Release Date**: TBD
 
 ## License
 

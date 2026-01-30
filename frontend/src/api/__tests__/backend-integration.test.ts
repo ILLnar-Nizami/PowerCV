@@ -1,140 +1,143 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { apiClient } from '../client'
-import { resumesAPI } from '../resumes'
-import { DashboardFilters } from '@/types/resume'
+import type { DashboardFilters } from "@/types/resume";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { apiClient } from "../client";
+import { resumesAPI } from "../resumes";
 
 // Mock the API client
-vi.mock('../client', () => ({
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-  },
-}))
+vi.mock("../client", () => ({
+	apiClient: {
+		get: vi.fn(),
+		post: vi.fn(),
+		put: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
+}));
 
-describe('Backend Integration Tests', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+describe("Backend Integration Tests", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
 
-  describe('Resumes API', () => {
-    it('should get resumes with correct endpoint', async () => {
-      const mockData = { data: [], total: 0, page: 1, pageSize: 20 }
-      const mockFilters: DashboardFilters = {
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-        search: '',
-        status: undefined
-      }
-      vi.mocked(apiClient.get).mockResolvedValue({ data: mockData })
+	describe("Resumes API", () => {
+		it("should get resumes with correct endpoint", async () => {
+			const mockData = { data: [], total: 0, page: 1, pageSize: 20 };
+			const mockFilters: DashboardFilters = {
+				sortBy: "createdAt",
+				sortOrder: "desc",
+				search: "",
+				status: undefined,
+			};
+			vi.mocked(apiClient.get).mockResolvedValue({ data: mockData });
 
-      const result = await resumesAPI.getResumes(mockFilters, 1, 20)
+			const result = await resumesAPI.getResumes(mockFilters, 1, 20);
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/user/demo-user', {
-        params: { page: 1, pageSize: 20 },
-      })
-      expect(result).toEqual(mockData)
-    })
+			expect(apiClient.get).toHaveBeenCalledWith(
+				"/v1/resumes/user/local-user",
+				{
+					params: { page: 1, pageSize: 20 },
+				},
+			);
+			expect(result).toEqual(mockData);
+		});
 
-    it('should get resume by ID with correct endpoint', async () => {
-      const mockResume = { id: '123', title: 'Test Resume' }
-      vi.mocked(apiClient.get).mockResolvedValue({ data: mockResume })
+		it("should get resume by ID with correct endpoint", async () => {
+			const mockResume = { id: "123", title: "Test Resume" };
+			vi.mocked(apiClient.get).mockResolvedValue({ data: mockResume });
 
-      const result = await resumesAPI.getResume('123')
+			const result = await resumesAPI.getResume("123");
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/123')
-      expect(result).toEqual(mockResume)
-    })
+			expect(apiClient.get).toHaveBeenCalledWith("/v1/resumes/123");
+			expect(result).toEqual(mockResume);
+		});
 
-    it('should update resume status with correct endpoint', async () => {
-      const mockResponse = { success: true }
-      vi.mocked(apiClient.put).mockResolvedValue({ data: mockResponse })
+		it("should update resume status with correct endpoint", async () => {
+			const mockResponse = { success: true };
+			vi.mocked(apiClient.patch).mockResolvedValue({ data: mockResponse });
 
-      const result = await resumesAPI.updateStatus('123', 'applied')
+			const result = await resumesAPI.updateStatus("123", "applied");
 
-      expect(apiClient.put).toHaveBeenCalledWith('/resume/123/status/applied')
-      expect(result).toEqual(mockResponse)
-    })
+			expect(apiClient.patch).toHaveBeenCalledWith("/v1/resumes/123/status", {
+				application_status: "applied",
+			});
+			expect(result).toEqual(mockResponse);
+		});
 
-    it('should delete resume with correct endpoint', async () => {
-      vi.mocked(apiClient.delete).mockResolvedValue({})
+		it("should delete resume with correct endpoint", async () => {
+			vi.mocked(apiClient.delete).mockResolvedValue({});
 
-      await resumesAPI.deleteResume('123')
+			await resumesAPI.deleteResume("123");
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/resume/123')
-    })
+			expect(apiClient.delete).toHaveBeenCalledWith("/v1/resumes/123");
+		});
 
-    it('should download resume with correct endpoint', async () => {
-      const mockBlob = new Blob()
-      vi.mocked(apiClient.get).mockResolvedValue({ data: mockBlob })
+		it("should download resume with correct endpoint", async () => {
+			const mockBlob = new Blob();
+			vi.mocked(apiClient.get).mockResolvedValue({ data: mockBlob });
 
-      const result = await resumesAPI.downloadResume('123')
+			const result = await resumesAPI.downloadResume("123");
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/123/download', {
-        responseType: 'blob',
-      })
-      expect(result).toEqual(mockBlob)
-    })
+			expect(apiClient.get).toHaveBeenCalledWith("/v1/resumes/123/download", {
+				params: { template: undefined },
+				responseType: "blob",
+			});
+			expect(result).toEqual({ data: mockBlob });
+		});
 
-    it('should create resume with correct endpoint', async () => {
-      const mockResponse = { id: '123', message: 'Resume created' }
-      const formData = new FormData()
-      vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse })
+		it("should create resume with correct endpoint", async () => {
+			const mockResponse = { id: "123", message: "Resume created" };
+			const formData = new FormData();
+			vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse });
 
-      const result = await resumesAPI.createResume(formData)
+			const result = await resumesAPI.createResume(formData);
 
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/resume',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
-      expect(result).toEqual(mockResponse)
-    })
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/resumes", formData, {
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
+			expect(result).toEqual(mockResponse);
+		});
 
-    it('should optimize resume with correct endpoint', async () => {
-      const mockResponse = { optimized_resume: '...', score: 85 }
-      vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse })
+		it("should optimize resume with correct endpoint", async () => {
+			const mockResponse = { optimized_resume: "...", score: 85 };
+			vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse });
 
-      const result = await resumesAPI.optimizeResume(
-        '123',
-        'Job description',
-        'Company',
-        'Role'
-      )
+			const result = await resumesAPI.optimizeResume(
+				"123",
+				"Job description",
+				"Company",
+				"Role",
+			);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/resume/123/optimize', {
-        job_description: 'Job description',
-        target_company: 'Company',
-        target_role: 'Role',
-      })
-      expect(result).toEqual(mockResponse)
-    })
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/resumes/123/optimize", {
+				job_description: "Job description",
+				target_company: "Company",
+				target_role: "Role",
+			});
+			expect(result).toEqual(mockResponse);
+		});
 
-    it('should score resume with correct endpoint', async () => {
-      const mockResponse = { score: 85, analysis: '...' }
-      vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse })
+		it("should score resume with correct endpoint", async () => {
+			const mockResponse = { score: 85, analysis: "..." };
+			vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse });
 
-      const result = await resumesAPI.scoreResume('123', 'Job description')
+			const result = await resumesAPI.scoreResume("123", "Job description");
 
-      expect(apiClient.post).toHaveBeenCalledWith('/resume/123/score', {
-        job_description: 'Job description',
-      })
-      expect(result).toEqual(mockResponse)
-    })
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/resumes/123/score", {
+				job_description: "Job description",
+			});
+			expect(result).toEqual(mockResponse);
+		});
 
-    it('should get templates with correct endpoint', async () => {
-      const mockTemplates = [{ name: 'Modern', file: 'modern.typ' }]
-      vi.mocked(apiClient.get).mockResolvedValue({ data: mockTemplates })
+		it("should get templates with correct endpoint", async () => {
+			const mockTemplates = [{ name: "Modern", file: "modern.typ" }];
+			vi.mocked(apiClient.get).mockResolvedValue({ data: mockTemplates });
 
-      const result = await resumesAPI.getTemplates()
+			const result = await resumesAPI.getTemplates();
 
-      expect(apiClient.get).toHaveBeenCalledWith('/resume/templates')
-      expect(result).toEqual(mockTemplates)
-    })
-  })
-})
+			expect(apiClient.get).toHaveBeenCalledWith("/v1/resumes/templates");
+			expect(result).toEqual(mockTemplates);
+		});
+	});
+});

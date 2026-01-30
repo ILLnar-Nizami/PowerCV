@@ -1,4 +1,5 @@
 """Secure file upload validation for PowerCV."""
+
 import hashlib
 import logging
 import os
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 # Lazy import for magic to provide better error messages
 try:
     import magic
+
     MAGIC_AVAILABLE = True
 except ImportError:
     magic = None
@@ -25,17 +27,17 @@ class SecureFileValidator:
     # Allowed file types and their MIME types
     ALLOWED_TYPES = {
         # Document formats
-        'application/pdf': ['.pdf'],
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-        'application/msword': ['.doc'],
-
+        "application/pdf": [".pdf"],
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+            ".docx"
+        ],
+        "application/msword": [".doc"],
         # Text formats - Note: Magic library often detects markdown as text/plain
         # so we allow .md/.markdown under both text/plain and text/markdown for robustness
-        'text/plain': ['.txt', '.md', '.markdown'],
-        'text/markdown': ['.md', '.markdown'],
-
+        "text/plain": [".txt", ".md", ".markdown"],
+        "text/markdown": [".md", ".markdown"],
         # Additional text MIME types that might be encountered
-        'text/x-markdown': ['.md', '.markdown'],
+        "text/x-markdown": [".md", ".markdown"],
     }
 
     # Maximum file size (10MB)
@@ -43,12 +45,12 @@ class SecureFileValidator:
 
     # Dangerous file signatures (magic bytes)
     DANGEROUS_SIGNATURES = [
-        b'MZ',      # Windows executable
-        b'\x7fELF',  # Linux executable
-        b'#!/',     # Script files
-        b'<?php',   # PHP files
-        b'<%',      # ASP/JSP files
-        b'<script',  # HTML with scripts
+        b"MZ",  # Windows executable
+        b"\x7fELF",  # Linux executable
+        b"#!/",  # Script files
+        b"<?php",  # PHP files
+        b"<%",  # ASP/JSP files
+        b"<script",  # HTML with scripts
     ]
 
     @classmethod
@@ -90,38 +92,35 @@ class SecureFileValidator:
         """Validate filename for security issues."""
         if not filename:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Filename is required"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is required"
             )
 
         # Check for path traversal attempts
-        if '..' in filename or '/' in filename or '\\' in filename:
+        if ".." in filename or "/" in filename or "\\" in filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid filename: path traversal not allowed"
+                detail="Invalid filename: path traversal not allowed",
             )
 
         # Check for hidden files
-        if filename.startswith('.'):
+        if filename.startswith("."):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Hidden files are not allowed"
+                detail="Hidden files are not allowed",
             )
 
         # Check filename length
         if len(filename) > 255:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Filename too long"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Filename too long"
             )
 
         # Check for suspicious extensions
-        suspicious_extensions = ['.exe', '.bat', '.cmd', '.scr', '.pif', '.com', '.jar']
+        suspicious_extensions = [".exe", ".bat", ".cmd", ".scr", ".pif", ".com", ".jar"]
         file_path = Path(filename)
         if file_path.suffix.lower() in suspicious_extensions:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File type not allowed"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="File type not allowed"
             )
 
     @classmethod
@@ -130,13 +129,12 @@ class SecureFileValidator:
         if len(content) > cls.MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Maximum size: {cls.MAX_FILE_SIZE // (1024 * 1024)}MB"
+                detail=f"File too large. Maximum size: {cls.MAX_FILE_SIZE // (1024 * 1024)}MB",
             )
 
         if len(content) == 0:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Empty file not allowed"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Empty file not allowed"
             )
 
     @classmethod
@@ -146,7 +144,7 @@ class SecureFileValidator:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="File validation unavailable: python-magic library not installed. "
-                       "Please install with: pip install file-magic"
+                "Please install with: pip install file-magic",
             )
 
         try:
@@ -155,7 +153,7 @@ class SecureFileValidator:
             if magic_result is None or magic_result.mime_type is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Unable to determine file type from content"
+                    detail="Unable to determine file type from content",
                 )
 
             detected_mime = magic_result.mime_type
@@ -166,7 +164,7 @@ class SecureFileValidator:
             if not expected_extensions:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"File type not allowed: {detected_mime}"
+                    detail=f"File type not allowed: {detected_mime}",
                 )
 
             # Check if file extension matches detected type
@@ -174,7 +172,7 @@ class SecureFileValidator:
             if file_path.suffix.lower() not in expected_extensions:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"File extension {file_path.suffix} doesn't match content type {detected_mime}"
+                    detail=f"File extension {file_path.suffix} doesn't match content type {detected_mime}",
                 )
 
         except ImportError:
@@ -189,11 +187,13 @@ class SecureFileValidator:
         extension = file_path.suffix.lower()
 
         # Check if extension is allowed
-        allowed_extensions = [ext for exts in cls.ALLOWED_TYPES.values() for ext in exts]
+        allowed_extensions = [
+            ext for exts in cls.ALLOWED_TYPES.values() for ext in exts
+        ]
         if extension not in allowed_extensions:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type not allowed: {extension}"
+                detail=f"File type not allowed: {extension}",
             )
 
     @classmethod
@@ -204,38 +204,40 @@ class SecureFileValidator:
             if content.startswith(signature):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="File content not allowed"
+                    detail="File content not allowed",
                 )
 
         # Check for script injection patterns
-        text_content = content.decode('utf-8', errors='ignore').lower()
+        text_content = content.decode("utf-8", errors="ignore").lower()
 
         dangerous_patterns = [
-            r'<script[^>]*>.*?</script>',
-            r'javascript:',
-            r'on\w+\s*=',
-            r'vbscript:',
-            r'data:text/html',
-            r'<?php',
-            r'<%.*%>',
+            r"<script[^>]*>.*?</script>",
+            r"javascript:",
+            r"on\w+\s*=",
+            r"vbscript:",
+            r"data:text/html",
+            r"<?php",
+            r"<%.*%>",
         ]
 
         for pattern in dangerous_patterns:
             if re.search(pattern, text_content, re.IGNORECASE | re.DOTALL):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="File contains potentially dangerous content"
+                    detail="File contains potentially dangerous content",
                 )
 
     @classmethod
-    def _generate_safe_filename(cls, original_filename: str, content: bytes) -> Tuple[str, str]:
+    def _generate_safe_filename(
+        cls, original_filename: str, content: bytes
+    ) -> Tuple[str, str]:
         """Generate a safe filename and calculate hash."""
         # Calculate file hash for deduplication
         file_hash = hashlib.sha256(content).hexdigest()
 
         # Sanitize original filename
-        safe_name = re.sub(r'[^\w\s\-_.]', '', original_filename)
-        safe_name = re.sub(r'[-\s]+', '_', safe_name)
+        safe_name = re.sub(r"[^\w\s\-_.]", "", original_filename)
+        safe_name = re.sub(r"[-\s]+", "_", safe_name)
 
         # Create new filename with hash prefix
         file_path = Path(original_filename)
@@ -269,7 +271,7 @@ def store_file_securely(content: bytes, filename: str, user_id: str) -> str:
     file_path = user_dir / filename
 
     # Atomic write
-    temp_path = file_path.with_suffix('.tmp')
+    temp_path = file_path.with_suffix(".tmp")
     temp_path.write_bytes(content)
     temp_path.rename(file_path)
 

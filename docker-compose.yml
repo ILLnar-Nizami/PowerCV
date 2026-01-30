@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PowerCV API Service
   powercv:
@@ -9,35 +7,32 @@ services:
     container_name: powercv-api
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
-      # API Configuration
-      - API_KEY=${API_KEY}
-      - API_BASE=${API_BASE:-https://api.deepseek.com/v1}
-      - MODEL_NAME=${MODEL_NAME:-deepseek-chat}
-      
-      # Cerebras (alternative)
-      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
-      - CEREBRAS_API_BASE=${CEREBRAS_API_BASE:-https://api.cerebras.ai/v1}
-      - CEREBRAS_MODEL=${CEREBRAS_MODEL:-gpt-oss-120b}
-      
-      # OpenAI (alternative)
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
-      
+      # AI Service URL
+      - AI_SERVICE_URL=http://ai-service:8080
+
       # Database
       - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/powercv}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      
+
+      # PostgreSQL
+      - POSTGRES_USER=${POSTGRES_USER:-powercv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_DB=${POSTGRES_DB:-powercv}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+
       # Application Settings
       - APP_HOST=0.0.0.0
       - APP_PORT=8080
       - DEBUG=${DEBUG:-false}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      
+
       # n8n integration
       - N8N_API_KEY=${N8N_API_KEY}
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678}
+      - TIMEOUT=${REQUEST_TIMEOUT:-30}
     volumes:
       # Mount data directories for persistence
       - ./data:/app/data
@@ -52,14 +47,55 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ai-service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 15s
+      # Note: Healthcheck uses localhost:8080 (container port) which is correct
+      # The service is exposed on host port 8081, but inside container it listens on 8080
+
+  # AI Service (for CV analysis, optimization, and cover letter generation)
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    container_name: powercv-ai
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
     environment:
-      - TIMEOUT=${REQUEST_TIMEOUT:-30}
+      # Cerebras
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - CEREBRAS_API_BASE=${CEREBRAS_API_BASE:-https://api.cerebras.ai/v1}
+      - CEREBRAS_MODEL=${CEREBRAS_MODEL:-gpt-oss-120b}
+
+      # OpenAI (alternative)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+    networks:
+      - powercv-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   # n8n Workflow Automation
   n8n:
@@ -73,23 +109,23 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:?N8N_PASSWORD must be set}
-      
+
       # Network Configuration
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
-      
+
       # Security
       # N8N_ENCRYPTION_KEY is required and must be a strong, random value.
       # Example: use at least 32+ characters of high-entropy random data.
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY must be set to a strong, non-empty value}
-      
+
       # Paths
       - N8N_USER_FOLDER=/home/node/.n8n
       - GENERIC_TIMEZONE=${TIMEZONE:-Europe/Amsterdam}
       - N8N_LOG_LEVEL=${LOG_LEVEL:-info}
-      
+
       # External Storage (optional)
       - EXECUTIONS_DATA_SAVE_ON_ERROR=all
       - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
@@ -118,7 +154,7 @@ services:
     container_name: powercv-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       - MONGO_INITDB_DATABASE=powercv
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USER:-admin}
@@ -154,6 +190,32 @@ services:
       timeout: 5s
       retries: 3
 
+  # PostgreSQL Database (for structured data and analytics)
+  postgres:
+    image: postgres:15
+    container_name: powercv-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-powercv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_DB=${POSTGRES_DB:-powercv}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - powercv-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-powercv} -d ${POSTGRES_DB:-powercv}",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   # Optional: Traefik for reverse proxy (uncomment to enable)
   # traefik:
   #   image: traefik:v3.0
@@ -184,6 +246,7 @@ volumes:
   mongodb_data:
   n8n_data:
   redis_data:
+  postgres_data:
 
 # Utility commands
 # docker-compose up -d

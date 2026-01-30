@@ -1,0 +1,61 @@
+/home/illnar/.local/lib/python3.14/site-packages/langsmith/schemas.py:23: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1 import (
+/home/illnar/.local/lib/python3.14/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-8.3.5, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/illnar/Projects/PowerCV
+configfile: pytest.ini
+plugins: anyio-4.12.0, langsmith-0.4.59, asyncio-1.3.0, cov-7.0.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 2 items
+
+app/tests/test_routers.py::test_comp_opt FAILED                          [ 50%]
+app/tests/test_routers.py::test_create_cl FAILED                         [100%]
+
+=================================== FAILURES ===================================
+________________________________ test_comp_opt _________________________________
+app/tests/test_routers.py:313: in test_comp_opt
+    assert (
+E   AssertionError: assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+E    +    where <Response [500 Internal Server Error]> = post('/api/comprehensive/optimize/master', json={'target_role': 'R', 'job_description': 'J', 'resume_text': 'R'})
+E    +      where post = <starlette.testclient.TestClient object at 0x7fa8e0786e40>.post
+----------------------------- Captured stderr call -----------------------------
+2026-01-29 09:43:56,525 - app.middleware.debugging - INFO - Request started: POST /api/comprehensive/optimize/master
+2026-01-29 09:43:56,527 - app.middleware.debugging - INFO - Incoming request: POST /api/comprehensive/optimize/master
+2026-01-29 09:43:56,530 - app.api.routers.comprehensive_optimizer - INFO - Starting master optimization workflow
+2026-01-29 09:43:56,531 - app.middleware.debugging - INFO - Response: POST /api/comprehensive/optimize/master - 500
+2026-01-29 09:43:56,531 - app.middleware.debugging - INFO - Request completed: POST /api/comprehensive/optimize/master - 500
+------------------------------ Captured log call -------------------------------
+INFO     app.middleware.debugging:debugging.py:41 Request started: POST /api/comprehensive/optimize/master
+INFO     app.middleware.debugging:debugging.py:195 Incoming request: POST /api/comprehensive/optimize/master
+INFO     app.api.routers.comprehensive_optimizer:comprehensive_optimizer.py:87 Starting master optimization workflow
+INFO     app.middleware.debugging:debugging.py:208 Response: POST /api/comprehensive/optimize/master - 500
+INFO     app.middleware.debugging:debugging.py:66 Request completed: POST /api/comprehensive/optimize/master - 500
+________________________________ test_create_cl ________________________________
+app/tests/test_routers.py:210: in test_create_cl
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+----------------------------- Captured stderr call -----------------------------
+2026-01-29 09:43:56,558 - app.middleware.debugging - INFO - Request started: POST /api/cover-letter/
+2026-01-29 09:43:56,559 - app.middleware.debugging - INFO - Incoming request: POST /api/cover-letter/
+2026-01-29 09:43:56,579 - app.middleware.debugging - INFO - Response: POST /api/cover-letter/ - 500
+2026-01-29 09:43:56,579 - app.middleware.debugging - INFO - Request completed: POST /api/cover-letter/ - 500
+------------------------------ Captured log call -------------------------------
+INFO     app.middleware.debugging:debugging.py:41 Request started: POST /api/cover-letter/
+INFO     app.middleware.debugging:debugging.py:195 Incoming request: POST /api/cover-letter/
+INFO     app.middleware.debugging:debugging.py:208 Response: POST /api/cover-letter/ - 500
+INFO     app.middleware.debugging:debugging.py:66 Request completed: POST /api/cover-letter/ - 500
+=========================== short test summary info ============================
+FAILED app/tests/test_routers.py::test_comp_opt - AssertionError: assert 500 == 200
+ +  where 500 = <Response [500 Internal Server Error]>.status_code
+ +    where <Response [500 Internal Server Error]> = post('/api/comprehensive/optimize/master', json={'target_role': 'R', 'job_description': 'J', 'resume_text': 'R'})
+ +      where post = <starlette.testclient.TestClient object at 0x7fa8e0786e40>.post
+FAILED app/tests/test_routers.py::test_create_cl - assert 500 == 200
+ +  where 500 = <Response [500 Internal Server Error]>.status_code
+============================== 2 failed in 10.60s ==============================

@@ -1,9 +1,9 @@
+import asyncio
+import os
+import sys
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.database.repositories.base_repo import BaseRepository
-import asyncio
-import sys
-import os
-from unittest.mock import MagicMock, AsyncMock, patch
 
 # Ensure we import from the local PowerCV
 sys.path.insert(0, os.getcwd())
@@ -18,7 +18,9 @@ async def debug_find():
     # Try with exception
     mock_collection.find.side_effect = Exception("TEST_EXCEPTION")
 
-    with patch("app.database.connector.MongoConnectionManager.get_instance") as mock_get_instance:
+    with patch(
+        "app.database.connector.MongoConnectionManager.get_instance"
+    ) as mock_get_instance:
         instance = MagicMock()
         mock_get_instance.return_value = instance
 

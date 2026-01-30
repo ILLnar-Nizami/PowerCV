@@ -1,8 +1,8 @@
 """Prompts for AI-generated cover letters."""
 
-COVER_LETTER_SYSTEM_PROMPT = """You are an expert career advisor and professional resume writer. 
-Your task is to create a highly tailored cover letter that highlights the candidate's qualifications 
-and aligns them with the job requirements. The cover letter should be professional, compelling, 
+COVER_LETTER_SYSTEM_PROMPT = """You are an expert career advisor and professional resume writer.
+Your task is to create a highly tailored cover letter that highlights the candidate's qualifications
+and aligns them with the job requirements. The cover letter should be professional, compelling,
 and demonstrate why the candidate is the perfect fit for the position."""
 
 COVER_LETTER_PROMPT = """Please write a {tone} cover letter for the position of {job_title} at {company_name}.
@@ -16,7 +16,7 @@ Candidate's Resume:
 Additional Instructions:
 - Length: {length}
 - Tone: {tone}
-- Additional instructions: {additional_instructions or 'None provided'}
+- Additional instructions: {additional_instructions}
 
 Structure the cover letter with the following sections:
 1. Professional header with contact information
