@@ -342,6 +342,27 @@ class RetryContext:
         self.config = config
         self.attempt = 0
 
+    def _calculate_delay(self, attempt: int) -> float:
+        """Calculate delay for next retry attempt."""
+        if self.config.strategy == RetryStrategy.EXPONENTIAL_BACKOFF:
+            delay = self.config.base_delay * (self.config.backoff_multiplier ** attempt)
+        elif self.config.strategy == RetryStrategy.LINEAR_BACKOFF:
+            delay = self.config.base_delay * (attempt + 1)
+        elif self.config.strategy == RetryStrategy.FIXED_DELAY:
+            delay = self.config.base_delay
+        else:  # IMMEDIATE
+            delay = 0
+        
+        # Apply maximum delay limit
+        delay = min(delay, self.config.max_delay)
+        
+        # Add jitter to prevent thundering herd
+        if self.config.jitter and delay > 0:
+            jitter_amount = delay * 0.1  # 10% jitter
+            delay += random.uniform(-jitter_amount, jitter_amount)
+        
+        return max(0, delay)
+
     async def __aenter__(self):
         """Enter context."""
         return self
@@ -371,7 +392,7 @@ class RetryContext:
             return False  # Don't retry, not in retryable list
 
         # Calculate delay and wait
-        delay = RetryManager._calculate_delay(None, self.config, self.attempt - 1)
+        delay = self._calculate_delay(self.attempt - 1)
         logger.warning(f"Retrying after {delay:.2f}s (attempt {self.attempt + 1})")
         await asyncio.sleep(delay)
 
