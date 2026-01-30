@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import requests
 
-from app.services.ai_client import AIProviderClients
+from app.services.ai_providers import AIProviderClient
 from app.services.cover_letter_gen import CoverLetterGenerator
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 
@@ -27,7 +27,7 @@ async def test_ai_client_rate_limit(mock_completion, mock_get_settings):
         mock_get_redis.return_value = mock_redis
 
         # Create AI client
-        client = AIProviderClients("cerebras")
+        client = AIProviderClient("cerebras")
 
         # Mock completion to raise RateLimitError
         from litellm import exceptions
