@@ -102,7 +102,7 @@ async def test_chat_completion_all_fail(mock_get_redis, mock_get_settings):
     mock_redis.get = AsyncMock(return_value=None)
     mock_redis.setex = AsyncMock()
     mock_get_redis.return_value = mock_redis
-    
+
     # Mock settings with API keys
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"

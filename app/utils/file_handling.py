@@ -102,10 +102,11 @@ def extract_text_from_file(file_path: str, file_extension: str) -> str:
         str: Extracted text content
     """
     file_extension = file_extension.lower()
-    
+
     # Try MarkItDown first for modern parsing (PDF, DOCX, PPTX, etc.)
     try:
         from markitdown import MarkItDown
+
         md = MarkItDown()
         result = md.convert(file_path)
         if result and result.text:
@@ -114,7 +115,7 @@ def extract_text_from_file(file_path: str, file_extension: str) -> str:
         pass  # MarkItDown not installed, fall back to traditional methods
     except Exception as e:
         print(f"MarkItDown extraction failed: {e}, trying fallback...")
-    
+
     # Fall back to traditional extraction methods
     if file_extension == ".pdf":
         return extract_text_from_pdf(file_path)

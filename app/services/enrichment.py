@@ -7,8 +7,8 @@ Based on Resume Matcher pattern: apps/backend/app/services/improver.py
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WeakPoint:
     """Represents a weak resume bullet point."""
+
     original_text: str
     issue: str
     question: str
@@ -25,15 +26,15 @@ class WeakPoint:
 
 class EnrichmentInterrogator:
     """AI-powered resume enrichment through guided questioning.
-    
+
     Instead of silently rewriting, this interrogator:
     1. Scans for weak/vague bullet points
     2. Generates specific questions to gather metrics
     3. Takes user answers and enhances bullets with real data
-    
+
     This prevents hallucination by gathering facts from the user.
     """
-    
+
     # Patterns that indicate weak/vague content
     WEAK_PATTERNS = [
         (r"\bresponsible for\b", "Passive language - use action verbs"),
@@ -55,32 +56,32 @@ class EnrichmentInterrogator:
         (r"\bseveral\b", "Vague - give exact number"),
         (r"\bmany\b", "Vague - quantify"),
     ]
-    
+
     def __init__(self, llm_client=None):
         """Initialize the interrogator.
-        
+
         Args:
             llm_client: Optional LLM client for advanced analysis
         """
         self.llm = llm_client
-    
+
     def analyze_weak_points(self, resume_data: Dict) -> List[WeakPoint]:
         """Scan resume for weak/vague bullet points.
-        
+
         Args:
             resume_data: Structured resume data
-        
+
         Returns:
             List of identified weak points with questions
         """
         weak_points = []
-        
+
         # Check experience bullets
         if "experiences" in resume_data:
             for i, exp in enumerate(resume_data.get("experiences", [])):
                 if isinstance(exp, dict):
                     section = f"Experience: {exp.get('company', 'Unknown')} - {exp.get('role', '')}"
-                    
+
                     # Check description bullets
                     description = exp.get("description", "")
                     if description:
@@ -89,42 +90,48 @@ class EnrichmentInterrogator:
                             bullets = description.split("\n")
                         else:
                             bullets = [str(description)]
-                        
+
                         for j, bullet in enumerate(bullets):
                             for pattern, issue in self.WEAK_PATTERNS:
                                 if re.search(pattern, bullet, re.IGNORECASE):
                                     question = self._generate_question(bullet, issue)
-                                    weak_points.append(WeakPoint(
-                                        original_text=bullet.strip(),
-                                        issue=issue,
-                                        question=question,
-                                        section=section,
-                                        priority=self._assess_priority(bullet, issue),
-                                    ))
-        
+                                    weak_points.append(
+                                        WeakPoint(
+                                            original_text=bullet.strip(),
+                                            issue=issue,
+                                            question=question,
+                                            section=section,
+                                            priority=self._assess_priority(
+                                                bullet, issue
+                                            ),
+                                        )
+                                    )
+
         # Check skills section
         if "skills" in resume_data:
             skills_data = resume_data["skills"]
             if isinstance(skills_data, dict):
                 for category, skills in skills_data.items():
                     if isinstance(skills, list) and len(skills) > 10:
-                        weak_points.append(WeakPoint(
-                            original_text=f"Skills: {', '.join(skills[:5])}... ({len(skills)} total)",
-                            issue="Too many skills listed without context",
-                            question=f"For {category} skills, which 3-5 are you most proficient in for this role?",
-                            section="Skills Section",
-                            priority="low",
-                        ))
-        
+                        weak_points.append(
+                            WeakPoint(
+                                original_text=f"Skills: {', '.join(skills[:5])}... ({len(skills)} total)",
+                                issue="Too many skills listed without context",
+                                question=f"For {category} skills, which 3-5 are you most proficient in for this role?",
+                                section="Skills Section",
+                                priority="low",
+                            )
+                        )
+
         return weak_points
-    
+
     def _generate_question(self, text: str, issue: str) -> str:
         """Generate a specific question to gather missing information.
-        
+
         Args:
             text: The weak bullet point
             issue: Identified issue
-        
+
         Returns:
             Specific question to help improve the bullet
         """
@@ -136,19 +143,19 @@ class EnrichmentInterrogator:
                 return "By what percentage or amount did this reduction occur?"
             if "increased" in text.lower() or "grew" in text.lower():
                 return "By what percentage or amount did this increase occur?"
-        
+
         if "team" in issue.lower() or "managed" in text.lower():
             return "How big was the team? How many people did you manage or coordinate?"
-        
+
         if "scale" in text.lower() or "users" in text.lower():
             return "How many users/requests/transactions did this handle?"
-        
+
         if "time" in text.lower() or "faster" in text.lower():
             return "How much time was saved? What was the before/after?"
-        
+
         if "budget" in text.lower() or "cost" in text.lower():
             return "What was the budget size? How much did you save?"
-        
+
         # Generic questions based on issue
         generic_questions = {
             "Passive language": "What specific action did YOU take? Start with an action verb.",
@@ -157,30 +164,32 @@ class EnrichmentInterrogator:
             "Scope unclear": "What was the scope? Team size? Budget? Timeline?",
             "Generic": "Can you add a specific example or metric to make this concrete?",
         }
-        
+
         for pattern, q in generic_questions.items():
             if pattern.lower() in issue.lower():
                 return q
-        
-        return "Can you add more specific details, metrics, or examples to this statement?"
-    
+
+        return (
+            "Can you add more specific details, metrics, or examples to this statement?"
+        )
+
     def _assess_priority(self, text: str, issue: str) -> str:
         """Assess the priority of fixing a weak point."""
         # High priority patterns (most impactful for ATS and recruiters)
         high_priority = ["metrics", "improved", "enhanced", "increased", "reduced"]
-        
+
         # Check if issue mentions high priority items
         issue_lower = issue.lower()
         for pattern in high_priority:
             if pattern in issue_lower:
                 return "high"
-        
+
         # Check text for common achievements
         if re.search(r"\$[0-9]", text):
             return "medium"  # Already has some metrics
-        
+
         return "medium"
-    
+
     def enhance_bullet(
         self,
         original_bullet: str,
@@ -188,49 +197,49 @@ class EnrichmentInterrogator:
         context: Dict = None,
     ) -> str:
         """Enhance a bullet point using user's answer.
-        
+
         Args:
             original_bullet: Original weak bullet
             user_answer: User's answer to the interrogation question
             context: Additional context (role, company, etc.)
-        
+
         Returns:
             Enhanced bullet point with user's input incorporated
         """
         if not user_answer or not user_answer.strip():
             return original_bullet
-        
+
         # Simple enhancement by appending context if user provided it
         # In a full implementation, this would use the LLM
         enhanced = original_bullet.strip()
-        
+
         # Clean up the answer
         answer = user_answer.strip().rstrip(".")
-        
+
         # If bullet ends with verb, append the answer as completion
         if enhanced.endswith(("ed", "ing")):
             enhanced = f"{enhanced}, {answer}"
         else:
             # Try to find a natural integration point
             enhanced = f"{enhanced}: {answer}"
-        
+
         # Ensure proper ending
         if not enhanced.endswith("."):
             enhanced = enhanced.rstrip(",") + "."
-        
+
         return enhanced
-    
+
     async def interrogate_async(
         self,
         resume_data: Dict,
         target_role: str,
     ) -> Dict[str, Any]:
         """Async version of interrogation using LLM for advanced analysis.
-        
+
         Args:
             resume_data: Full resume data
             target_role: Target job role
-        
+
         Returns:
             Interrogation results with questions and enhancement suggestions
         """
@@ -250,61 +259,73 @@ class EnrichmentInterrogator:
                 "enhancement_suggestions": [],
                 "analysis_mode": "pattern-based",
             }
-        
+
         try:
             # Use LLM for deeper analysis
             prompt = self._get_interrogation_prompt(resume_data, target_role)
             result = await self.llm.agenerate([prompt])
-            
+
             return {
                 "questions": result.get("questions", []),
                 "enhancement_suggestions": result.get("suggestions", []),
                 "analysis_mode": "llm-based",
             }
-        
+
         except Exception as e:
             logger.error(f"LLM interrogation failed: {e}")
             # Fall back to pattern-based
             return self.interrogate(resume_data, target_role)
-    
+
     def interrogate(
         self,
         resume_data: Dict,
         target_role: str,
     ) -> Dict[str, Any]:
         """Synchronous interrogation using pattern matching.
-        
+
         Args:
             resume_data: Full resume data
             target_role: Target job role
-        
+
         Returns:
             Interrogation results with questions
         """
         weak_points = self.analyze_weak_points(resume_data)
-        
+
         # Group by priority
         high_priority = [wp for wp in weak_points if wp.priority == "high"]
         medium_priority = [wp for wp in weak_points if wp.priority == "medium"]
         low_priority = [wp for wp in weak_points if wp.priority == "low"]
-        
+
         return {
             "high_priority": [
-                {"original_text": wp.original_text, "question": wp.question, "section": wp.section}
+                {
+                    "original_text": wp.original_text,
+                    "question": wp.question,
+                    "section": wp.section,
+                }
                 for wp in high_priority
             ],
             "medium_priority": [
-                {"original_text": wp.original_text, "question": wp.question, "section": wp.section}
+                {
+                    "original_text": wp.original_text,
+                    "question": wp.question,
+                    "section": wp.section,
+                }
                 for wp in medium_priority
             ],
             "low_priority": [
-                {"original_text": wp.original_text, "question": wp.question, "section": wp.section}
+                {
+                    "original_text": wp.original_text,
+                    "question": wp.question,
+                    "section": wp.section,
+                }
                 for wp in low_priority
             ],
             "total_weak_points": len(weak_points),
             "target_role": target_role,
         }
-    
+
     def _get_interrogation_prompt(
         self,
         resume_data: Dict,
