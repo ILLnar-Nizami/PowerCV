@@ -62,3 +62,9 @@ asyncpg>=0.29.0
 # OCR and PDF processing (actively used)
 pytesseract
 pdf2image
+
+# New: MarkItDown for modern document parsing (from Resume Matcher)
+markitdown>=0.1.0
+
+# New: Playwright for WYSIWYG PDF generation
+playwright>=1.40.0
