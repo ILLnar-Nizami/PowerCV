@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Remove emojis from codebase files."""
+
 import re
 import sys
 from pathlib import Path

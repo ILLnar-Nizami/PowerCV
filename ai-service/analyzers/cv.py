@@ -146,13 +146,44 @@ Important:
         }
 
     def _extract_keywords(self, text: str) -> List[str]:
-        """Extract potential keywords from text."""
+        """Extract potential keywords from text with comprehensive categories."""
+        # Expanded patterns for diverse skill categories
         patterns = [
-            r"\b(python|java|javascript|typescript|rust|go|golang|c\+\+|c#)\b",
-            r"\b(docker|kubernetes|aws|gcp|azure)\b",
-            r"\b(fastapi|django|flask|react|vue|node\.js)\b",
-            r"\b(postgresql|mongodb|redis|elasticsearch)\b",
-            r"\b(ai|machine learning|ml|llm|nlp)\b",
+            # Programming Languages
+            r"\b(python|java|javascript|typescript|rust|go|golang|c\+\+|c#|php|ruby|swift|kotlin|scala|perl|bash|powershell)\b",
+            
+            # Cloud & DevOps
+            r"\b(aws|gcp|azure|docker|kubernetes|terraform|ansible|jenkins|gitlab|ci/cd|devops)\b",
+            
+            # Web Frameworks & Frontend
+            r"\b(fastapi|django|flask|react|vue|angular|node\.js|express|spring|laravel|rails|next\.js|nuxt\.js)\b",
+            
+            # Databases & Storage
+            r"\b(postgresql|mongodb|redis|elasticsearch|mysql|sqlite|cassandra|dynamodb|firebase|supabase)\b",
+            
+            # AI & Machine Learning
+            r"\b(ai|machine learning|ml|llm|nlp|deep learning|tensorflow|pytorch|keras|scikit-learn|huggingface|opencv)\b",
+            
+            # Data Science & Analytics
+            r"\b(pandas|numpy|matplotlib|seaborn|jupyter|tableau|power bi|excel|sql|data analysis|statistics)\b",
+            
+            # Testing & Quality
+            r"\b(jest|pytest|cypress|selenium|testing|unit test|integration test|e2e|tdd|bdd)\b",
+            
+            # Project Management & Methodologies
+            r"\b(agile|scrum|kanban|jira|confluence|slack|teams|project management|leadership)\b",
+            
+            # Security & Compliance
+            r"\b(security|authentication|authorization|oauth|jwt|ssl|tls|gdpr|hipaa|compliance)\b",
+            
+            # Mobile Development
+            r"\b(react native|flutter|swift|kotlin|ios|android|mobile|xamarin|cordova)\b",
+            
+            # Business & Soft Skills
+            r"\b(communication|teamwork|problem solving|critical thinking|project management|leadership|mentoring)\b",
+            
+            # Tools & Platforms
+            r"\b(github|git|vscode|intellij|vim|emacs|linux|windows|macos|ubuntu|centos)\b",
         ]
 
         keywords = []
@@ -162,4 +193,4 @@ Important:
                 [m for m in matches if m.lower() not in [k.lower() for k in keywords]]
             )
 
-        return keywords[:20]
+        return keywords[:50]  # Increased limit for more comprehensive extraction

@@ -146,8 +146,9 @@ class OllamaProvider(BaseLLMProvider):
                     tokens_used={
                         "prompt_eval_count": data.get("prompt_eval_count"),
                         "eval_count": data.get("eval_count"),
-                        "total_eval_count": data.get("prompt_eval_count", 0)
-                        + data.get("eval_count", 0),
+                        "total_eval_count": (
+                            data.get("prompt_eval_count", 0) + data.get("eval_count", 0)
+                        ),
                     },
                     cost_usd=0.0,  # Local models are free
                     response_time=response_time,

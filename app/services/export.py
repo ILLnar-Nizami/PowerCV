@@ -1,7 +1,7 @@
 """Export utilities for CV and cover letter generation."""
 
-from datetime import datetime
 import re
+from datetime import datetime
 
 
 def parse_name_from_cv_text(cv_text: str) -> tuple[str, str]:

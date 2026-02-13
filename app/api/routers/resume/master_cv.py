@@ -8,7 +8,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -48,7 +48,9 @@ class MasterCVRequest(BaseModel):
     user_id: str = Field(..., description="Unique identifier for the user")
     title: str = Field(..., description="Title of the master CV")
     description: Optional[str] = Field(None, description="Description of the master CV")
-    tags: Optional[List[str]] = Field(None, description="Tags for categorizing the master CV")
+    tags: Optional[List[str]] = Field(
+        None, description="Tags for categorizing the master CV"
+    )
 
 
 class MasterCVResponse(BaseModel):
@@ -74,7 +76,9 @@ class MasterCVTestRequest(BaseModel):
 
     job_description: str = Field(..., description="Job description to test against")
     target_role: Optional[str] = Field(None, description="Target role for testing")
-    target_company: Optional[str] = Field(None, description="Target company for testing")
+    target_company: Optional[str] = Field(
+        None, description="Target company for testing"
+    )
 
 
 class MasterCVTestResponse(BaseModel):
@@ -86,8 +90,12 @@ class MasterCVTestResponse(BaseModel):
     strengths: List[str] = Field(..., description="Identified strengths")
     weaknesses: List[str] = Field(..., description="Identified weaknesses")
     recommendations: List[str] = Field(..., description="Improvement recommendations")
-    keyword_analysis: Dict[str, Any] = Field(..., description="Keyword analysis results")
-    optimized_sections: Dict[str, str] = Field(..., description="Optimized sections for the job")
+    keyword_analysis: Dict[str, Any] = Field(
+        ..., description="Keyword analysis results"
+    )
+    optimized_sections: Dict[str, str] = Field(
+        ..., description="Optimized sections for the job"
+    )
 
 
 # =============================================================================
@@ -100,7 +108,9 @@ def validate_object_id(object_id: str) -> ObjectId:
     try:
         return ObjectId(object_id)
     except InvalidId:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format"
+        )
 
 
 def validate_master_cv_file(file: UploadFile) -> None:
@@ -154,15 +164,21 @@ async def upload_master_cv(
     try:
         logger.info(f"Uploading master CV for user {user_id}")
         validate_master_cv_file(file)
-        content = await file.read()
+        raw = await file.read()
         _, safe_filename, _ = await file_validator.validate_upload(file)
-        file_path = store_file_securely(content, safe_filename, user_id)
-        
+        file_path = store_file_securely(raw, safe_filename, user_id)
+
         file_extension = Path(file.filename).suffix.lower() or ".txt"
         content = extract_text_from_file(str(file_path), file_extension)
-        
-        tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
-        
+
+        # Ensure we provide a str to Pydantic
+        if isinstance(content, (bytes, bytearray)):
+            content = content.decode("utf-8", errors="ignore")
+
+        tag_list = (
+            [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
+        )
+
         master_cv_data = {
             "user_id": user_id,
             "title": title,
@@ -178,10 +194,10 @@ async def upload_master_cv(
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
         }
-        
+
         master_cv_id = await repository.create(master_cv_data)
         logger.info(f"Master CV uploaded successfully: {master_cv_id}")
-        
+
         return MasterCVResponse(
             id=str(master_cv_id),
             user_id=user_id,
@@ -192,8 +208,8 @@ async def upload_master_cv(
             file_size=file.size,
             file_type=file.content_type,
             tags=tag_list,
-            created_at=master_cv_data["created_at"],
-            updated_at=master_cv_data["updated_at"],
+            created_at=cast(datetime, master_cv_data["created_at"]),
+            updated_at=cast(datetime, master_cv_data["updated_at"]),
             is_active=False,
             usage_count=0,
         )
@@ -201,14 +217,19 @@ async def upload_master_cv(
         raise
     except Exception as e:
         logger.error(f"Error uploading master CV: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload master CV: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload master CV: {str(e)}",
+        )
 
 
 async def get_master_cvs(
     request: Request,
     user_id: str,
     skip: int = Query(0, ge=0, description="Number of master CVs to skip"),
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of master CVs to return"),
+    limit: int = Query(
+        10, ge=1, le=100, description="Maximum number of master CVs to return"
+    ),
     repository: ResumeRepository = Depends(get_resume_repository),
 ) -> List[MasterCVResponse]:
     """Get all Master CVs for a user."""
@@ -220,31 +241,40 @@ async def get_master_cvs(
             skip=skip,
             limit=limit,
         )
-        
+
         response_list = []
         for master_cv in master_cvs:
             cv_id = master_cv.get("_id") or master_cv.get("id", "")
-            response_list.append(MasterCVResponse(
-                id=str(cv_id),
-                user_id=master_cv.get("user_id", user_id),
-                title=master_cv.get("title", "Untitled"),
-                description=master_cv.get("description"),
-                content=master_cv.get("content", ""),
-                file_path=master_cv.get("file_path"),
-                file_size=master_cv.get("file_size"),
-                file_type=master_cv.get("file_type"),
-                tags=master_cv.get("tags"),
-                created_at=master_cv.get("created_at", datetime.utcnow()),
-                updated_at=master_cv.get("updated_at", datetime.utcnow()),
-                is_active=master_cv.get("is_active", False),
-                usage_count=master_cv.get("usage_count", 0),
-            ))
-        
+            response_list.append(
+                MasterCVResponse(
+                    id=str(cv_id),
+                    user_id=master_cv.get("user_id", user_id),
+                    title=master_cv.get("title", "Untitled"),
+                    description=master_cv.get("description"),
+                    content=master_cv.get("content", ""),
+                    file_path=master_cv.get("file_path"),
+                    file_size=master_cv.get("file_size"),
+                    file_type=master_cv.get("file_type"),
+                    tags=master_cv.get("tags"),
+                    created_at=cast(
+                        datetime, master_cv.get("created_at", datetime.utcnow())
+                    ),
+                    updated_at=cast(
+                        datetime, master_cv.get("updated_at", datetime.utcnow())
+                    ),
+                    is_active=master_cv.get("is_active", False),
+                    usage_count=master_cv.get("usage_count", 0),
+                )
+            )
+
         logger.info(f"Retrieved {len(response_list)} master CVs for user {user_id}")
         return response_list
     except Exception as e:
         logger.error(f"Error retrieving master CVs: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve master CVs")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve master CVs",
+        )
 
 
 async def get_master_cv(
@@ -257,22 +287,36 @@ async def get_master_cv(
         object_id = validate_object_id(master_cv_id)
         master_cv = await repository.get_by_id(object_id)
         if not master_cv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found")
-        
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found"
+            )
+
         cv_id = str(master_cv.get("_id") or getattr(master_cv, "id", master_cv_id))
         user_id = master_cv.get("user_id") or getattr(master_cv, "user_id", "")
         title = master_cv.get("title") or getattr(master_cv, "title", "Untitled")
-        description = master_cv.get("description") or getattr(master_cv, "description", None)
+        description = master_cv.get("description") or getattr(
+            master_cv, "description", None
+        )
         content = master_cv.get("content") or getattr(master_cv, "content", "")
         file_path = master_cv.get("file_path") or getattr(master_cv, "file_path", None)
         file_size = master_cv.get("file_size") or getattr(master_cv, "file_size", None)
         file_type = master_cv.get("file_type") or getattr(master_cv, "file_type", None)
         tags = master_cv.get("tags") or getattr(master_cv, "tags", None)
-        created_at = master_cv.get("created_at") or getattr(master_cv, "created_at", datetime.utcnow())
-        updated_at = master_cv.get("updated_at") or getattr(master_cv, "updated_at", datetime.utcnow())
+        created_at = cast(
+            datetime,
+            master_cv.get("created_at")
+            or getattr(master_cv, "created_at", datetime.utcnow()),
+        )
+        updated_at = cast(
+            datetime,
+            master_cv.get("updated_at")
+            or getattr(master_cv, "updated_at", datetime.utcnow()),
+        )
         is_active = master_cv.get("is_active") or getattr(master_cv, "is_active", False)
-        usage_count = master_cv.get("usage_count") or getattr(master_cv, "usage_count", 0)
-        
+        usage_count = master_cv.get("usage_count") or getattr(
+            master_cv, "usage_count", 0
+        )
+
         return MasterCVResponse(
             id=cv_id,
             user_id=user_id,
@@ -292,7 +336,10 @@ async def get_master_cv(
         raise
     except Exception as e:
         logger.error(f"Error retrieving master CV {master_cv_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve master CV")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve master CV",
+        )
 
 
 async def replace_master_cv(
@@ -311,20 +358,30 @@ async def replace_master_cv(
         object_id = validate_object_id(master_cv_id)
         existing_master_cv = await repository.get_by_id(object_id)
         if not existing_master_cv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found")
-        
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found"
+            )
+
         validate_master_cv_file(file)
-        content = await file.read()
+        raw = await file.read()
         _, safe_filename, _ = await file_validator.validate_upload(file)
-        
-        user_id = existing_master_cv.get("user_id") or getattr(existing_master_cv, "user_id")
-        file_path = store_file_securely(content, safe_filename, user_id)
-        
+
+        user_id = existing_master_cv.get("user_id") or getattr(
+            existing_master_cv, "user_id"
+        )
+        file_path = store_file_securely(raw, safe_filename, user_id)
+
         file_extension = Path(file.filename).suffix.lower() or ".txt"
         content = extract_text_from_file(str(file_path), file_extension)
-        
-        tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
-        
+
+        # Ensure we provide a str to Pydantic
+        if isinstance(content, (bytes, bytearray)):
+            content = content.decode("utf-8", errors="ignore")
+
+        tag_list = (
+            [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
+        )
+
         update_data = {
             "content": content,
             "file_path": str(file_path),
@@ -338,26 +395,48 @@ async def replace_master_cv(
             update_data["description"] = description
         if tag_list is not None:
             update_data["tags"] = tag_list
-        
+
         updated_master_cv = await repository.update(object_id, update_data)
         if not updated_master_cv:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update master CV")
-        
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update master CV",
+            )
+
         logger.info(f"Master CV {master_cv_id} replaced successfully")
-        
-        cv_id = str(updated_master_cv.get("_id") or getattr(updated_master_cv, "id", master_cv_id))
-        final_title = updated_master_cv.get("title") or getattr(updated_master_cv, "title", "Untitled")
-        final_description = updated_master_cv.get("description") or getattr(updated_master_cv, "description", None)
+
+        cv_id = str(
+            updated_master_cv.get("_id")
+            or getattr(updated_master_cv, "id", master_cv_id)
+        )
+        final_title = updated_master_cv.get("title") or getattr(
+            updated_master_cv, "title", "Untitled"
+        )
+        final_description = updated_master_cv.get("description") or getattr(
+            updated_master_cv, "description", None
+        )
         final_content = content
         final_file_path = str(file_path)
         final_file_size = file.size
         final_file_type = file.content_type
         final_tags = tag_list
-        created_at = updated_master_cv.get("created_at") or getattr(updated_master_cv, "created_at", datetime.utcnow())
-        updated_at = updated_master_cv.get("updated_at") or getattr(updated_master_cv, "updated_at", datetime.utcnow())
-        is_active = updated_master_cv.get("is_active") or getattr(updated_master_cv, "is_active", False)
-        usage_count = updated_master_cv.get("usage_count") or getattr(updated_master_cv, "usage_count", 0)
-        
+        created_at = cast(
+            datetime,
+            updated_master_cv.get("created_at")
+            or getattr(updated_master_cv, "created_at", datetime.utcnow()),
+        )
+        updated_at = cast(
+            datetime,
+            updated_master_cv.get("updated_at")
+            or getattr(updated_master_cv, "updated_at", datetime.utcnow()),
+        )
+        is_active = updated_master_cv.get("is_active") or getattr(
+            updated_master_cv, "is_active", False
+        )
+        usage_count = updated_master_cv.get("usage_count") or getattr(
+            updated_master_cv, "usage_count", 0
+        )
+
         return MasterCVResponse(
             id=cv_id,
             user_id=user_id,
@@ -377,7 +456,10 @@ async def replace_master_cv(
         raise
     except Exception as e:
         logger.error(f"Error replacing master CV {master_cv_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to replace master CV: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to replace master CV: {str(e)}",
+        )
 
 
 async def delete_master_cv(
@@ -390,26 +472,36 @@ async def delete_master_cv(
         object_id = validate_object_id(master_cv_id)
         existing_master_cv = await repository.get_by_id(object_id)
         if not existing_master_cv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found")
-        
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found"
+            )
+
         success = await repository.delete(object_id)
         if not success:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete master CV")
-        
-        file_path = existing_master_cv.get("file_path") or getattr(existing_master_cv, "file_path", None)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete master CV",
+            )
+
+        file_path = existing_master_cv.get("file_path") or getattr(
+            existing_master_cv, "file_path", None
+        )
         if file_path and os.path.exists(file_path):
             try:
                 os.remove(file_path)
             except Exception as e:
                 logger.warning(f"Failed to clean up file {file_path}: {e}")
-        
+
         logger.info(f"Master CV {master_cv_id} deleted successfully")
         return {"message": "Master CV deleted successfully"}
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error deleting master CV {master_cv_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete master CV")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete master CV",
+        )
 
 
 async def test_master_cv_endpoint(
@@ -425,8 +517,10 @@ async def test_master_cv_endpoint(
         object_id = validate_object_id(master_cv_id)
         master_cv = await repository.get_by_id(object_id)
         if not master_cv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found")
-        
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found"
+            )
+
         content = master_cv.get("content") or getattr(master_cv, "content", "")
         file_path = master_cv.get("file_path") or getattr(master_cv, "file_path", None)
         if not content and file_path and os.path.exists(file_path):
@@ -435,18 +529,20 @@ async def test_master_cv_endpoint(
                     content = f.read()
             except Exception as e:
                 logger.error(f"Error reading master CV file: {e}")
-        
+
         scoring_result = await universal_scorer.score_resume(
             resume_text=content,
             job_description=test_request.job_description,
         )
-        
+
         optimized_sections = {
-            "summary": f"Experienced professional seeking {test_request.target_role or 'new opportunities'} at {test_request.target_company or 'target company'}",
+            "summary": (
+                f"Experienced professional seeking {test_request.target_role or 'new opportunities'} at {test_request.target_company or 'target company'}"
+            ),
             "experience": "Optimized experience section would go here",
             "skills": "Optimized skills section would go here",
         }
-        
+
         logger.info(f"Master CV {master_cv_id} tested successfully")
         return MasterCVTestResponse(
             success=True,
@@ -462,7 +558,10 @@ async def test_master_cv_endpoint(
         raise
     except Exception as e:
         logger.error(f"Error testing master CV {master_cv_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to test master CV: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to test master CV: {str(e)}",
+        )
 
 
 async def download_original_resume(
@@ -475,37 +574,82 @@ async def download_original_resume(
         object_id = validate_object_id(master_cv_id)
         master_cv = await repository.get_by_id(object_id)
         if not master_cv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found")
-        
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Master CV not found"
+            )
+
         file_path = master_cv.get("file_path") or getattr(master_cv, "file_path", None)
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Original file not found")
-        
-        usage_count = master_cv.get("usage_count") or getattr(master_cv, "usage_count", 0)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Original file not found"
+            )
+
+        usage_count = master_cv.get("usage_count") or getattr(
+            master_cv, "usage_count", 0
+        )
         await repository.update(object_id, {"usage_count": usage_count + 1})
-        
+
         logger.info(f"Master CV {master_cv_id} file downloaded")
         filename = os.path.basename(file_path)
-        return FileResponse(path=file_path, filename=filename, media_type="application/octet-stream")
+        return FileResponse(
+            path=file_path, filename=filename, media_type="application/octet-stream"
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error downloading master CV file {master_cv_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to download file")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to download file",
+        )
 
 
 # =============================================================================
 # Router Configuration
 # =============================================================================
 
-router = APIRouter(prefix="/master-cv", tags=["Master CV"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/master-cv",
+    tags=["Master CV"],
+    responses={404: {"description": "Not found"}},
+)
 
-router.add_api_route("/upload", upload_master_cv, methods=["POST"], response_model=MasterCVResponse, status_code=status.HTTP_201_CREATED)
-router.add_api_route("/user/{user_id}", get_master_cvs, methods=["GET"], response_model=List[MasterCVResponse])
-router.add_api_route("/{master_cv_id}", get_master_cv, methods=["GET"], response_model=MasterCVResponse)
-router.add_api_route("/{master_cv_id}/replace", replace_master_cv, methods=["PUT"], response_model=MasterCVResponse)
-router.add_api_route("/{master_cv_id}", delete_master_cv, methods=["DELETE"], responses={200: {"description": "Success"}})
-router.add_api_route("/{master_cv_id}/test", test_master_cv_endpoint, methods=["POST"], response_model=MasterCVTestResponse)
-router.add_api_route("/{master_cv_id}/download", download_original_resume, methods=["GET"])
+router.add_api_route(
+    "/upload",
+    upload_master_cv,
+    methods=["POST"],
+    response_model=MasterCVResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+router.add_api_route(
+    "/user/{user_id}",
+    get_master_cvs,
+    methods=["GET"],
+    response_model=List[MasterCVResponse],
+)
+router.add_api_route(
+    "/{master_cv_id}", get_master_cv, methods=["GET"], response_model=MasterCVResponse
+)
+router.add_api_route(
+    "/{master_cv_id}/replace",
+    replace_master_cv,
+    methods=["PUT"],
+    response_model=MasterCVResponse,
+)
+router.add_api_route(
+    "/{master_cv_id}",
+    delete_master_cv,
+    methods=["DELETE"],
+    responses={200: {"description": "Success"}},
+)
+router.add_api_route(
+    "/{master_cv_id}/test",
+    test_master_cv_endpoint,
+    methods=["POST"],
+    response_model=MasterCVTestResponse,
+)
+router.add_api_route(
+    "/{master_cv_id}/download", download_original_resume, methods=["GET"]
+)
 
 logger.info("Master CV router initialized")

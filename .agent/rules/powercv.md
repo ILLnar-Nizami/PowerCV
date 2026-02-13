@@ -2,11 +2,12 @@
 trigger: always_on
 ---
 
-# PowerCV Engineering Agent v3.2
+# PowerCV Engineering Agent v4.0
 
-**Updated**: 2026-01-20  
+**Updated**: 2026-01-29  
 **For**: Elite AI agents handoff - CV optimization platform  
-**Repo**: https://github.com/ILLnar-Nizami/PowerCV (dev@cf5d9a46)
+**Repo**: https://github.com/ILLnar-Nizami/PowerCV (dev@current)
+**Status**: Production Ready - v3.0.0-beta
 
 ## System Overview
 **Purpose**: AI-powered resume optimizer that tailors CVs to job descriptions, generates cover letters, and exports PDFs with ATS compatibility scoring.
@@ -15,41 +16,128 @@ trigger: always_on
 - Parse CV text → Analyze against job description → Generate optimized sections → Export PDF
 - Primary AI: Cerebras API (gpt-oss-120b) with fallbacks to OpenAI/Deepseek
 - Realistic ATS scores: 60-95 range (not inflated)
+- Advanced Redis caching (100x performance improvement)
+- PostgreSQL migration support (dual-write capability)
 
-## Architecture (Actual Repo - v3.2)
-- **Backend**: FastAPI async in app/api/routers/ (v2 endpoints, comprehensive endpoints), app/services/ (workflow orchestrator + comprehensive optimizer), Motor (MongoDB async driver), Redis caching
-- **Frontend**: React 19 + TypeScript strict in frontend/src/, Vite bundler, Tailwind CSS, Zustand state, TanStack Query
-- **Database**: MongoDB (port 27017) with models in app/database/models/, repositories pattern for data access
-- **Cache/Queue**: Redis (port 6379) for rate limiting and response caching
-- **Orchestration**: Docker Compose with 4 services (powercv, mongodb, redis, n8n), GitHub Actions CI/CD
-- **PDF Generation**: Typst templating engine (data/templates/*.typ), dynamic filename generation
+## Architecture (Current State - v3.0.0-beta)
+- **Backend**: FastAPI async in app/api/routers/ (v2 endpoints, comprehensive endpoints), app/services/ (workflow orchestrator + comprehensive optimizer), Motor (MongoDB async driver), PostgreSQL support via asyncpg, Redis intelligent caching
+- **Frontend**: React 19 + TypeScript strict in frontend/src/, Vite bundler, TailwindCSS, shadcn/ui, Zustand state, TanStack Query
+- **Database**: MongoDB (port 27017) + PostgreSQL (port 5432) with models in app/database/models/, repositories pattern for data access, dual-write capability
+- **Cache/Queue**: Redis (port 6379) for rate limiting and intelligent response caching (0.4ms average for cached requests)
+- **Orchestration**: Docker Compose with 5 services (powercv, mongodb, redis, postgres, n8n), GitHub Actions CI/CD
+- **PDF Generation**: Typst templating engine (data/templates/*.typ), 6 professional templates, dynamic filename generation
 - **AI/ML**: 
   - **Main pipeline**: Cerebras API (gpt-oss-120b) with fallbacks to OpenAI/Deepseek via `CVWorkflowOrchestrator` (v2 API, 3-stage: analyze → optimize → generate)
-  - **Advanced system**: LangChain-based `ComprehensiveResumeOptimizer` (app/services/ai/comprehensive_optimizer.py, 643 lines) with role prompting, chain-of-thought, EU 2025 skills focus
-  - **File parsing**: New `/api/parser/parse` endpoint for CV extraction from PDF/DOCX
-- **Testing**: pytest 90%+ coverage gate, Vitest for frontend, integration tests
-- **Scripts**: run.sh (dev server), docker-compose.yml (production), scripts/ (utilities)
+  - **Advanced system**: LangChain-based `ComprehensiveResumeOptimizer` with role prompting, chain-of-thought, EU 2025 skills focus
+  - **File parsing**: `/api/parser/parse` endpoint for CV extraction from PDF/DOCX
+  - **Cost Tracking**: Real-time AI API usage monitoring via `/api/comprehensive/cost-tracking`
+- **Testing**: pytest 90%+ coverage gate, Vitest for frontend, integration tests, comprehensive test suite (87 tests)
+- **Scripts**: run.sh (dev server), docker-compose.yml (production), scripts/ (utilities, migration, monitoring)
 - **Docs**: mkdocs.yml with mkdocs-material, CHANGELOG.md (semantic versioning)
 
 ## Mission
 Ship production features FAST. Every change MUST pass:
 - ✅ pytest 90%+ coverage (or Δ% improvement)
 - ✅ Docker build <500MB
-- ✅ API response <10s for full optimization (cached <2s)
+- ✅ API response <10s for full optimization (cached <2s, 0.4ms average)
 - ✅ CHANGELOG.md updated with impact metrics
 - ✅ Frontend TypeScript strict mode passes
 - ✅ All existing tests still pass (no regressions)
+- ✅ Legacy endpoints preserved for frontend compatibility
+- ✅ Redis caching performance maintained
+- ✅ PostgreSQL dual-write integrity preserved
 
 **PRESERVE ALWAYS**:
 - `docker-compose.yml` volumes (./data, ./n8n_workflows)
 - `/api/v2/` endpoints (v1 deprecated)
-- MongoDB collections structure
+- MongoDB + PostgreSQL collections structure
 - n8n workflow files
 - Zustand store contracts
+- Legacy API endpoints (`/api/resume/{id}`, `/api/resume/{id}/download`)
+- Redis caching configuration
+- AI cost tracking system
+
+## Performance Optimization Requirements (v4.0)
+
+### Critical Performance Targets
+- ✅ **Redis Caching**: 100x performance improvement for cached requests (0.4ms average)
+- ✅ **AI Cost Tracking**: Real-time monitoring via `/api/comprehensive/cost-tracking`
+- ✅ **PostgreSQL Migration**: Dual-write capability with seamless transitions
+- ✅ **Test Coverage**: 87 tests with 90%+ coverage target
+- ✅ **Docker Optimization**: Keep image size <500MB
+
+### Legacy Code Preservation (CRITICAL)
+- ✅ **Legacy Endpoints**: `/api/resume/{id}` and `/api/resume/{id}/download` MUST be preserved
+- ✅ **Frontend Compatibility**: All existing frontend contracts maintained
+- ✅ **Database Schemas**: MongoDB + PostgreSQL dual-write integrity
+- ✅ **Cache Performance**: Redis caching configuration and performance targets
+
+### Code Quality Standards
+- ✅ **Type Safety**: Python 3.12+ with mypy strict mode, TypeScript strict
+- ✅ **Async Patterns**: All I/O operations must be async/await
+- ✅ **Error Handling**: Comprehensive error handling with proper logging
+- ✅ **Security**: No hardcoded secrets, proper input validation
 
 ---
 
-## Data Flow Architecture
+## Refactoring Priority List (Based on Performance Report)
+
+### 1. Complete TODO Items in Production Code
+**Priority**: HIGH
+**Files**: 
+- `app/api/routers/resume/templates.py:283,345,382,519`
+- `app/services/ai/ats_scoring.py:264`
+
+**Actions**:
+- Implement custom template retrieval from database
+- Implement file serving with expiration
+- Remove deprecated function `calculate_keyword_overlap`
+
+### 2. Dependency Optimization
+**Priority**: HIGH
+**Issues**: Heavy ML dependencies may be unused
+**Actions**:
+- Audit requirements.txt for unused packages
+- Remove or replace heavy dependencies
+- Optimize Docker image size
+
+### 3. Code Modernization
+**Priority**: MEDIUM
+**Actions**:
+- Update deprecated Python types (Dict → dict, List → list)
+- Replace Optional[T] with T | None syntax
+- Remove unused code and dead branches
+
+### 4. Performance Enhancements
+**Priority**: MEDIUM
+**Actions**:
+- Implement connection pooling for database connections
+- Add caching mechanism for frequently accessed data
+- Optimize AI API calls with better error handling and retries
+
+---
+
+## Implementation Guidelines for Refactoring
+
+### Safe Refactoring Practices
+1. **Always run tests** before and after changes
+2. **Preserve legacy endpoints** - never remove without frontend migration
+3. **Maintain Redis caching** performance during refactoring
+4. **Test dual-write capability** when modifying database operations
+5. **Monitor AI costs** during any changes to AI providers
+
+### Testing Requirements
+- pytest 90%+ coverage maintained
+- All 87 existing tests must pass
+- Add new tests for any refactored components
+- Integration tests for critical paths
+
+### Documentation Updates
+- Update CHANGELOG.md with performance improvements
+- Document any breaking changes
+- Update API documentation for modified endpoints
+
+---
 
 ### User Journey (High Level)
 ```

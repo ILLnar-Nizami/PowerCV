@@ -42,8 +42,8 @@ def check_imports():
     try:
         from app.prompts.prompt_loader import PromptLoader  # noqa: F401
         from app.services.cerebras_client import CerebrasClient  # noqa: F401
-        from app.services.workflow_orchestrator import (
-            CVWorkflowOrchestrator,  # noqa: F401
+        from app.services.workflow_orchestrator import (  # noqa: F401
+            CVWorkflowOrchestrator,
         )
 
         print(" All imports successful")

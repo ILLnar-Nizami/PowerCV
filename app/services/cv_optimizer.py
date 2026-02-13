@@ -113,58 +113,9 @@ class CVOptimizer:
                 "email": email,
                 "phone": "",
                 "address": "",
-                "profile_description": "Experienced professional with technical expertise.",
-                "skills": {"hard_skills": [], "soft_skills": []},
-                "experiences": [],
-                "education": [],
-            },
-            "projects": [],
-            "certificate": [],
-            "extra_curricular_activities": [],
-            "_validation": {
-                "valid": True,
-                "errors": [],
-                "warnings": ["Fallback structure used due to AI service unavailable"],
-                "original_contact": {},
-                "optimized_contact": {},
-            },
-        }
-
-    def optimize_professional_summary(
-        self, cv_data: str, jd_text: str, keywords: List[str]
-    ) -> Dict:
-        """Optimize professional summary section."""
-        return {
-            "optimized_content": cv_data if isinstance(cv_data, str) else "",
-            "keywords_used": keywords,
-            "improvements_made": [
-                "Professional summary optimization uses full CV optimization"
-            ],
-        }
-
-    def _get_fallback_comprehensive_structure(
-        self, cv_text: str = "", email: Optional[str] = None
-    ) -> Dict:
-        """Get fallback comprehensive structure."""
-        name = "Candidate"
-
-        if not email and cv_text:
-            email_match = EMAIL_REGEX.search(cv_text)
-            if email_match:
-                email = email_match.group()
-
-        if not email:
-            email = "please-add-your-email@example.com"
-
-        logger.warning("Using fallback optimization structure")
-
-        return {
-            "user_information": {
-                "name": name,
-                "email": email,
-                "phone": "",
-                "address": "",
-                "profile_description": "Experienced professional with technical expertise.",
+                "profile_description": (
+                    "Experienced professional with technical expertise."
+                ),
                 "skills": {"hard_skills": [], "soft_skills": []},
                 "experiences": [],
                 "education": [],

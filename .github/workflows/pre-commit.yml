@@ -1,0 +1,105 @@
+name: Pre-Commit Check
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  pre-commit-check:
+    name: Pre-Commit Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pre-commit
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run basic formatting checks (fallback)
+        id: basic-checks
+        run: |
+          echo "Running basic formatting checks as fallback..."
+          
+          # Black check
+          if python -m black --check --diff app/ scripts/ tests/; then
+            echo "black_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ Black formatting passed"
+          else
+            echo "black_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ Black formatting failed - auto-fixing..."
+            python -m black app/ scripts/ tests/
+          fi
+          
+          # isort check
+          if python -m isort --check-only --diff app/ scripts/ tests/; then
+            echo "isort_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ Import ordering passed"
+          else
+            echo "isort_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ Import ordering failed - auto-fixing..."
+            python -m isort app/ scripts/ tests/
+          fi
+          
+          # MyPy check (app only)
+          if python -m mypy app/ --strict; then
+            echo "mypy_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ MyPy passed on app/"
+          else
+            echo "mypy_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ MyPy failed on app/"
+          fi
+
+      - name: Try pre-commit (with fallback)
+        continue-on-error: true
+        id: pre-commit-step
+        run: |
+          echo "Attempting pre-commit run..."
+          if pre-commit run --all-files; then
+            echo "✅ Pre-commit passed"
+            echo "pre_commit_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Pre-commit failed, but basic checks already handled formatting"
+            echo "pre_commit_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Files were modified by formatting hooks"
+            git diff --name-only
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No files were modified"
+          fi
+
+      - name: Commit auto-fixed changes
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "auto: apply formatting fixes [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
+
+      - name: Summary
+        run: |
+          echo "## Pre-commit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Black**: ${{ steps.basic-checks.outputs.black_passed }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **isort**: ${{ steps.basic-checks.outputs.isort_passed }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **MyPy**: ${{ steps.basic-checks.outputs.mypy_passed }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-commit**: ${{ steps.pre-commit-step.outputs.pre_commit_success }}" >> $GITHUB_STEP_SUMMARY

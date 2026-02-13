@@ -7,13 +7,22 @@ including LinkedIn, Indeed, Glassdoor, and company career pages.
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Optional, cast
 from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+
+
+def _class_contains(substring: str) -> Callable[[Optional[str]], bool]:
+    """Helper function to create a class checker for BeautifulSoup."""
+
+    def _checker(value: Optional[str]) -> bool:
+        return bool(value and substring in str(value).lower())
+
+    return _checker
 
 
 class JobDescriptionScraper(ABC):
@@ -46,7 +55,9 @@ class LinkedInScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -98,7 +109,7 @@ class LinkedInScraper(JobDescriptionScraper):
         # Fallback to meta description
         meta_desc = soup.find("meta", {"name": "description"})
         if meta_desc:
-            return self._clean_text(meta_desc.get("content", ""))
+            return self._clean_text(str(meta_desc.get("content", "") or ""))
 
         return ""
 
@@ -106,7 +117,7 @@ class LinkedInScraper(JobDescriptionScraper):
         """Extract job title from LinkedIn page."""
         # Try multiple selectors
         selectors = [
-            ("h1", {"class": lambda x: x and "top-card" in str(x).lower()}),
+            ("h1", {"class": _class_contains("top-card")}),
             ("h1", {"class": "top-card__job-title"}),
             ("h1", {}),
         ]
@@ -122,8 +133,8 @@ class LinkedInScraper(JobDescriptionScraper):
         """Extract company name from LinkedIn page."""
         # Try to find company name
         company_selectors = [
-            ("a", {"class": lambda x: x and "company" in str(x).lower()}),
-            ("span", {"class": lambda x: x and "company" in str(x).lower()}),
+            ("a", cast(Any, {"class": _class_contains("company")})),
+            ("span", cast(Any, {"class": _class_contains("company")})),
         ]
 
         for tag, attrs in company_selectors:
@@ -143,7 +154,10 @@ class LinkedInScraper(JobDescriptionScraper):
     def _extract_location(self, soup: BeautifulSoup) -> str:
         """Extract location from LinkedIn page."""
         location_selectors = [
-            ("span", {"class": lambda x: x and "location" in str(x).lower()}),
+            (
+                "span",
+                cast(Any, {"class": lambda x: x and "location" in str(x).lower()}),
+            ),
             ("span", {"class": "top-card__location"}),
         ]
 
@@ -175,7 +189,9 @@ class IndeedScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -219,7 +235,7 @@ class IndeedScraper(JobDescriptionScraper):
 
         meta_desc = soup.find("meta", {"name": "description"})
         if meta_desc:
-            return self._clean_text(meta_desc.get("content", ""))
+            return self._clean_text(str(meta_desc.get("content", "") or ""))
 
         return ""
 
@@ -231,7 +247,7 @@ class IndeedScraper(JobDescriptionScraper):
 
         og_title = soup.find("meta", {"property": "og:title"})
         if og_title:
-            return self._clean_text(og_title.get("content", ""))
+            return self._clean_text(str(og_title.get("content", "") or ""))
 
         return ""
 
@@ -288,7 +304,9 @@ class GenericScraper(JobDescriptionScraper):
         """
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                )
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -324,7 +342,10 @@ class GenericScraper(JobDescriptionScraper):
                     soup.find("main")
                     or soup.find("article")
                     or soup.find(
-                        "div", {"class": lambda x: x and "content" in str(x).lower()}
+                        "div",
+                        cast(
+                            Any, {"class": lambda x: x and "content" in str(x).lower()}
+                        ),
                     )
                 )
                 if main_content:

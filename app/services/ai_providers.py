@@ -1,5 +1,6 @@
 """Multi-provider AI client using LiteLLM for unified management."""
 
+import hashlib
 import logging
 import os
 from typing import Any, Dict, Optional
@@ -7,6 +8,7 @@ from typing import Any, Dict, Optional
 from dotenv import load_dotenv
 from litellm import completion, exceptions
 
+from app.config.redis import get_redis
 from app.config.settings import get_settings
 from app.core.exceptions import MissingApiKeyError
 
@@ -44,6 +46,9 @@ class AIProviderClient:
                      If None, uses AI_PROVIDER env variable, defaults to 'cerebras'
         """
         self.provider = provider or os.getenv("AI_PROVIDER", "cerebras")
+        self.redis = get_redis()
+        # Cost tracking
+        self.cost_tracker = {"total_cost": 0.0, "total_tokens": 0, "requests": 0}
 
         if self.provider not in self.PROVIDERS:
             raise ValueError(
@@ -58,7 +63,7 @@ class AIProviderClient:
         self.api_key = getattr(settings, config["key"].lower(), None)
 
         if not self.api_key:
-            raise MissingApiKeyError(config["key"], self.provider)
+            raise MissingApiKeyError(str(config["key"]), str(self.provider))
 
         logger.info(f"Initialized AI client: {self.provider} ({self.model})")
 
@@ -70,7 +75,7 @@ class AIProviderClient:
         max_tokens: int = 2000,
         timeout: int = 60,
     ) -> str:
-        """Send chat completion request with fallback support.
+        """Send chat completion request with fallback support, Redis caching, and cost tracking.
 
         Args:
             system_prompt: System instructions
@@ -85,6 +90,22 @@ class AIProviderClient:
         Raises:
             Exception: If all providers fail
         """
+        # Create cache key from inputs (using SHA-256 for better security than MD5)
+        cache_key = f"ai_completion:{
+            hashlib.sha256(
+                f'{self.provider}:{self.model}:{system_prompt}:{user_message}:{temperature}:{max_tokens}'.encode()
+            ).hexdigest()
+        }"
+
+        # Try to get from cache first
+        cached_response = await self.redis.get(cache_key)
+        if cached_response:
+            logger.info("Returning cached AI response")
+            return cached_response
+
+        # Increment request count
+        self.cost_tracker["requests"] += 1
+
         # Try primary provider first
         models_to_try = [self.model] + self.fallback_models
         last_exception = None
@@ -103,17 +124,29 @@ class AIProviderClient:
                     timeout=timeout,
                 )
 
-                # Handle ModelResponse
-                if hasattr(response, "choices") and response.choices:
-                    content = response.choices[0].message.content
-                    logger.debug(
-                        f"Response received from {model}: {len(content or '')} chars"
-                    )
-                    return content or ""
-                else:
-                    raise Exception(
-                        f"Invalid response from {model}: No choices returned"
-                    )
+                content = response.choices[0].message.content
+                logger.debug(
+                    f"Response received from {model}: {len(content or '')} chars"
+                )
+
+                # Track cost and tokens (simplified estimation)
+                if hasattr(response, "usage") and response.usage:
+                    prompt_tokens = response.usage.get("prompt_tokens", 0)
+                    completion_tokens = response.usage.get("completion_tokens", 0)
+                    total_tokens = prompt_tokens + completion_tokens
+
+                    # Simplified cost calculation (replace with actual pricing)
+                    cost = (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
+                    self.cost_tracker["total_cost"] += cost
+                    self.cost_tracker["total_tokens"] += total_tokens
+
+                    logger.info(f"AI cost: ${cost:.6f}, tokens: {total_tokens}")
+
+                # Cache the response for 1 hour
+                if content:
+                    await self.redis.setex(cache_key, 3600, content)
+
+                return content or ""
 
             except exceptions.RateLimitError as e:
                 logger.warning(f"Rate limit exceeded for {model}: {str(e)}")
@@ -162,3 +195,9 @@ def get_ai_client(provider: Optional[str] = None) -> AIProviderClient:
         AIProviderClient: Configured client instance
     """
     return AIProviderClient(provider=provider)
+
+
+# Backwards compatibility: keep the old name available
+AIClient = AIProviderClient
+
+__all__ = ["AIProviderClient", "AIClient", "get_ai_client"]

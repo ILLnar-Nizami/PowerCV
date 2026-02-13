@@ -103,7 +103,7 @@ class PowerCVCLI:
             sys.exit(1)
 
         logger.info("Starting CV optimization...")
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=False,
@@ -163,7 +163,7 @@ class PowerCVCLI:
             sys.exit(1)
 
         logger.info("Generating cover letter...")
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=True,
@@ -253,7 +253,7 @@ class PowerCVCLI:
         logger.info("Starting full optimization...")
 
         # Run optimization workflow
-        result = self.orchestrator.optimize_cv_for_job(
+        result = await self.orchestrator.optimize_cv_for_job(
             cv_text=cv_text,
             jd_text=jd_text,
             generate_cover_letter=True,
@@ -372,7 +372,7 @@ class PowerCVCLI:
                     continue
 
                 # Run optimization
-                result = self.orchestrator.optimize_cv_for_job(
+                result = await self.orchestrator.optimize_cv_for_job(
                     cv_text=master_cv,
                     jd_text=jd_text,
                     generate_cover_letter=True,

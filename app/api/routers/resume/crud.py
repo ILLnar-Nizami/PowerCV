@@ -12,14 +12,7 @@ from typing import Dict, List, Optional
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 

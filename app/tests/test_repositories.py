@@ -1,8 +1,9 @@
 """Tests for database repositories."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 from bson.objectid import ObjectId
 
 from app.database.repositories.base_repo import BaseRepository
@@ -208,10 +209,26 @@ class TestResumeRepository:
         assert len(result) == 2
 
     @patch("app.database.repositories.base_repo.MongoConnectionManager")
+    @patch("app.database.repositories.resume_repository.PostgresConnectionManager")
     @pytest.mark.asyncio
-    async def test_update_resume(self, mock_manager):
+    async def test_update_resume(self, mock_postgres_manager, mock_manager):
         """Test resume update."""
+        # Mock Postgres connection
+        mock_pg_conn = AsyncMock()
+        mock_pg_conn.__aenter__ = AsyncMock(return_value=mock_pg_conn)
+        mock_pg_conn.__aexit__ = AsyncMock(return_value=None)
+        mock_pg_conn.execute = AsyncMock(return_value=None)
+
+        mock_pg_instance = MagicMock()
+        mock_pg_instance.get_connection = AsyncMock(return_value=mock_pg_conn)
+        mock_postgres_manager.get_instance.return_value = mock_pg_instance
+
         mock_instance = MagicMock()
+        # Should not be used for update logic with postgres check?
+        mock_instance.get_collection.return_value = MagicMock()
+        # Wait, the failure was "PostgreSQL configuration is incomplete", meaning the check is BEFORE mongo update?
+        # Actually checking the code flow: it calls self._ensure_postgres_sync which checks settings.
+
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)
         mock_collection.__aexit__ = AsyncMock(return_value=None)
@@ -227,9 +244,20 @@ class TestResumeRepository:
         assert result is True
 
     @patch("app.database.repositories.base_repo.MongoConnectionManager")
+    @patch("app.database.repositories.resume_repository.PostgresConnectionManager")
     @pytest.mark.asyncio
-    async def test_delete_resume(self, mock_manager):
+    async def test_delete_resume(self, mock_postgres_manager, mock_manager):
         """Test resume deletion."""
+        # Mock Postgres connection
+        mock_pg_conn = AsyncMock()
+        mock_pg_conn.__aenter__ = AsyncMock(return_value=mock_pg_conn)
+        mock_pg_conn.__aexit__ = AsyncMock(return_value=None)
+        mock_pg_conn.execute = AsyncMock(return_value=None)
+
+        mock_pg_instance = MagicMock()
+        mock_pg_instance.get_connection = AsyncMock(return_value=mock_pg_conn)
+        mock_postgres_manager.get_instance.return_value = mock_pg_instance
+
         mock_instance = MagicMock()
         mock_collection = MagicMock()
         mock_collection.__aenter__ = AsyncMock(return_value=mock_collection)

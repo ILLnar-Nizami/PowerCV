@@ -172,16 +172,36 @@ class SimpleModelRouter:
     def _get_system_prompt(self, task_name: str) -> str:
         """Get system prompt for the task."""
         prompts = {
-            "extract_keywords": "You are an expert at extracting keywords from text. Return only a JSON array of strings.",
-            "format_text": "You are an expert at formatting text. Return clean, well-formatted text.",
-            "split_sections": "You are an expert at splitting resumes into sections. Return a JSON object with section names as keys.",
-            "ats_score": "You are an expert ATS analyzer. Return a JSON with score and analysis.",
-            "parse_resume_structure": "You are an expert resume parser. Return structured JSON data.",
-            "rewrite_bullets": "You are an expert resume writer. Rewrite bullet points to be more impactful.",
-            "write_summary": "You are an expert resume writer. Write compelling professional summaries.",
-            "optimize_skills": "You are an expert resume optimizer. Optimize skills section for ATS.",
-            "psychological_optimize": "You are an expert in resume psychology. Optimize for psychological impact.",
-            "gap_analysis": "You are an expert career analyst. Analyze gaps between resume and job requirements.",
+            "extract_keywords": (
+                "You are an expert at extracting keywords from text. Return only a JSON array of strings."
+            ),
+            "format_text": (
+                "You are an expert at formatting text. Return clean, well-formatted text."
+            ),
+            "split_sections": (
+                "You are an expert at splitting resumes into sections. Return a JSON object with section names as keys."
+            ),
+            "ats_score": (
+                "You are an expert ATS analyzer. Return a JSON with score and analysis."
+            ),
+            "parse_resume_structure": (
+                "You are an expert resume parser. Return structured JSON data."
+            ),
+            "rewrite_bullets": (
+                "You are an expert resume writer. Rewrite bullet points to be more impactful."
+            ),
+            "write_summary": (
+                "You are an expert resume writer. Write compelling professional summaries."
+            ),
+            "optimize_skills": (
+                "You are an expert resume optimizer. Optimize skills section for ATS."
+            ),
+            "psychological_optimize": (
+                "You are an expert in resume psychology. Optimize for psychological impact."
+            ),
+            "gap_analysis": (
+                "You are an expert career analyst. Analyze gaps between resume and job requirements."
+            ),
         }
         return prompts.get(task_name, "You are a helpful assistant.")
 

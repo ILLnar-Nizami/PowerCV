@@ -1,7 +1,7 @@
-"""MongoDB connection management module.
+"""Database connection management module.
 
-This module provides the MongoConnectionManager class which handles database connections
-and implements the singleton pattern to ensure efficient connection reuse throughout
+This module provides connection managers for MongoDB and PostgreSQL.
+It implements the singleton pattern to ensure efficient connection reuse throughout
 the application. It manages connection pooling and provides context managers for
 safe database operations.
 """
@@ -9,9 +9,11 @@ safe database operations.
 import logging
 import re
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Any, Dict, Optional
 
+import asyncpg
 import motor.motor_asyncio
+from asyncpg.pool import Pool
 
 from app.config import get_settings
 
@@ -31,7 +33,7 @@ def get_secure_mongodb_config():
     if not settings.mongodb_uri:
         raise ValueError("MONGODB_URI not configured")
 
-    return {"uri": settings.mongodb_uri, "database": settings.database_name}
+    return {"uri": settings.mongodb_uri, "database": settings.mongodb_db}
 
 
 # Initialize configuration
@@ -61,7 +63,7 @@ class MongoConnectionManager:
     # Determine if TLS should be enabled
     USE_TLS = "mongodb+srv" in MONGODB_URI
 
-    MONGO_CONFIG = {
+    MONGO_CONFIG: Dict[str, Any] = {
         "maxPoolSize": 10,  # Reduced for security
         "minPoolSize": 1,
         "maxIdleTimeMS": 30000,  # Reduced idle time
@@ -76,7 +78,9 @@ class MongoConnectionManager:
         MONGO_CONFIG.update(
             {
                 "tls": True,
-                "tlsAllowInvalidCertificates": False,  # Strict certificate validation for production
+                "tlsAllowInvalidCertificates": (
+                    False
+                ),  # Strict certificate validation for production
             }
         )
 
@@ -184,3 +188,120 @@ class MongoConnectionManager:
             yield collection
         finally:
             pass
+
+
+# PostgreSQL connection management section
+# This module provides the PostgresConnectionManager class which handles database connections
+# to PostgreSQL and implements the singleton pattern to ensure efficient connection reuse.
+
+
+class PostgresConnectionManager:
+    """Singleton class for managing PostgreSQL connections.
+
+    This class implements the singleton pattern to ensure only one instance of the
+    connection manager exists. It manages connection pooling to PostgreSQL and provides
+    methods for retrieving and closing connections.
+
+    Attributes:
+        _instance: Class-level singleton instance reference
+        _pool: The shared asyncpg connection pool
+    """
+
+    _instance: Optional["PostgresConnectionManager"] = None
+    _pool: Optional[Pool] = None
+
+    @classmethod
+    def get_instance(cls):
+        """Get the singleton instance of PostgresConnectionManager.
+
+        Returns:
+            PostgresConnectionManager: The singleton instance
+        """
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        """Initialize the PostgreSQL connection manager."""
+        if (
+            PostgresConnectionManager._instance is not None
+            and PostgresConnectionManager._instance is not self
+        ):
+            return  # Don't re-initialize if instance already exists
+
+    async def _create_pool(self) -> Pool:
+        """Create a connection pool for PostgreSQL.
+
+        Returns:
+            Pool: Asyncpg connection pool
+
+        Raises:
+            ConnectionError: If connection to PostgreSQL fails
+        """
+        settings = get_settings()
+
+        if not all(
+            [
+                settings.postgres_user,
+                settings.postgres_password,
+                settings.postgres_db,
+                settings.postgres_host,
+            ]
+        ):
+            raise ValueError("PostgreSQL configuration is incomplete")
+
+        try:
+            pool = await asyncpg.create_pool(
+                user=settings.postgres_user,
+                password=settings.postgres_password,
+                database=settings.postgres_db,
+                host=settings.postgres_host,
+                port=settings.postgres_port or 5432,
+                min_size=1,
+                max_size=10,
+                command_timeout=60,
+            )
+
+            logger.info(
+                f"Successfully created PostgreSQL connection pool to {settings.postgres_host}:{settings.postgres_port or 5432}/{settings.postgres_db}"
+            )
+            return pool
+
+        except Exception as e:
+            logger.error("Failed to create PostgreSQL connection pool")
+            raise ConnectionError("PostgreSQL connection pool creation failed") from e
+
+    async def get_pool(self) -> Pool:
+        """Get the PostgreSQL connection pool, creating it if it doesn't exist.
+
+        Returns:
+            Pool: Asyncpg connection pool
+        """
+        if self._pool is None:
+            self._pool = await self._create_pool()
+        return self._pool
+
+    async def close_all(self):
+        """Close all active PostgreSQL connections.
+
+        This method should be called during application shutdown to properly
+        release all database connections.
+        """
+        if self._pool is not None:
+            await self._pool.close()
+            self._pool = None
+
+    async def get_connection(self):
+        """Get a PostgreSQL connection from the pool.
+
+        Returns:
+            asyncpg.Connection: A connection from the pool
+
+        Examples:
+            ```python
+            async with await connection_manager.get_connection() as conn:
+                await conn.execute("SELECT * FROM users WHERE email = $1", "user@example.com")
+            ```
+        """
+        pool = await self.get_pool()
+        return await pool.acquire()

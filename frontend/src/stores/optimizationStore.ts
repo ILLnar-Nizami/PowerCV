@@ -1,46 +1,49 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { OptimizationState, OptimizationRequest } from '@/types/optimization'
+import type {
+	OptimizationRequest,
+	OptimizationState,
+} from "@/types/optimization";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface OptimizationStore extends OptimizationState {
-  // Actions
-  setCurrentStep: (step: 1 | 2 | 3 | 4) => void
-  setRequest: (request: Partial<OptimizationRequest>) => void
-  setAnalysis: (analysis: OptimizationState['analysis']) => void
-  setResult: (result: OptimizationState['result']) => void
-  setProcessing: (isProcessing: boolean) => void
-  setError: (error: string | undefined) => void
-  reset: () => void
+	// Actions
+	setCurrentStep: (step: 1 | 2 | 3 | 4) => void;
+	setRequest: (request: Partial<OptimizationRequest>) => void;
+	setAnalysis: (analysis: OptimizationState["analysis"]) => void;
+	setResult: (result: OptimizationState["result"]) => void;
+	setProcessing: (isProcessing: boolean) => void;
+	setError: (error: string | undefined) => void;
+	reset: () => void;
 }
 
 const initialState: OptimizationState = {
-  step: 1,
-  request: {},
-  isProcessing: false,
-}
+	step: 1,
+	request: {},
+	isProcessing: false,
+};
 
 export const useOptimizationStore = create<OptimizationStore>()(
-  persist(
-    (set, get) => ({
-      ...initialState,
+	persist(
+		(set, get) => ({
+			...initialState,
 
-      setCurrentStep: (step) => set({ step }),
+			setCurrentStep: (step) => set({ step }),
 
-      setRequest: (newRequest) => 
-        set({ request: { ...get().request, ...newRequest } }),
+			setRequest: (newRequest) =>
+				set({ request: { ...get().request, ...newRequest } }),
 
-      setAnalysis: (analysis) => set({ analysis }),
+			setAnalysis: (analysis) => set({ analysis }),
 
-      setResult: (result) => set({ result }),
+			setResult: (result) => set({ result }),
 
-      setProcessing: (isProcessing) => set({ isProcessing }),
+			setProcessing: (isProcessing) => set({ isProcessing }),
 
-      setError: (error) => set({ error }),
+			setError: (error) => set({ error }),
 
-      reset: () => set(initialState),
-    }),
-    {
-      name: 'optimization-store',
-    }
-  )
-)
+			reset: () => set(initialState),
+		}),
+		{
+			name: "optimization-store",
+		},
+	),
+);

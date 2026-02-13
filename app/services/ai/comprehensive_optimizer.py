@@ -406,7 +406,9 @@ Top 3 weaknesses → targeted rewrites → new scores
                     "matching_skills": [],
                     "missing_skills": [],
                     "gaps": [],
-                    "recommendation": "AI service is currently rate limited. Please try again later.",
+                    "recommendation": (
+                        "AI service is currently rate limited. Please try again later."
+                    ),
                     "ats_score": 50,
                 }
                 return self._transform_ats_response(fallback_data)
@@ -479,7 +481,9 @@ Top 3 weaknesses → targeted rewrites → new scores
                         "matching_skills": [],
                         "missing_skills": [],
                         "gaps": [],
-                        "recommendation": f"Analysis completed with parsing error: {str(fallback_e)}",
+                        "recommendation": (
+                            f"Analysis completed with parsing error: {str(fallback_e)}"
+                        ),
                         "ats_score": 70,
                     }
                     return self._transform_ats_response(fallback_data)
@@ -585,8 +589,12 @@ Top 3 weaknesses → targeted rewrites → new scores
             Dict containing workflow descriptions
         """
         return {
-            "5_minute_ats": "Use MASTER PROMPT with only Tasks 1-2,5. Pick Version A summary.",
-            "20_minute_ready": "Full MASTER PROMPT. Pick best summary. Use 3 skill categories.",
+            "5_minute_ats": (
+                "Use MASTER PROMPT with only Tasks 1-2,5. Pick Version A summary."
+            ),
+            "20_minute_ready": (
+                "Full MASTER PROMPT. Pick best summary. Use 3 skill categories."
+            ),
             "60_minute_max": "MASTER PROMPT + ITERATIVE LOOP + 3-VERSION RESUME.",
         }
 

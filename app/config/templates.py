@@ -103,7 +103,9 @@ class TemplateConfig:
                 {
                     "template": template_path,
                     "description": info["description"],
-                    "status": f"{status_emoji} {info['status'].replace('_', ' ').title()}",
+                    "status": (
+                        f"{status_emoji} {info['status'].replace('_', ' ').title()}"
+                    ),
                 }
             )
         return data

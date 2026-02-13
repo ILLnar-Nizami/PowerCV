@@ -40,8 +40,7 @@ class TypstGenerator:
             if os.path.exists(local_bin):
                 self.typst_bin = local_bin
             else:
-                logger.warning(
-                    "Typst binary not found. PDF generation will fail.")
+                logger.warning("Typst binary not found. PDF generation will fail.")
 
     def setup_jinja_environment(self) -> None:
         """Set up Jinja2 environment with Typst-friendly delimiters."""
@@ -117,9 +116,11 @@ class TypstGenerator:
             # Render the Typst file with data
             template = self.env.get_template(template_name)
             typst_content = template.render(data=self.json_data)
-            
+
             # Log first 100 bytes of rendered content for debugging
-            logger.info(f"Rendered typst content first 100 bytes: {repr(typst_content[:100])}")
+            logger.info(
+                f"Rendered typst content first 100 bytes: {repr(typst_content[:100])}"
+            )
 
             # Check for invalid characters at start of content
             if typst_content.startswith("###"):
@@ -127,10 +128,10 @@ class TypstGenerator:
                 # Find first newline after header and remove everything before it
                 newline_pos = typst_content.find("\n")
                 if newline_pos != -1:
-                    typst_content = typst_content[newline_pos + 1:].lstrip()
+                    typst_content = typst_content[newline_pos + 1 :].lstrip()
                 else:
                     typst_content = ""
-            
+
             # Add automatic page breaks for very long content
             # typst_content = self._add_page_break_handling(typst_content)
 
@@ -143,8 +144,7 @@ class TypstGenerator:
             cmd = [self.typst_bin, "compile", temp_typ_path, output_path]
             logger.info(f"Running typst: {' '.join(cmd)}")
 
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, check=False)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
             # Cleanup temp file
             if os.path.exists(temp_typ_path):

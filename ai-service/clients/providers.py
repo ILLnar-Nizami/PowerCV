@@ -8,8 +8,9 @@ from typing import Any, Dict, Optional
 import httpx
 from dotenv import load_dotenv
 
+# Load environment variables once at module level
 dotenv_path = Path(__file__).parent.parent.parent / ".env"
-load_dotenv(dotenv_path=str(dotenv_path), override=True)
+load_dotenv(dotenv_path=str(dotenv_path))
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,10 @@ class CerebrasClient(AIClientBase):
         api_base: str = "https://api.cerebras.ai/v1",
         model: str = "gpt-oss-120b",
     ):
-        import os
-
-        api_key = api_key or os.getenv("CEREBRAS_API_KEY")
-        if not api_key:
+        self.api_key = api_key or os.getenv("CEREBRAS_API_KEY")
+        if not self.api_key:
             raise ValueError("CEREBRAS_API_KEY not set")
-        super().__init__(api_key, api_base, model)
+        super().__init__(self.api_key, api_base, model)
 
     async def chat_completion(self, messages: list, **kwargs) -> Dict[str, Any]:
         """Make a chat completion request to Cerebras."""
@@ -68,12 +67,10 @@ class OpenAIClient(AIClientBase):
         api_base: str = "https://api.openai.com/v1",
         model: str = "gpt-4o",
     ):
-        import os
-
-        api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not api_key:
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
             raise ValueError("OPENAI_API_KEY not set")
-        super().__init__(api_key, api_base, model)
+        super().__init__(self.api_key, api_base, model)
 
     async def chat_completion(self, messages: list, **kwargs) -> Dict[str, Any]:
         """Make a chat completion request to OpenAI."""

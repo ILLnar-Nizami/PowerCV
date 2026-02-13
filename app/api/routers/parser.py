@@ -62,5 +62,4 @@ async def parse_file(file: UploadFile = File(...)) -> Dict[str, str]:
             try:
                 os.remove(temp_file_path)
             except Exception as e:
-                logger.warning(
-                    f"Failed to delete temp file {temp_file_path}: {e}")
+                logger.warning(f"Failed to delete temp file {temp_file_path}: {e}")

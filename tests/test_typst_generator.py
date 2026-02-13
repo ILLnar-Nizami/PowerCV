@@ -1,11 +1,11 @@
 """Test Typst PDF generation."""
 
-from app.services.resume.typst_generator import TypstGenerator
-import pytest
-import sys
 import os
-import json
-from pathlib import Path
+import sys
+
+import pytest
+
+from app.services.resume.typst_generator import TypstGenerator
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -25,7 +25,9 @@ def test_typst_pdf_generation():
             "address": "San Francisco, CA",
             "linkedin": "linkedin.com/in/jane",
             "github": "github.com/jane",
-            "profile_description": "Experienced software engineer with a focus on backend systems.",
+            "profile_description": (
+                "Experienced software engineer with a focus on backend systems."
+            ),
             "languages": ["English (Native)", "German (B1)"],
             "skills": {
                 "hard_skills": ["Rust", "Python", "Typst"],

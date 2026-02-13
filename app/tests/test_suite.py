@@ -1,12 +1,13 @@
 """Comprehensive test suite for PowerCV with mocking and integration tests."""
 
-import pytest
 import json
-from pathlib import Path
-from typing import Dict, Any
-from unittest.mock import Mock, patch, AsyncMock
-from fastapi.testclient import TestClient
 import sys
+from pathlib import Path
+from typing import Any, Dict
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -139,14 +140,18 @@ def mock_scraper_response():
         "title": "Senior Python Developer",
         "company": "TechCorp International",
         "location": "Amsterdam, Netherlands",
-        "description": """We are looking for a Senior Python Developer...
+        "description": (
+            """We are looking for a Senior Python Developer...
 
 Requirements:
 - Python experience
 - Django or FastAPI
-- PostgreSQL knowledge""",
+- PostgreSQL knowledge"""
+        ),
         "source": "linkedin",
-        "url": "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456",
+        "url": (
+            "https://www.linkedin.com/jobs/view/senior-python-developer-at-techcorp-123456"
+        ),
     }
 
 
@@ -158,14 +163,18 @@ Requirements:
 def create_mock_ai_client(response: Dict[str, Any]):
     """Create a mock AI client for testing."""
     mock_client = Mock()
-    mock_client.chat_completion = Mock(return_value=json.dumps(response))
+    mock_client.analyze = AsyncMock(return_value=response)
+    mock_client.optimize = AsyncMock(return_value={"optimized_cv": response})
+    mock_client.generate_cover_letter = AsyncMock(return_value=response)
     return mock_client
 
 
 def create_mock_ai_client_async(response: Dict[str, Any]):
     """Create a mock async AI client for testing."""
     mock_client = AsyncMock()
-    mock_client.chat_completion = AsyncMock(return_value=json.dumps(response))
+    mock_client.analyze = AsyncMock(return_value=response)
+    mock_client.optimize = AsyncMock(return_value={"optimized_cv": response})
+    mock_client.generate_cover_letter = AsyncMock(return_value=response)
     return mock_client
 
 
@@ -177,18 +186,19 @@ def create_mock_ai_client_async(response: Dict[str, Any]):
 class TestCVAnalyzer:
     """Tests for CV Analyzer service."""
 
-    def test_analyze_structure(
+    @pytest.mark.asyncio
+    async def test_analyze_structure(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that analyzer returns proper structure."""
-        with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cv_analyzer import CVAnalyzer
 
             analyzer = CVAnalyzer()
-            result = analyzer.analyze(sample_cv_text, sample_jd_text)
+            result = await analyzer.analyze(sample_cv_text, sample_jd_text)
 
             # Verify structure
             assert "ats_score" in result
@@ -196,67 +206,69 @@ class TestCVAnalyzer:
             assert "experience_analysis" in result
             assert "skill_gaps" in result
 
-    def test_ats_score_range(
+    @pytest.mark.asyncio
+    async def test_ats_score_range(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that ATS score is within valid range."""
-        with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cv_analyzer import CVAnalyzer
 
             analyzer = CVAnalyzer()
-            result = analyzer.analyze(sample_cv_text, sample_jd_text)
+            result = await analyzer.analyze(sample_cv_text, sample_jd_text)
 
             assert 0 <= result["ats_score"] <= 100
 
-    def test_keyword_analysis_structure(
+    @pytest.mark.asyncio
+    async def test_keyword_analysis_structure(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test keyword analysis has required fields."""
-        with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cv_analyzer import CVAnalyzer
 
             analyzer = CVAnalyzer()
-            result = analyzer.analyze(sample_cv_text, sample_jd_text)
+            result = await analyzer.analyze(sample_cv_text, sample_jd_text)
 
             keyword_analysis = result.get("keyword_analysis", {})
             assert "matched_keywords" in keyword_analysis
             assert "missing_critical" in keyword_analysis
             assert "missing_nice_to_have" in keyword_analysis
 
-    def test_ai_client_called(
+    @pytest.mark.asyncio
+    async def test_ai_client_called(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that AI client is called with correct parameters."""
-        with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cv_analyzer import CVAnalyzer
 
             analyzer = CVAnalyzer()
-            result = analyzer.analyze(sample_cv_text, sample_jd_text)
+            result = await analyzer.analyze(sample_cv_text, sample_jd_text)
 
             # Verify client was called
-            mock_client.chat_completion.assert_called_once()
+            mock_client.analyze.assert_called_once()
 
             # Verify call parameters
-            call_args = mock_client.chat_completion.call_args
-            assert "system_prompt" in call_args.kwargs
-            assert "user_message" in call_args.kwargs
-            assert sample_cv_text in call_args.kwargs["user_message"]
-            assert sample_jd_text in call_args.kwargs["user_message"]
+            call_args = mock_client.analyze.call_args
+            assert sample_cv_text in call_args.args
+            assert sample_jd_text in call_args.args
 
-    def test_empty_cv_handling(
+    @pytest.mark.asyncio
+    async def test_empty_cv_handling(
         self, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that empty CV is handled gracefully."""
-        with patch("app.services.cv_analyzer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
@@ -266,7 +278,7 @@ class TestCVAnalyzer:
 
             # Should raise ValueError
             with pytest.raises(ValueError):
-                analyzer.analyze("", sample_jd_text)
+                await analyzer.analyze("", sample_jd_text)
 
 
 # =============================================================================
@@ -277,28 +289,30 @@ class TestCVAnalyzer:
 class TestCVOptimizer:
     """Tests for CV Optimizer service."""
 
-    def test_optimizer_returns_dict(
+    @pytest.mark.asyncio
+    async def test_optimizer_returns_dict(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimizer returns dictionary."""
-        with patch("app.services.cv_optimizer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_ai_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cv_optimizer import CVOptimizer
 
             optimizer = CVOptimizer()
-            result = optimizer.optimize_comprehensive(
+            result = await optimizer.optimize_comprehensive(
                 sample_cv_text, sample_jd_text, {}
             )
 
             assert isinstance(result, dict)
 
-    def test_optimization_contains_optimized_resume(
+    @pytest.mark.asyncio
+    async def test_optimization_contains_optimized_resume(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimization result contains optimized resume."""
-        with patch("app.services.cv_optimizer.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(
                 {
                     **mock_ai_response,
@@ -310,7 +324,7 @@ class TestCVOptimizer:
             from app.services.cv_optimizer import CVOptimizer
 
             optimizer = CVOptimizer()
-            result = optimizer.optimize_comprehensive(
+            result = await optimizer.optimize_comprehensive(
                 sample_cv_text, sample_jd_text, {}
             )
 
@@ -412,22 +426,25 @@ class TestJobScraper:
 class TestCoverLetterGenerator:
     """Tests for Cover Letter Generator service."""
 
-    def test_generate_returns_dict(self, mock_ai_response: Dict[str, Any]):
+    @pytest.mark.asyncio
+    async def test_generate_returns_dict(self, mock_ai_response: Dict[str, Any]):
         """Test that cover letter generator returns dictionary."""
         mock_cover_response = {
-            "cover_letter": "Dear Hiring Manager,\n\nI am writing to express my interest...",
+            "cover_letter": (
+                "Dear Hiring Manager,\n\nI am writing to express my interest..."
+            ),
             "word_count": 250,
             "tone": "Professional",
         }
 
-        with patch("app.services.cover_letter_gen.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_cover_response)
             mock_get_client.return_value = mock_client
 
             from app.services.cover_letter_gen import CoverLetterGenerator
 
             generator = CoverLetterGenerator()
-
+            # ... candidate_data and job_data ...
             candidate_data = {
                 "name": "John Doe",
                 "current_title": "Software Engineer",
@@ -444,12 +461,13 @@ class TestCoverLetterGenerator:
                 "requirements": ["Python", "Django"],
             }
 
-            result = generator.generate(candidate_data, job_data)
+            result = await generator.generate(candidate_data, job_data)
 
             assert isinstance(result, dict)
             assert "cover_letter" in result
 
-    def test_generate_with_tone(self, mock_ai_response: Dict[str, Any]):
+    @pytest.mark.asyncio
+    async def test_generate_with_tone(self, mock_ai_response: Dict[str, Any]):
         """Test cover letter generation with different tones."""
         mock_cover_response = {
             "cover_letter": "Excited to apply for this position...",
@@ -457,7 +475,7 @@ class TestCoverLetterGenerator:
             "tone_matched": True,
         }
 
-        with patch("app.services.cover_letter_gen.get_ai_client") as mock_get_client:
+        with patch("app.services.ai_client.get_ai_client") as mock_get_client:
             mock_client = create_mock_ai_client(mock_cover_response)
             mock_get_client.return_value = mock_client
 
@@ -470,7 +488,7 @@ class TestCoverLetterGenerator:
 
             # Test with different tones
             for tone in ["Professional", "Enthusiastic", "Formal"]:
-                result = generator.generate(candidate_data, job_data, tone=tone)
+                result = await generator.generate(candidate_data, job_data, tone=tone)
                 assert "cover_letter" in result
 
 
@@ -482,25 +500,29 @@ class TestCoverLetterGenerator:
 class TestWorkflowOrchestrator:
     """Tests for CV Workflow Orchestrator."""
 
-    def test_optimize_workflow_returns_structure(
+    @pytest.mark.asyncio
+    async def test_optimize_workflow_returns_structure(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test that optimization workflow returns complete structure."""
         # Mock all dependencies
-        with patch(
-            "app.services.workflow_orchestrator.CVAnalyzer"
-        ) as MockAnalyzer, patch(
-            "app.services.workflow_orchestrator.CVOptimizer"
-        ) as MockOptimizer, patch(
-            "app.services.workflow_orchestrator.CoverLetterGenerator"
-        ) as MockGen:
+        with (
+            patch("app.services.workflow_orchestrator.get_redis") as MockGetRedis,
+            patch("app.services.workflow_orchestrator.CVAnalyzer") as MockAnalyzer,
+            patch("app.services.workflow_orchestrator.CVOptimizer") as MockOptimizer,
+            patch("app.services.workflow_orchestrator.CoverLetterGenerator") as MockGen,
+        ):
+
+            mock_redis = AsyncMock()
+            mock_redis.get.return_value = None
+            MockGetRedis.return_value = mock_redis
 
             mock_analyzer = Mock()
-            mock_analyzer.analyze = Mock(return_value=mock_ai_response)
+            mock_analyzer.analyze = AsyncMock(return_value=mock_ai_response)
             MockAnalyzer.return_value = mock_analyzer
 
             mock_optimizer = Mock()
-            mock_optimizer.optimize_comprehensive = Mock(
+            mock_optimizer.optimize_comprehensive = AsyncMock(
                 return_value={
                     "optimized_resume": "Optimized content",
                     "improvements_made": ["Added keywords", "Improved formatting"],
@@ -509,7 +531,7 @@ class TestWorkflowOrchestrator:
             MockOptimizer.return_value = mock_optimizer
 
             mock_gen = Mock()
-            mock_gen.generate = Mock(
+            mock_gen.generate = AsyncMock(
                 return_value={
                     "cover_letter": "Generated cover letter",
                     "word_count": 250,
@@ -521,7 +543,7 @@ class TestWorkflowOrchestrator:
 
             orchestrator = CVWorkflowOrchestrator()
 
-            result = orchestrator.optimize_cv_for_job(
+            result = await orchestrator.optimize_cv_for_job(
                 cv_text=sample_cv_text,
                 jd_text=sample_jd_text,
                 generate_cover_letter=True,
@@ -533,22 +555,27 @@ class TestWorkflowOrchestrator:
             assert "cover_letter" in result
             assert "ats_score" in result
 
-    def test_optimize_workflow_without_cover_letter(
+    @pytest.mark.asyncio
+    async def test_optimize_workflow_without_cover_letter(
         self, sample_cv_text: str, sample_jd_text: str, mock_ai_response: Dict[str, Any]
     ):
         """Test workflow without cover letter generation."""
-        with patch(
-            "app.services.workflow_orchestrator.CVAnalyzer"
-        ) as MockAnalyzer, patch(
-            "app.services.workflow_orchestrator.CVOptimizer"
-        ) as MockOptimizer:
+        with (
+            patch("app.services.workflow_orchestrator.get_redis") as MockGetRedis,
+            patch("app.services.workflow_orchestrator.CVAnalyzer") as MockAnalyzer,
+            patch("app.services.workflow_orchestrator.CVOptimizer") as MockOptimizer,
+        ):
+
+            mock_redis = AsyncMock()
+            mock_redis.get.return_value = None
+            MockGetRedis.return_value = mock_redis
 
             mock_analyzer = Mock()
-            mock_analyzer.analyze = Mock(return_value=mock_ai_response)
+            mock_analyzer.analyze = AsyncMock(return_value=mock_ai_response)
             MockAnalyzer.return_value = mock_analyzer
 
             mock_optimizer = Mock()
-            mock_optimizer.optimize_comprehensive = Mock(
+            mock_optimizer.optimize_comprehensive = AsyncMock(
                 return_value={"optimized_resume": "Optimized content"}
             )
             MockOptimizer.return_value = mock_optimizer
@@ -557,7 +584,7 @@ class TestWorkflowOrchestrator:
 
             orchestrator = CVWorkflowOrchestrator()
 
-            result = orchestrator.optimize_cv_for_job(
+            result = await orchestrator.optimize_cv_for_job(
                 cv_text=sample_cv_text,
                 jd_text=sample_jd_text,
                 generate_cover_letter=False,

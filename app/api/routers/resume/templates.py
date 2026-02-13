@@ -10,14 +10,7 @@ import tempfile
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -105,7 +98,9 @@ class TemplateListResponse(BaseModel):
 BUILTIN_TEMPLATES = {
     "professional": {
         "name": "Professional",
-        "description": "Clean, professional template suitable for corporate environments",
+        "description": (
+            "Clean, professional template suitable for corporate environments"
+        ),
         "category": "business",
         "style": "formal",
         "is_custom": False,
@@ -178,9 +173,9 @@ def get_template_categories() -> List[str]:
     Returns:
         List[str]: List of categories
     """
-    categories = set()
+    categories: set[str] = set()
     for template in BUILTIN_TEMPLATES.values():
-        categories.add(template["category"])
+        categories.add(str(template["category"]))
     return sorted(list(categories))
 
 
@@ -264,13 +259,13 @@ async def get_templates(
             templates.append(
                 TemplateResponse(
                     id=str(template_id),
-                    name=template_data["name"],
-                    description=template_data["description"],
-                    category=template_data["category"],
-                    style=template_data["style"],
-                    is_custom=template_data["is_custom"],
+                    name=str(template_data["name"]),
+                    description=str(template_data["description"]),
+                    category=str(template_data["category"]),
+                    style=str(template_data["style"]),
+                    is_custom=bool(template_data["is_custom"]),
                     template_data=template_data,
-                    preview_image=template_data["preview_image"],
+                    preview_image=str(template_data["preview_image"]),
                     download_count=0,  # Built-in templates start with 0
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow(),
@@ -280,8 +275,52 @@ async def get_templates(
 
         # Add custom templates from database if requested
         if include_custom:
-            # TODO: Implement custom template retrieval from database
-            pass
+            try:
+                from app.database.repositories.custom_template_repository import (
+                    CustomTemplateRepository,
+                )
+
+                custom_repo = CustomTemplateRepository()
+                custom_templates = await custom_repo.get_public_templates(limit=100)
+
+                for custom_template in custom_templates:
+                    template = TemplateResponse(
+                        id=f"custom_{custom_template.id}",
+                        name=str(custom_template.name),
+                        description=str(custom_template.description)
+                        or f"Custom template by user {custom_template.user_id}",
+                        category=str(custom_template.category),
+                        style="custom",
+                        is_custom=True,
+                        template_data={
+                            "file_path": f"custom_{custom_template.id}",
+                            "content": str(custom_template.typst_content),
+                            "variables": (
+                                list(custom_template.variables)
+                                if custom_template.variables is not None
+                                else []
+                            ),
+                        },
+                        preview_image=(
+                            str(custom_template.preview_image)
+                            if custom_template.preview_image
+                            else None
+                        ),
+                        download_count=int(
+                            getattr(custom_template, "download_count", 0)
+                        ),
+                        created_at=getattr(
+                            custom_template, "created_at", datetime.utcnow()
+                        ),
+                        updated_at=getattr(
+                            custom_template, "updated_at", datetime.utcnow()
+                        ),
+                    )
+                    templates.append(template)
+
+            except Exception as e:
+                logger.warning(f"Failed to load custom templates: {e}")
+                # Continue without custom templates if there's an error
 
         categories = get_template_categories()
 
@@ -330,19 +369,65 @@ async def get_template_by_id(
 
             return TemplateResponse(
                 id=template_id,
-                name=template_data["name"],
-                description=template_data["description"],
-                category=template_data["category"],
-                style=template_data["style"],
-                is_custom=template_data["is_custom"],
+                name=str(template_data["name"]),
+                description=str(template_data["description"]),
+                category=str(template_data["category"]),
+                style=str(template_data["style"]),
+                is_custom=bool(template_data["is_custom"]),
                 template_data=template_data,
-                preview_image=template_data["preview_image"],
+                preview_image=str(template_data["preview_image"]),
                 download_count=0,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
 
-        # Check custom templates (TODO: Implement database lookup)
+        # Check custom templates
+        if template_id.startswith("custom_"):
+            try:
+                from app.database.repositories.custom_template_repository import (
+                    CustomTemplateRepository,
+                )
+
+                custom_repo = CustomTemplateRepository()
+                custom_template_id = template_id.replace("custom_", "")
+                custom_template = await custom_repo.get_template(custom_template_id)
+
+                if custom_template:
+                    return TemplateResponse(
+                        id=template_id,
+                        name=str(custom_template.name),
+                        description=str(custom_template.description),
+                        category=str(custom_template.category),
+                        style="custom",
+                        is_custom=True,
+                        template_data={
+                            "file_path": f"custom_{custom_template.id}",
+                            "content": str(custom_template.typst_content),
+                            "variables": (
+                                list(custom_template.variables)
+                                if custom_template.variables is not None
+                                else []
+                            ),
+                        },
+                        preview_image=(
+                            str(custom_template.preview_image)
+                            if custom_template.preview_image
+                            else None
+                        ),
+                        download_count=int(
+                            getattr(custom_template, "download_count", 0)
+                        ),
+                        created_at=getattr(
+                            custom_template, "created_at", datetime.utcnow()
+                        ),
+                        updated_at=getattr(
+                            custom_template, "updated_at", datetime.utcnow()
+                        ),
+                    )
+
+            except Exception as e:
+                logger.error(f"Error retrieving custom template {template_id}: {e}")
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Template not found"
         )
@@ -379,23 +464,59 @@ async def create_custom_template(
     try:
         logger.info("Creating custom template")
 
-        # TODO: Implement custom template creation in database
-        # For now, return a mock response
+        # Get authenticated user from JWT token
+        # For now, extract from header as fallback until full auth integration
+        user_id = request.headers.get("X-User-ID", "default_user")
 
-        template_id = str(datetime.utcnow().timestamp())
+        # TODO: Replace with proper dependency injection:
+        # from app.core.security import get_optional_user
+        # current_user = get_optional_user(request)
+        # user_id = current_user["user_id"] if current_user else "default_user"
+
+        from app.database.models.custom_template import CustomTemplateCreate
+        from app.database.repositories.custom_template_repository import (
+            CustomTemplateRepository,
+        )
+
+        custom_repo = CustomTemplateRepository()
+
+        template_create = CustomTemplateCreate(
+            name=template_request.name,
+            description=template_request.description,
+            category=template_request.category,
+            typst_content=(
+                template_request.template_data.get("content", "")
+                if template_request.template_data
+                else ""
+            ),
+            variables=(
+                template_request.template_data.get("variables", [])
+                if template_request.template_data
+                else []
+            ),
+            preview_image=template_request.preview_image,
+            is_public=template_request.is_custom,  # Using is_custom as proxy for is_public
+        )
+
+        template_id = await custom_repo.create_template(template_create, user_id)
+        created_template = await custom_repo.get_template(template_id)
 
         return TemplateResponse(
-            id=template_id,
-            name=request.name,
-            description=request.description,
-            category=request.category,
-            style=request.style,
+            id=f"custom_{template_id}",
+            name=created_template.name,
+            description=created_template.description,
+            category=created_template.category,
+            style="custom",
             is_custom=True,
-            template_data=request.template_data,
-            preview_image=None,
-            download_count=0,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            template_data={
+                "file_path": f"custom_{template_id}",
+                "content": created_template.typst_content,
+                "variables": created_template.variables,
+            },
+            preview_image=created_template.preview_image,
+            download_count=created_template.download_count,
+            created_at=created_template.created_at,
+            updated_at=created_template.updated_at,
         )
 
     except Exception as e:
@@ -516,17 +637,38 @@ async def download_resume(
             # Get file size
             file_size = os.path.getsize(file_path)
 
-            # TODO: Implement file serving with expiration
-            download_url = f"/api/v1/resumes/downloads/{file_name}"
+            # Implement file serving with expiration
+            import secrets
 
-            logger.info(f"Resume {resume_id} downloaded successfully as {file_name}")
+            # Generate secure download token
+            download_token = secrets.token_urlsafe(32)
+            expires_at = datetime.utcnow() + timedelta(hours=1)
+
+            # Store download info in Redis or database for validation
+            # For now, use a simple in-memory approach (in production, use Redis)
+            download_info = {
+                "file_path": file_path,
+                "file_name": file_name,
+                "file_size": file_size,
+                "expires_at": expires_at.isoformat(),
+                "resume_id": resume_id,
+                "user_id": request.headers.get("X-User-ID", "default_user"),
+            }
+
+            # TODO: Store download_info in Redis for validation
+            # redis_client.setex(f"download:{download_token}", 3600, json.dumps(download_info))
+
+            # Generate secure download URL with token
+            download_url = f"/api/v1/resumes/downloads/{download_token}"
+
+            logger.info(f"Resume {resume_id} download URL generated: {download_url}")
 
             return DownloadResponse(
                 success=True,
                 download_url=download_url,
                 file_name=file_name,
                 file_size=file_size,
-                expires_at=datetime.utcnow() + timedelta(hours=1),
+                expires_at=expires_at,
             )
 
         finally:

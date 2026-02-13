@@ -79,9 +79,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+        # Add your production domains here when deployed
+        # "https://yourdomain.com",
+        # "https://app.yourdomain.com",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -118,8 +126,8 @@ async def analyze_cv(request: AnalysisRequest):
 async def optimize_cv(request: OptimizationRequest):
     """Optimize CV for a job description."""
     try:
-        from .optimizers.cv import CVOptimizer
         from .analyzers.cv import CVAnalyzer
+        from .optimizers.cv import CVOptimizer
 
         optimizer = CVOptimizer()
         analyzer = CVAnalyzer()
@@ -173,7 +181,7 @@ async def generate_cover_letter(request: CoverLetterRequest):
 
 
 def _dict_to_text(cv_dict: dict) -> str:
-    """Convert optimized CV dict back to text."""
+    """Convert optimized CV dict back to text with comprehensive field handling."""
     lines = []
 
     ui = cv_dict.get("user_information", {})
@@ -196,7 +204,8 @@ def _dict_to_text(cv_dict: dict) -> str:
         if isinstance(skills_data, dict):
             hard_skills = skills_data.get("hard_skills", [])
             soft_skills = skills_data.get("soft_skills", [])
-            all_skills = hard_skills + soft_skills
+            technical_skills = skills_data.get("technical_skills", [])
+            all_skills = hard_skills + soft_skills + technical_skills
             if all_skills:
                 lines.append(", ".join(all_skills))
         elif isinstance(skills_data, list):
@@ -209,8 +218,18 @@ def _dict_to_text(cv_dict: dict) -> str:
         for exp in experiences:
             title = exp.get("job_title", "")
             company = exp.get("company", "")
-            lines.append(f"{title} | {company}")
-            tasks = exp.get("four_tasks", []) or exp.get("tasks", [])
+            dates = ""
+            if exp.get("start_date") and exp.get("end_date"):
+                dates = f" | {exp.get('start_date')} - {exp.get('end_date')}"
+            elif exp.get("start_date"):
+                dates = f" | {exp.get('start_date')} - Present"
+            lines.append(f"{title} | {company}{dates}")
+            
+            # Add location if available
+            if exp.get("location"):
+                lines.append(f"Location: {exp.get('location')}")
+                
+            tasks = exp.get("four_tasks", []) or exp.get("tasks", []) or exp.get("achievements", [])
             if isinstance(tasks, list):
                 for task in tasks:
                     if task:
@@ -223,7 +242,77 @@ def _dict_to_text(cv_dict: dict) -> str:
         for edu in education:
             degree = edu.get("degree", "")
             institution = edu.get("institution", "")
-            lines.append(f"{degree} | {institution}")
+            dates = ""
+            if edu.get("start_date") and edu.get("end_date"):
+                dates = f" | {edu.get('start_date')} - {edu.get('end_date')}"
+            elif edu.get("start_date"):
+                dates = f" | {edu.get('start_date')} - Present"
+            lines.append(f"{degree} | {institution}{dates}")
+            
+            # Add location if available
+            if edu.get("location"):
+                lines.append(f"Location: {edu.get('location')}")
         lines.append("")
+
+    # Handle projects section
+    projects = cv_dict.get("projects", [])
+    if projects:
+        lines.append("PROJECTS")
+        for project in projects:
+            name = project.get("name", "")
+            description = project.get("description", "")
+            tech_stack = project.get("technologies", []) or project.get("tech_stack", [])
+            lines.append(f"{name}")
+            if description:
+                lines.append(f"Description: {description}")
+            if tech_stack:
+                lines.append(f"Technologies: {', '.join(tech_stack)}")
+            lines.append("")
+
+    # Handle certifications section
+    certifications = cv_dict.get("certifications", [])
+    if certifications:
+        lines.append("CERTIFICATIONS")
+        for cert in certifications:
+            name = cert.get("name", "")
+            issuer = cert.get("issuer", "")
+            date = cert.get("date", "")
+            lines.append(f"{name} | {issuer}")
+            if date:
+                lines.append(f"Date: {date}")
+            lines.append("")
+
+    # Handle languages section
+    languages = ui.get("languages", [])
+    if languages:
+        lines.append("LANGUAGES")
+        if isinstance(languages, list):
+            for lang in languages:
+                if isinstance(lang, dict):
+                    name = lang.get("name", "")
+                    proficiency = lang.get("proficiency", "")
+                    lines.append(f"{name} - {proficiency}")
+                else:
+                    lines.append(str(lang))
+        elif isinstance(languages, str):
+            lines.append(languages)
+        lines.append("")
+
+    # Handle additional sections
+    for section_name, section_data in cv_dict.items():
+        if section_name not in ["user_information", "projects", "certifications"] and section_data:
+            lines.append(section_name.upper())
+            if isinstance(section_data, list):
+                for item in section_data:
+                    if isinstance(item, dict):
+                        # Handle dict items
+                        for key, value in item.items():
+                            if value:
+                                lines.append(f"{key.replace('_', ' ').title()}: {value}")
+                    else:
+                        lines.append(str(item))
+            elif isinstance(section_data, str):
+                lines.append(section_data)
+            lines.append("")
 
     return "\n".join(lines)

@@ -1,15 +1,15 @@
 """Test enhanced error handling and debugging capabilities."""
 
+from unittest.mock import patch
+
 import pytest
-import json
-from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+
 from app.utils.error_handler import (
+    ConfigurationError,
     DetailedError,
+    ErrorContext,
     ErrorHandler,
     ValidationError,
-    ConfigurationError,
-    ErrorContext,
     create_error_response,
 )
 from app.utils.validation import ValidationHelper

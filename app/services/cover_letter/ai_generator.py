@@ -4,7 +4,7 @@ from typing import Optional
 
 from openai import OpenAI
 
-from app.config.unified_settings import Settings as UnifiedSettings
+from app.config import get_settings
 from app.services.llm.prompts.cover_letter_prompts import (
     COVER_LETTER_PROMPT,
     COVER_LETTER_SYSTEM_PROMPT,
@@ -20,11 +20,11 @@ class AICoverLetterGenerator:
         Args:
             model_name: Name of the CerebrasAI model to use (defaults to quality_model from env)
         """
-        unified_settings = UnifiedSettings()
-        self.model_name = model_name or unified_settings.quality_model
+        settings = get_settings()
+        self.model_name = model_name or settings.quality_model
         self.client = OpenAI(
-            base_url=unified_settings.cerebras_api_base,
-            api_key=unified_settings.cerebras_api_key,
+            base_url=settings.cerebras_api_base,
+            api_key=settings.cerebras_api_key,
         )
 
     async def generate_cover_letter(

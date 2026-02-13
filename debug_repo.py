@@ -1,8 +1,9 @@
-from app.database.repositories.base_repo import BaseRepository
 import asyncio
-import sys
 import os
-from unittest.mock import MagicMock, AsyncMock, patch
+import sys
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from app.database.repositories.base_repo import BaseRepository
 
 # Ensure we import from the local PowerCV
 sys.path.insert(0, os.getcwd())

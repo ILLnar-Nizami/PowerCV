@@ -10,7 +10,7 @@ globs:
 alwaysApply: true
 ---
 
-# PowerCV Engineering Agent v3.1
+# PowerCV Engineering Agent v3.2
 
 You are an elite specialist for https://github.com/ILLnar-Nizami/PowerCV (dev@cf5d9a46).
 
@@ -18,12 +18,14 @@ You are an elite specialist for https://github.com/ILLnar-Nizami/PowerCV (dev@cf
 AI CV optimizer: parse PDF/DOCX/JSON→150+ fields (87% baseline), tailor to jobs/ATS (98% via Groq/OpenAI), export JSON/HTML/PDF, multilingual EN/NL/RU, GDPR/bias-free.
 
 ## Architecture (Exact Repo)
-- **Backend**: FastAPI async in app/api/v1/ (cv/parse/tailor/jobs), Pydantic app/schemas/, Poetry pyproject.toml, Alembic data/migrations/
+- **Backend**: FastAPI async in app/api/routers/ (comprehensive_optimizer/parser/cover_letter), Pydantic app/schemas/, Poetry pyproject.toml, Alembic data/migrations/
 - **Frontend**: React/Vite/Tailwind in frontend/src/ (TailorForm/CVPreviewer/JobMatcher), TypeScript strict
-- **Orchestration**: Docker compose (app/postgres/redis/n8n), .github/workflows CI
-- **AI/ML**: app/core/ai/ prompts, data/examples/, cv_example.py prototypes
+- **Orchestration**: Docker compose (app/postgres/redis/mongodb/n8n), .github/workflows CI
+- **AI/ML**: app/services/ai/ (comprehensive_optimizer/workflow_orchestrator), data/examples/, cv_example.py prototypes
+- **Caching**: Redis (app/config/redis.py) for AI responses and workflow results, TTL 3600s, >60% hit rate target
+- **Databases**: MongoDB (primary) + PostgreSQL (dual-write for structured queries), app/database/connector.py
 - **Testing**: tests/ (unit/integration), pytest 90%+ coverage gate
-- **Scripts**: run.sh (main entry), commit_review_fixes.sh (auto-format+PR), migration_status.sh (DB health)
+- **Scripts**: run.sh (main entry), commit_review_fixes.sh (auto-format+PR), migration_status.sh (DB health), benchmark_databases.py
 - **Docs**: mkdocs.yml, CHANGELOG.md (semantic versioning)
 
 ## Mission
@@ -47,10 +49,14 @@ docker-compose ps                          # Service health
 ```
 
 Priority files:
-- app/core/ai/*.py → Version in data/prompts/, Redis cache TTL 3600s
-- app/api/v1/*.py → OpenAPI examples, rate limit 10/min, async only
+- app/services/ai/*.py → Version in data/prompts/, Redis cache TTL 3600s via app/config/redis.py
+- app/services/workflow_orchestrator.py → Redis caching for workflow results, cache key from cv_text+jd_text hash
+- app/services/ai_providers.py → Redis caching for AI responses, cost tracking, fallback models
+- app/api/routers/*.py → OpenAPI examples, rate limit 10/min, async only
+- app/config/redis.py → Redis connection management, use get_redis() singleton pattern
+- app/database/connector.py → MongoDB + PostgreSQL dual-write support
 - frontend/src/*.tsx → TypeScript strict, Tailwind only, WCAG 2.2 AA
-- docker-compose.yml → Pin versions, healthchecks, preserve volumes
+- docker-compose.yml → Pin versions, healthchecks, preserve volumes, includes postgres/redis/mongodb
 - scripts/run.sh → Idempotent, log to logs/
 
 ## 2. Backend Pattern (Python 3.11+)
@@ -74,7 +80,7 @@ async def tailor_cv(
     return result
 ```
 
-**Rules**: Async-first, Pydantic v2, structlog JSON, aioredis caching, Alembic migrations only
+**Rules**: Async-first, Pydantic v2, structlog JSON, Redis caching (app/config/redis.py), Alembic migrations only, dual-write MongoDB+PostgreSQL
 
 ## 3. Frontend Pattern (React 18 + TS)
 ```typescript
@@ -139,8 +145,10 @@ NEXT: ./run.sh test && ./scripts/commit_review_fixes.sh "feat: description"
 ---
 
 # Constraints
-❌ **NEVER**: Direct DB (Alembic only) | Deps >50MB | Prod deploys | Blocking I/O | Raw SQL
-✅ **ALWAYS**: Async <500ms | Redis cache >60% hit | OWASP | ATS 98% | Multilingual tests | WCAG 2.2 AA
+❌ **NEVER**: Direct DB (Alembic only) | Deps >50MB | Prod deploys | Blocking I/O | Raw SQL (use SQLAlchemy)
+✅ **ALWAYS**: Async <500ms | Redis cache >60% hit (use app/config/redis.py) | OWASP | ATS 98% | Multilingual tests | WCAG 2.2 AA
+✅ **CACHING**: Use Redis for AI responses (ai_providers.py) and workflow results (workflow_orchestrator.py), TTL 3600s
+✅ **DATABASES**: Dual-write MongoDB (primary) + PostgreSQL (structured queries), use app/database/connector.py
 
 # File Naming Convention (Critical)
 **PDF Export Naming Scheme:**
@@ -183,5 +191,22 @@ def generate_filename(
 
 # Priorities
 1. cv_example.py → app/services/ production
-2. API latency p95 <500ms
+2. API latency p95 <500ms (use Redis caching for >60% hit rate)
 3. Parse 90%+ accuracy, ATS 98% compatibility
+4. Maintain Redis cache hit rate >60% for AI responses and workflow results
+5. PostgreSQL dual-write for structured queries and analytics
+
+# Performance Optimizations (v3.2)
+- **Redis Caching**: Implemented in app/config/redis.py, used by:
+  - app/services/workflow_orchestrator.py (workflow results caching)
+  - app/services/ai_providers.py (AI response caching)
+  - Cache keys: MD5 hash of inputs (cv_text+jd_text for workflows, prompt+message for AI)
+  - TTL: 3600s (1 hour)
+  - Target hit rate: >60%
+- **PostgreSQL Support**: Dual-write alongside MongoDB for structured queries
+  - Connection: app/database/connector.py
+  - Migration: scripts/migrate_to_postgres.py
+  - Benchmark: scripts/benchmark_databases.py
+- **Cost Tracking**: AIProviderClient tracks token usage and costs
+  - Endpoint: /api/comprehensive/cost-tracking
+  - Monitoring: scripts/monitor_performance.py

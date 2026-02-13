@@ -5,13 +5,12 @@ passlib[bcrypt]
 fastapi[standard]
 uvicorn[standard]
 motor==3.6.0
-redis==4.5.5
+redis>=5.0.0
 charset-normalizer==3.3.2
 setuptools
 python-multipart
 authlib
 itsdangerous
-asyncio
 httpx>=0.25.0
 websockets
 slowapi
@@ -19,22 +18,14 @@ pandas
 fastapi-sso
 asgiref
 pymongo
-ruff
 jinja2
 pyjwt
 markdown
-pytesseract
-pdf2image
-opencv-python
-psutil
 pypdf
 openai
 langchain-community
 langchain
 langchain-openai
-PyPDF2
-scikit-learn
-sentence-transformers
 tiktoken
 mkdocs
 mkdocs-material
@@ -66,3 +57,14 @@ click>=8.0.0
 
 # File validation
 python-magic>=0.4.0
+asyncpg>=0.29.0
+
+# OCR and PDF processing (actively used)
+pytesseract
+pdf2image
+
+# New: MarkItDown for modern document parsing (from Resume Matcher)
+markitdown>=0.1.0
+
+# New: Playwright for WYSIWYG PDF generation
+playwright>=1.40.0

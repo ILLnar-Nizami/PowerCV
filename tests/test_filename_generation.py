@@ -1,12 +1,9 @@
 """Test filename generation functionality."""
 
-import pytest
 import re
-from datetime import datetime
 import unittest.mock
+from datetime import datetime
 from unittest.mock import MagicMock
-from app.api.routers.resume.templates import download_resume
-from app.api.routers.cover_letter import download_cover_letter_pdf
 
 
 def test_resume_filename_generation():
@@ -31,7 +28,6 @@ def test_resume_filename_generation():
 
     # Test filename generation
     # This would normally be tested through the actual endpoint, but we can test the logic
-    from app.api.routers.resume.templates import download_resume
 
     # Extract the filename generation logic from the endpoint
     # (In a real test, we would call the endpoint and check the response headers)
@@ -67,8 +63,8 @@ def test_resume_filename_generation_from_settings():
         date_str = datetime.now().strftime("%d.%m.%y")
 
         from app.services.export import generate_filename
-        filename = generate_filename(
-            "cv", first_name, last_name, company, role)
+
+        filename = generate_filename("cv", first_name, last_name, company, role)
 
         expected = f"cv_i.nizametdinov_test-company_software_engineer_{date_str}.pdf"
         assert filename == expected

@@ -23,14 +23,13 @@ python-jose = {extras = ["cryptography"], version = "*"}
 passlib = {extras = ["bcrypt"], version = "*"}
 fastapi = {extras = ["standard"], version = "*"}
 uvicorn = {extras = ["standard"], version = "*"}
-motor = "3.6.0"
-redis = "4.5.5"
+motor = ">=3.6.0"
+redis = ">=5.0.0"
 charset-normalizer = "3.3.2"
 setuptools = "*"
 python-multipart = "*"
 authlib = "*"
 itsdangerous = "*"
-asyncio = "*"
 httpx = ">=0.25.0"
 websockets = "*"
 slowapi = "*"
@@ -42,7 +41,6 @@ pyjwt = "*"
 markdown = "*"
 psutil = "*"
 pypdf = "*"
-PyPDF2 = "*"
 tiktoken = "*"
 mkdocs = "*"
 mkdocs-material = "*"
@@ -57,6 +55,7 @@ pytest = ">=7.0.0"
 pytest-asyncio = ">=0.21.0"
 pytest-cov = ">=4.0.0"
 python-magic = ">=0.4.0"
+pypdf2 = "^3.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -110,6 +109,30 @@ convention = "google"
 
 [tool.ruff.lint.isort]
 known-third-party = ["fastapi", "pydantic", "sqlalchemy"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_third_party = ["fastapi", "pydantic", "sqlalchemy"]
 
 [tool.semantic_release]
 version_variable = ["pyproject.toml:version"]

@@ -1,115 +1,117 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { resumesAPI } from '@/api/resumes'
-import { DashboardFilters } from '@/types/resume'
-import { toast } from 'sonner'
+import { resumesAPI } from "@/api/resumes";
+import type { DashboardFilters } from "@/types/resume";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function useResumes(filters: DashboardFilters, search?: string) {
-  return useQuery({
-    queryKey: ['resumes', filters, search],
-    queryFn: () => resumesAPI.getResumes({ ...filters, search }),
-  })
+	return useQuery({
+		queryKey: ["resumes", filters, search],
+		queryFn: () => resumesAPI.getResumes({ ...filters, search }),
+	});
 }
 
 export function useResume(id: string) {
-  return useQuery({
-    queryKey: ['resume', id],
-    queryFn: () => resumesAPI.getResume(id),
-    enabled: !!id,
-  })
+	return useQuery({
+		queryKey: ["resume", id],
+		queryFn: () => resumesAPI.getResume(id),
+		enabled: !!id,
+	});
 }
 
 export function useUpdateResumeStatus() {
-  const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      resumesAPI.updateStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resumes'] })
-      toast.success('Resume status updated')
-    },
-    onError: () => {
-      toast.error('Failed to update resume status')
-    },
-  })
+	return useMutation({
+		mutationFn: ({ id, status }: { id: string; status: string }) =>
+			resumesAPI.updateStatus(id, status),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["resumes"] });
+			toast.success("Resume status updated");
+		},
+		onError: () => {
+			toast.error("Failed to update resume status");
+		},
+	});
 }
 
 export function useDeleteResume() {
-  const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (id: string) => resumesAPI.deleteResume(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resumes'] })
-      toast.success('Resume deleted successfully')
-    },
-    onError: () => {
-      toast.error('Failed to delete resume')
-    },
-  })
+	return useMutation({
+		mutationFn: (id: string) => resumesAPI.deleteResume(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["resumes"] });
+			toast.success("Resume deleted successfully");
+		},
+		onError: () => {
+			toast.error("Failed to delete resume");
+		},
+	});
 }
 
 export function useDownloadResume() {
-  return useMutation({
-    mutationFn: (id: string) => resumesAPI.downloadResume(id),
-    onSuccess: (response, id) => {
-      const blob = response.data
-      const contentDisposition = response.headers['content-disposition']
-      let filename = `resume_optimized_${id}.pdf`
-      
-      if (contentDisposition) {
-        const customFilename = contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
-        if (customFilename) {
-          filename = customFilename
-        }
-      }
+	return useMutation({
+		mutationFn: (id: string) => resumesAPI.downloadResume(id),
+		onSuccess: (response, id) => {
+			const blob = response.data;
+			const contentDisposition = response.headers["content-disposition"];
+			let filename = `resume_optimized_${id}.pdf`;
 
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      a.click()
-      window.URL.revokeObjectURL(url)
-      toast.success('Optimized resume downloaded successfully')
-    },
-    onError: () => {
-      toast.error('Failed to download optimized resume')
-    },
-  })
+			if (contentDisposition) {
+				const customFilename = contentDisposition
+					.split("filename=")[1]
+					?.replace(/['"]/g, "");
+				if (customFilename) {
+					filename = customFilename;
+				}
+			}
+
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = filename;
+			a.click();
+			window.URL.revokeObjectURL(url);
+			toast.success("Optimized resume downloaded successfully");
+		},
+		onError: () => {
+			toast.error("Failed to download optimized resume");
+		},
+	});
 }
 
 export function useDownloadOriginalResume() {
-  return useMutation({
-    mutationFn: (id: string) => resumesAPI.downloadOriginalResume(id),
-    onSuccess: (blob, id) => {
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `resume_original_${id}`
-      a.click()
-      window.URL.revokeObjectURL(url)
-      toast.success('Original resume downloaded successfully')
-    },
-    onError: () => {
-      toast.error('Failed to download original resume')
-    },
-  })
+	return useMutation({
+		mutationFn: (id: string) => resumesAPI.downloadOriginalResume(id),
+		onSuccess: (blob, id) => {
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `resume_original_${id}`;
+			a.click();
+			window.URL.revokeObjectURL(url);
+			toast.success("Original resume downloaded successfully");
+		},
+		onError: () => {
+			toast.error("Failed to download original resume");
+		},
+	});
 }
 
 export function useDownloadCoverLetter() {
-  return useMutation({
-    mutationFn: (id: string) => resumesAPI.downloadCoverLetter(id),
-    onSuccess: (blob, id) => {
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `cover_letter_${id}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
-      toast.success('Cover letter downloaded successfully')
-    },
-    onError: () => {
-      toast.error('Failed to download cover letter')
-    },
-  })
+	return useMutation({
+		mutationFn: (id: string) => resumesAPI.downloadCoverLetter(id),
+		onSuccess: (blob, id) => {
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `cover_letter_${id}.pdf`;
+			a.click();
+			window.URL.revokeObjectURL(url);
+			toast.success("Cover letter downloaded successfully");
+		},
+		onError: () => {
+			toast.error("Failed to download cover letter");
+		},
+	});
 }

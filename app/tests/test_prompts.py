@@ -3,9 +3,9 @@
 
 import json
 import time
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 
 class PromptType(Enum):
@@ -232,23 +232,10 @@ Professional
 
     def _call_cerebras_api(self, system_prompt: str, user_message: str) -> str:
         """Call Cerebras API (stub - implement with actual API client)"""
-        # TODO: Replace with actual Cerebras API call integration test
-        # Example using requests:
-        # import requests
-        # response = requests.post(
-        #     f"{self.api_base}/chat/completions",
-        #     headers={"Authorization": f"Bearer {self.api_key}"},
-        #     json={
-        #         "model": self.model,
-        #         "messages": [
-        #             {"role": "system", "content": system_prompt},
-        #             {"role": "user", "content": user_message}
-        #         ],
-        #         "temperature": 0.7,
-        #         "max_tokens": 2000
-        #     }
-        # )
-        # return response.json()['choices'][0]['message']['content']
+        # NOTE: This is a test stub. In production, use the actual AI client:
+        # from app.services.ai_providers import AIProviderClient
+        # client = AIProviderClient(provider="cerebras")
+        # return await client.chat_completion(system_prompt, user_message)
 
         raise NotImplementedError("Implement Cerebras API call here")
 
