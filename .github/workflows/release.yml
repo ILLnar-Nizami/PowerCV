@@ -4,29 +4,13 @@ name: Release
 
 on:
   workflow_dispatch:
-jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-    - name: Install Python Poetry
-      uses: abatilo/actions-poetry@v2.3.0
-      with:
-        poetry-version: 1.7.1
-    - name: Configure poetry
-      shell: bash
-      run: python -m poetry config virtualenvs.in-project true
-    - name: View poetry version
-      run: poetry --version
-    - name: Install dependencies
-      run: |
-        python -m poetry install
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
   release:
-    needs: setup
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
