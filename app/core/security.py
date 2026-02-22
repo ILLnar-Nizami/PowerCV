@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 
 import bcrypt
 import jwt
+import jwt.exceptions
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -57,7 +58,7 @@ def verify_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.InvalidTokenError:
+    except jwt.exceptions.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -107,7 +108,7 @@ def get_optional_user(
             "exp": payload.get("exp"),
             "iat": payload.get("iat"),
         }
-    except jwt.InvalidTokenError:
+    except jwt.exceptions.InvalidTokenError:
         return None
 
 
