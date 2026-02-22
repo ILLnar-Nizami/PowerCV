@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 import bcrypt
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
 
 if not hasattr(bcrypt, "__about__"):
     bcrypt.__about__ = type("about", (object,), {"__version__": bcrypt.__version__})
@@ -57,7 +57,7 @@ def verify_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -107,7 +107,7 @@ def get_optional_user(
             "exp": payload.get("exp"),
             "iat": payload.get("iat"),
         }
-    except JWTError:
+    except jwt.InvalidTokenError:
         return None
 
 
