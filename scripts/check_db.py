@@ -11,8 +11,8 @@ async def check_db():
     client = AsyncIOMotorClient(uri)
     db = client.powercv  # Use rebranded name or check old name
 
-    # Try both names
-    for db_name in ["powercv", "myresumo"]:
+    # Only check current powercv database
+    for db_name in ["powercv"]:
         db = client[db_name]
         try:
             collections = await db.list_collection_names()

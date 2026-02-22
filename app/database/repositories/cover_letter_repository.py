@@ -208,7 +208,7 @@ class CoverLetterRepository(BaseRepository):
         try:
             connection_manager = MongoConnectionManager.get_instance()
             async with connection_manager.get_collection(
-                "myresumo", self.collection_name
+                get_db_name(), self.collection_name
             ) as collection:
                 result = await collection.delete_one({"_id": ObjectId(cover_letter_id)})
             return result.deleted_count > 0

@@ -224,10 +224,10 @@ JD Keywords Incorporated:
 
 === FINAL COVER LETTER ===
 
-Ilnar Nizametdinov
-1441 DR Purmerend, The Netherlands
-nizametdinov@gmail.com | +31 6 53230968
-linkedin.com/in/illnar | github.com/ILLnar-Nizami
+John Doe
+123 Main Street, City, Country
+john.doe@example.com | +1 555-123-4567
+linkedin.com/in/johndoe | github.com/johndoe
 
 December 18, 2024
 
@@ -249,9 +249,7 @@ I am excited about the opportunity to bring my expertise in Python, DevOps, and 
 
 Sincerely,
 
-Ilnar Nizametdinov
-
-=== KEYWORD COVERAGE ===
+John Doe
 
 JD Keywords Incorporated:
 • Python - paragraph 1, 2, 4

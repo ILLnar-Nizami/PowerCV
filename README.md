@@ -99,7 +99,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 ```bash
 # Open new terminal
-cd /home/illnar/Projects/PowerCV/frontend
+cd $PROJECT_ROOT/frontend
 
 # Install dependencies
 npm install
@@ -262,18 +262,18 @@ cp docker-compose.override.yml docker-compose.override.yml
 Download the Docker image:
 
 ```bash
-docker pull ghcr.io/analyticace/myresumo:latest
+docker pull ghcr.io/powercv/powercv:latest
 ```
 
 Run the container:
 
 ```bash
-docker run -d --name myresumo \
+docker run -d --name powercv \
   -p 8080:8080 \
   -e CEREBRAS_API_KEY=your_key_here \
   -e CEREBRAS_MODEL=gpt-oss-120b \
   -e MONGODB_URI=mongodb://username:password@host:port/ \
-  ghcr.io/analyticace/myresumo:latest
+  ghcr.io/powercv/powercv:latest
 ```
 
 ## AI Models
@@ -518,6 +518,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-**Ilnar Nizametdinov** - [LinkedIn](https://www.linkedin.com/in/illnar/) - [GitHub](https://github.com/ILLnar-Nizami)
+**PowerCV Contributors**
 
-Project Link: [https://github.com/ILLnar-Nizami/PowerCV](https://github.com/ILLnar-Nizami/PowerCV)
+Project Link: [https://github.com/powercv/powercv](https://github.com/powercv/powercv)

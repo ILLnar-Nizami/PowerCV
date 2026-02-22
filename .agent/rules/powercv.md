@@ -6,7 +6,7 @@ trigger: always_on
 
 **Updated**: 2026-01-29  
 **For**: Elite AI agents handoff - CV optimization platform  
-**Repo**: https://github.com/ILLnar-Nizami/PowerCV (dev@current)
+**Repo**: https://github.com/powercv/powercv (dev@current)
 **Status**: Production Ready - v3.0.0-beta
 
 ## System Overview
@@ -479,7 +479,7 @@ test('submits form with CV and JD text', async () => {
 ### Local Development
 ```bash
 # 1. Clone and install
-git clone https://github.com/ILLnar-Nizami/PowerCV.git
+git clone https://github.com/powercv/powercv.git
 cd PowerCV
 cp env-template.txt .env
 
@@ -1354,7 +1354,7 @@ docker service create \
   --replicas 3 \
   --port 8080:8080 \
   --env-file .env \
-  ghcr.io/illnar-nizami/powercv:latest
+  ghcr.io/powercv/powercv:latest
 
 # Load balancer (Traefik example)
 labels:

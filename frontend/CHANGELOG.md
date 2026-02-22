@@ -1118,7 +1118,7 @@ function App() {
 
 ### **Ready for Production**
 bash
-cd /home/illnar/Projects/PowerCV/frontend
+cd frontend
 npm run dev
 # Visit: http://localhost:3000/app/dashboard
 
@@ -1267,7 +1267,7 @@ frontend/
 
 ### Ready for Development:
 bash
-cd /home/illnar/Projects/PowerCV/frontend
+cd frontend
 npm run dev
 # Visit http://localhost:3000
 `
