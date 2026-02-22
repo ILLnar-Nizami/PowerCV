@@ -8,7 +8,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Builder stage for Python dependencies
-FROM python:3.12-slim@sha256:748ab27a7638173dbc6f6a5a68f4df9a5c9a2a9a5e7a7f8c9d0e1f2a3b4c5d6 AS builder
+FROM python:3.12-slim AS builder
 
 # Install uv for fast dependency installation
 RUN pip install uv
@@ -20,7 +20,7 @@ RUN python -m venv /opt/venv && \
     uv pip install --system --no-cache -r requirements.txt
 
 # Final stage
-FROM python:3.12-slim@sha256:748ab27a7638173dbc6f6a5a68f4df9a5c9a2a9a5e7a7f8c9d0e1f2a3b4c5d6
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
