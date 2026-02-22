@@ -1,4 +1,4 @@
-# PowerCV <img src="https://img.shields.io/badge/version-2.0.1-blue" alt="Version 2.0.1"/>
+# PowerCV <img src="https://img.shields.io/badge/version-3.3.1-blue" alt="Version 3.3.1"/>
 
 <div align="center">
 
@@ -65,10 +65,10 @@ PowerCV is a platform for resume customization that adapts professional profiles
 - **Notifications**: Sonner for toast notifications
 
 ### Backend
-- **Framework**: FastAPI, Python 3.8+
-- **Database**: MongoDB with Pydantic models
-- **AI Integration**: Cerebras AI (primary)
-- **PDF Engine**: Typst (Fast, modern Typesetting)
+- **Framework**: FastAPI, Python 3.12+
+- **Database**: MongoDB + PostgreSQL (dual-write)
+- **AI Integration**: LiteLLM (Cerebras, OpenAI, Deepseek)
+- **PDF Engine**: Playwright (WYSIWYG)
 - **Authentication**: JWT-based auth system
 
 ### DevOps & Infrastructure

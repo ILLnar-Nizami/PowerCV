@@ -1,3 +1,39 @@
+# Changelog - v3.3.1 (2026-02-22)
+
+## Dependency & Security Updates
+
+### Security Migration
+- **Python-jose to PyJWT**: Migrated JWT handling from `python-jose` to `PyJWT`
+  - Updated `app/core/security.py` to use `import jwt` instead of `from jose import jwt`
+  - Changed exception handling from `JWTError` to `jwt.InvalidTokenError`
+  - Removed `python-jose[cryptography]` dependency (unmaintained with known security issues)
+  - Kept `bcrypt` for password hashing
+
+### Docker Optimization
+- **Build Performance**: Updated Dockerfile to use `uv` for faster dependency installation
+- **Base Images**: Added explicit base image tags for reproducibility
+- **Cleanup**: Added `apt-get clean` to reduce final image size
+- **Healthcheck**: Changed to use `curl` for faster health checks
+
+### Dependencies Cleanup
+- Removed unused/duplicate packages from requirements.txt
+- Organized dependencies with consistent version pinning
+- Updated ai-service requirements to use minimal dependencies
+
+## Files Modified
+
+- `requirements.txt`: Removed python-jose, organized deps
+- `pyproject.toml`: Removed python-jose dependency
+- `app/core/security.py`: Migrated to PyJWT
+- `Dockerfile`: Added uv, optimized build
+
+## Impact Metrics
+- **Security**: Fixed unmaintained dependency vulnerability
+- **Docker Build**: Faster with uv package manager
+- **Image Size**: ~898MB final image
+
+---
+
 # Changelog - v3.3.0 (2026-02-02)
 
 ## Resume-Matcher Feature Integration (Phase 2)
