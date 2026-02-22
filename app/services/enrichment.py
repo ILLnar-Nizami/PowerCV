@@ -7,6 +7,7 @@ Based on Resume Matcher pattern: apps/backend/app/services/improver.py
 """
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -355,6 +356,3 @@ Return as JSON:
 }}
 
 Resume data: {str(resume_data)[:2000]}"""
-
-
-import re  # Ensure re is imported for pattern matching
