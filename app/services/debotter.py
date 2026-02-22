@@ -10,7 +10,7 @@ Based on Resume Matcher pattern: apps/backend/app/services/refiner.py
 import logging
 import re
 from difflib import SequenceMatcher
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ def validate_master_alignment(
     master_data: Dict,
     tailored_data: Dict,
     tolerance: float = 0.15,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """Validate that tailored resume doesn't hallucinate content.
 
     Compares the tailored resume against the "Master Resume" (source of truth)
