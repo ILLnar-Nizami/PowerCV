@@ -10,6 +10,7 @@ async def migrate():
     uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     client = AsyncIOMotorClient(uri)
 
+    # Source database from upstream project (myresumo)
     src_db = client["myresumo"]
     dst_db = client["powercv"]
 

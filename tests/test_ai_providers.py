@@ -94,8 +94,15 @@ async def test_chat_completion_fallback(mock_get_redis, mock_get_settings):
 
 @pytest.mark.asyncio
 @patch("app.services.ai_providers.get_settings")
-async def test_chat_completion_all_fail(mock_get_settings):
+@patch("app.services.ai_providers.get_redis")
+async def test_chat_completion_all_fail(mock_get_redis, mock_get_settings):
     """Test exception when all providers fail."""
+    # Mock Redis client to avoid connection
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.setex = AsyncMock()
+    mock_get_redis.return_value = mock_redis
+
     # Mock settings with API keys
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"

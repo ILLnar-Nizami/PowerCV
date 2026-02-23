@@ -19,11 +19,9 @@ powercv = "app.cli.main:main"
 python = "^3.12"
 
 # Core dependencies
-python-jose = {extras = ["cryptography"], version = "*"}
 passlib = {extras = ["bcrypt"], version = "*"}
 fastapi = {extras = ["standard"], version = "*"}
 uvicorn = {extras = ["standard"], version = "*"}
-motor = ">=3.6.0"
 redis = ">=5.0.0"
 charset-normalizer = "3.3.2"
 setuptools = "*"
@@ -34,7 +32,6 @@ httpx = ">=0.25.0"
 websockets = "*"
 slowapi = "*"
 asgiref = "*"
-pymongo = "*"
 ruff = "*"
 jinja2 = "*"
 pyjwt = "*"
@@ -56,6 +53,10 @@ pytest-asyncio = ">=0.21.0"
 pytest-cov = ">=4.0.0"
 python-magic = ">=0.4.0"
 pypdf2 = "^3.0.1"
+markitdown = ">=0.1.0"
+asyncpg = ">=0.29.0"
+selenium = ">=4.15.0"
+webdriver-manager = ">=4.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

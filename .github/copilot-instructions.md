@@ -166,7 +166,6 @@ def sync_optimize():  # ❌ Blocks event loop
 ### Quick Start (Local Dev)
 ```bash
 # 1. Backend
-cd /home/illnar/Projects/PowerCV
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 export PYTHONPATH=$PYTHONPATH:.

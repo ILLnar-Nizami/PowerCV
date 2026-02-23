@@ -6,14 +6,14 @@ from app.services.cv_validator import CVValidator
 def test_preserve_contact_info():
     """Test that contact information is preserved."""
     original = """
-    Name: Ilnar Nizametdinov
-    Email: nizametdinov@gmail.com
-    Phone: +31 6 53230968
-    Address: 1441 DR Purmerend, The Netherlands
+    Name: John Doe
+    Email: john.doe@example.com
+    Phone: +1 555-123-4567
+    Address: 123 Main Street, City, Country
     """
 
     optimized = """
-    Ilnar Nizametdinov
+    John Doe
     Email: different@email.com
     """
 
@@ -21,7 +21,7 @@ def test_preserve_contact_info():
 
     assert not validation["valid"]
     assert any("phone" in err.lower() for err in validation["errors"])
-    assert any("nizametdinov@gmail.com" in err for err in validation["errors"])
+    assert any("john.doe@example.com" in err for err in validation["errors"])
 
 
 def test_no_language_hallucinations():
@@ -63,14 +63,14 @@ def test_preserve_education():
 def test_preserve_github_linkedin():
     """Test that GitHub and LinkedIn URLs are preserved."""
     original = """
-    Name: Ilnar Nizametdinov
-    LinkedIn: https://linkedin.com/in/illnar
-    GitHub: https://github.com/ILLnar-Nizami
+    Name: John Doe
+    LinkedIn: https://linkedin.com/in/johndoe
+    GitHub: https://github.com/johndoe
     """
 
     optimized = """
-    Ilnar Nizametdinov
-    LinkedIn: https://linkedin.com/in/illnar
+    John Doe
+    LinkedIn: https://linkedin.com/in/johndoe
     """
 
     validation = CVValidator.validate_optimization(original, optimized)
@@ -122,20 +122,20 @@ def test_certifications_preserved():
 def test_valid_optimization_passes():
     """Test that a properly optimized CV passes validation."""
     original = """
-    Name: Ilnar Nizametdinov
-    Email: nizametdinov@gmail.com
-    Phone: +31 6 53230968
-    LinkedIn: https://linkedin.com/in/illnar
-    GitHub: https://github.com/ILLnar-Nizami
+    Name: John Doe
+    Email: john.doe@example.com
+    Phone: +1 555-123-4567
+    LinkedIn: https://linkedin.com/in/johndoe
+    GitHub: https://github.com/johndoe
     
     EDUCATION
     Master's Degree, Mechanical Engineering
     """
 
     optimized = """
-    Ilnar Nizametdinov
-    nizametdinov@gmail.com | +31 6 53230968
-    LinkedIn: linkedin.com/in/illnar | GitHub: github.com/ILLnar-Nizami
+    John Doe
+    john.doe@example.com | +1 555-123-4567
+    LinkedIn: linkedin.com/in/johndoe | GitHub: github.com/johndoe
     
     PROFILE
     Tech professional with expertise in backend development...

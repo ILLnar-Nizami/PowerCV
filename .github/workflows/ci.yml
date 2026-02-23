@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: [dev, main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   backend-tests:
-    name: Backend Tests
+    name: Backend Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     services:
       mongodb:
         image: mongo:7.0
@@ -44,22 +52,11 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
           sudo docker system prune -a --volumes --force
-          df -h
-
-      - name: Free up disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          sudo docker system prune -a --volumes --force
-          df -h
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install dependencies
@@ -70,43 +67,27 @@ jobs:
 
       - name: Run Python linting and formatting
         run: |
-          echo "Checking and fixing formatting..."
-          black_needs_fix=false
+          echo "Running Black formatting check..."
           python -m black --check --diff app/ scripts/ tests/ || {
-            echo "Formatting issues found, auto-fixing..."
-            python -m black app/ scripts/ tests/
-            black_needs_fix=true
+            echo "Formatting issues found. Run 'python -m black app/ scripts/ tests/' to fix."
+            exit 1
           }
           
-          echo "Checking import ordering..."
-          isort_needs_fix=false
+          echo "Running isort import check..."
           python -m isort --check-only --diff app/ scripts/ tests/ || {
-            echo "Import ordering issues found, auto-fixing..."
-            python -m isort app/ scripts/ tests/
-            isort_needs_fix=true
+            echo "Import ordering issues found. Run 'python -m isort app/ scripts/ tests/' to fix."
+            exit 1
           }
           
-          # Commit formatting fixes if needed
-          if [ "$black_needs_fix" = true ] || [ "$isort_needs_fix" = true ]; then
-            echo "Committing formatting fixes..."
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add .
-            git commit -m "auto: fix formatting and imports [skip ci]" || echo "No changes to commit"
-            git push || echo "No changes to push"
-            echo "Formatting fixes committed successfully"
-          fi
-          
-          echo "Running type checking on app only..."
+          echo "Running strict type checking on app/..."
           python -m mypy app/ --strict || {
             echo "Type checking failed. Please fix the mypy errors above."
             exit 1
           }
           
-          echo "Running basic type checking on scripts..."
+          echo "Running relaxed type checking on scripts/..."
           python -m mypy scripts/ --ignore-missing-imports --no-strict-optional || {
-            echo "Basic type checking on scripts failed, but continuing..."
-            echo "Scripts have relaxed type checking requirements."
+            echo "Type checking on scripts/ has issues (non-blocking)."
           }
           
           echo "All linting checks passed!"
@@ -122,7 +103,6 @@ jobs:
           POSTGRES_DB: powercv_test
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          # AI Provider API Keys (placeholder values for CI)
           CEREBRAS_API_KEY: test-cerebras-api-key-for-ci
           CEREBRAS_API_BASE: https://api.cerebras.ai/v1
           CEREBRAS_MODEL: gpt-oss-120b
@@ -140,6 +120,7 @@ jobs:
           file: ./coverage.xml
           flags: backend
           token: ${{ secrets.CODECOV_TOKEN }}
+          python-version: ${{ matrix.python-version }}
         continue-on-error: true
 
   frontend-tests:

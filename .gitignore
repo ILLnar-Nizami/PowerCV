@@ -208,6 +208,9 @@ personal_data.py
 *.strategy.md
 *.debug.md
 
+# Reports folder (single-use, not for production)
+reports/
+
 # Exclude all markdown files except README.md, CONTRIBUTING.md, and prompts
 *.md
 !README.md

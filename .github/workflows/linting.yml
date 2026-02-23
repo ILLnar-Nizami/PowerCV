@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [dev, main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   linting:
     name: Code Quality Checks
@@ -37,10 +41,8 @@ jobs:
           else
             echo "black_status=failed" >> $GITHUB_OUTPUT
             echo "❌ Black formatting failed"
-            echo "Auto-fixing formatting issues..."
-            python -m black app/ scripts/ tests/
-            python -m isort app/ scripts/ tests/
-            echo "Files have been formatted"
+            echo "Fix with: python -m black app/ scripts/ tests/"
+            exit 1
           fi
 
       - name: isort import check
@@ -53,9 +55,8 @@ jobs:
           else
             echo "isort_status=failed" >> $GITHUB_OUTPUT
             echo "❌ Import ordering failed"
-            echo "Auto-fixing import issues..."
-            python -m isort app/ scripts/ tests/
-            echo "Imports have been fixed"
+            echo "Fix with: python -m isort app/ scripts/ tests/"
+            exit 1
           fi
 
       - name: MyPy type checking (app only)
@@ -75,15 +76,6 @@ jobs:
             echo "Scripts have relaxed type checking requirements"
           }
           echo "✅ MyPy check completed for scripts/"
-
-      - name: Commit auto-fixes
-        if: steps.black-check.outputs.black_status == 'failed' || steps.isort-check.outputs.isort_status == 'failed'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "auto: fix formatting and imports [skip ci]" || echo "No changes to commit"
-          git push || echo "No changes to push"
 
       - name: Summary
         run: |
