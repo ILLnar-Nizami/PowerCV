@@ -28,7 +28,7 @@ class CVValidator:
             info["email"] = email_match.group()
 
         # Phone (international format)
-        phone_match = re.search(r"\+\d{1,3}\s?\d{1,4}?\s?\d{4,}", cv_text)
+        phone_match = re.search(r"\+[\d\s\-]{7,}", cv_text)
         if phone_match:
             info["phone"] = phone_match.group()
 
@@ -83,7 +83,7 @@ class CVValidator:
             phone_normalized = orig_contact["phone"].replace(" ", "").replace("-", "")
             optimized_normalized = optimized.replace(" ", "").replace("-", "")
             if phone_normalized not in optimized_normalized:
-                errors.append(f"Missing phone: {orig_contact['phone']}")
+                errors.append(f"Missing phone: {orig_contact['phone'].strip()}")
 
         # Check LinkedIn
         if (
