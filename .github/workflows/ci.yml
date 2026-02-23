@@ -120,7 +120,6 @@ jobs:
           file: ./coverage.xml
           flags: backend
           token: ${{ secrets.CODECOV_TOKEN }}
-          python-version: ${{ matrix.python-version }}
         continue-on-error: true
 
   frontend-tests:
