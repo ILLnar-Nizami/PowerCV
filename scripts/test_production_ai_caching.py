@@ -35,11 +35,11 @@ async def test_ai_caching_production():
     user_message = """Please analyze this CV against the job description:
 
 CV:
-Sarah Johnson
-Senior Data Scientist
-Amsterdam, Netherlands
-sarah.johnson@email.com
-+31 6 12345678
+Alex Johnson
+Senior Software Engineer
+San Francisco, CA
+alex.johnson@example.com
++1 555-234-5678
 
 PROFESSIONAL EXPERIENCE:
 Lead Data Scientist | DataDriven BV | Jan 2021 - Present

@@ -2,9 +2,10 @@
 """Test server startup without actually running it."""
 
 import sys
+from pathlib import Path
 
 # Add project root to Python path
-sys.path.insert(0, "/home/illnar/Projects/PowerCV")
+sys.path.insert(0, str(Path(__file__).parent))
 
 
 def test_imports():
