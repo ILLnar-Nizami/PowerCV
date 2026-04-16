@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Dict, Optional
 
-import requests
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -31,7 +31,7 @@ class CerebrasClient:
         self.api_base = api_base or os.getenv(
             "CEREBRAS_API_BASE", "https://api.cerebras.ai/v1"
         )
-        self.model = model or os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+        self.model = model or os.getenv("CEREBRAS_MODEL", "llama3.1-8b")
 
         if not self.api_key:
             raise ValueError(
@@ -40,7 +40,7 @@ class CerebrasClient:
 
         logger.info(f"Initialized Cerebras client with model: {self.model}")
 
-    def chat_completion(
+    async def chat_completion(
         self,
         system_prompt: str,
         user_message: str,
@@ -81,7 +81,6 @@ class CerebrasClient:
             "stream": False,
         }
 
-        # Validate inputs before making request
         self._validate_request_inputs(
             system_prompt, user_message, temperature, max_tokens, timeout
         )
@@ -90,11 +89,9 @@ class CerebrasClient:
             logger.debug(f"Sending request to Cerebras API: {url}")
             logger.debug(f"Request payload size: {len(str(payload))} chars")
 
-            response = requests.post(
-                url, headers=headers, json=payload, timeout=timeout
-            )
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.post(url, headers=headers, json=payload)
 
-            # Handle different HTTP status codes
             if response.status_code == 401:
                 raise Exception(
                     "Cerebras API authentication failed. Check your API key."
@@ -116,7 +113,6 @@ class CerebrasClient:
 
             response.raise_for_status()
 
-            # Parse and validate response
             result = response.json()
             self._validate_response_structure(result)
 
@@ -128,19 +124,19 @@ class CerebrasClient:
             logger.debug(f"Received response ({len(content)} chars)")
             return content
 
-        except requests.exceptions.Timeout:
+        except httpx.TimeoutException:
             logger.error(f"Request timed out after {timeout}s")
             raise Exception(f"Cerebras API request timed out after {timeout}s")
 
-        except requests.exceptions.ConnectionError as e:
+        except httpx.ConnectError as e:
             logger.error(f"Connection error: {str(e)}")
             raise Exception(f"Failed to connect to Cerebras API: {str(e)}")
 
-        except requests.exceptions.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error: {str(e)}")
             raise Exception(f"Cerebras API HTTP error: {str(e)}")
 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"Cerebras API request error: {str(e)}")
             raise Exception(f"Cerebras API request failed: {str(e)}")
 

@@ -198,8 +198,8 @@ async def list_providers(api_key: str = Depends(verify_api_key)):
         # Check which providers are configured
         available_providers = []
         provider_configs = {
-            "cerebras": {"model": "gpt-oss-120b", "key": "CEREBRAS_API_KEY"},
-            "openai": {"model": "gpt-4", "key": "OPENAI_API_KEY"},
+            "cerebras": {"model": "llama3.1-8b", "key": "CEREBRAS_API_KEY"},
+            "openai": {"model": "gpt-4o-mini", "key": "OPENAI_API_KEY"},
         }
 
         for provider_name, config in provider_configs.items():

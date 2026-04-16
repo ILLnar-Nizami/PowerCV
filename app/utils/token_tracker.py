@@ -32,11 +32,10 @@ logger = logging.getLogger(__name__)
 
 # Define pricing constants for different models (price per 1M tokens)
 MODEL_PRICING = {
-    # CerebrasAI GPT-OSS models
-    "gpt-oss-120b": {"input": 0.70, "output": 0.80},
-    "gpt-oss-20b": {"input": 0.35, "output": 0.45},
-    # Default model (gpt-oss-120b)
-    "default": {"input": 0.70, "output": 0.80},
+    # CerebrasAI Llama models
+    "llama3.1-8b": {"input": 0.10, "output": 0.10},
+    # Default model (llama3.1-8b)
+    "default": {"input": 0.10, "output": 0.10},
 }
 
 
@@ -393,9 +392,9 @@ class TokenTracker:
 
             usage_by_model[record.llm_model]["calls"] += 1
             usage_by_model[record.llm_model]["prompt_tokens"] += record.prompt_tokens
-            usage_by_model[record.llm_model][
-                "completion_tokens"
-            ] += record.completion_tokens
+            usage_by_model[record.llm_model]["completion_tokens"] += (
+                record.completion_tokens
+            )
             usage_by_model[record.llm_model]["total_tokens"] += record.total_tokens
             usage_by_model[record.llm_model]["cost_usd"] += record.cost_usd
 
@@ -411,9 +410,9 @@ class TokenTracker:
 
             usage_by_feature[record.feature]["calls"] += 1
             usage_by_feature[record.feature]["prompt_tokens"] += record.prompt_tokens
-            usage_by_feature[record.feature][
-                "completion_tokens"
-            ] += record.completion_tokens
+            usage_by_feature[record.feature]["completion_tokens"] += (
+                record.completion_tokens
+            )
             usage_by_feature[record.feature]["total_tokens"] += record.total_tokens
             usage_by_feature[record.feature]["cost_usd"] += record.cost_usd
 

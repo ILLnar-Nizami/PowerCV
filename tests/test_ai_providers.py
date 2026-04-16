@@ -22,7 +22,7 @@ async def test_chat_completion_success(mock_get_redis, mock_get_settings):
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
     mock_settings.cerebras_api_base = "https://api.cerebras.ai/v1"
-    mock_settings.cerebras_model = "gpt-oss-120b"
+    mock_settings.cerebras_model = "llama3.1-8b"
     mock_get_settings.return_value = mock_settings
 
     mock_response = MagicMock()
@@ -61,7 +61,7 @@ async def test_chat_completion_fallback(mock_get_redis, mock_get_settings):
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
     mock_settings.cerebras_api_base = "https://api.cerebras.ai/v1"
-    mock_settings.cerebras_model = "gpt-oss-120b"
+    mock_settings.cerebras_model = "llama3.1-8b"
     mock_settings.openai_api_key = "test-openai-api-key-for-ci"
     mock_settings.openai_api_base = "https://api.openai.com/v1"
     mock_settings.openai_model = "gpt-4"
@@ -107,7 +107,7 @@ async def test_chat_completion_all_fail(mock_get_redis, mock_get_settings):
     mock_settings = MagicMock()
     mock_settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
     mock_settings.cerebras_api_base = "https://api.cerebras.ai/v1"
-    mock_settings.cerebras_model = "gpt-oss-120b"
+    mock_settings.cerebras_model = "llama3.1-8b"
     mock_settings.openai_api_key = "test-openai-api-key-for-ci"
     mock_settings.openai_api_base = "https://api.openai.com/v1"
     mock_settings.openai_model = "gpt-4"

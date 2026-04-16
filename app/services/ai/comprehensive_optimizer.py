@@ -80,7 +80,7 @@ Languages: English (Highly proficient), Russian (Native), Tatar (Native)"""
             api_base: API base URL
             user_id: User ID for tracking
         """
-        self.model_name = model_name or os.getenv("API_MODEL_NAME", "gpt-oss-120b")
+        self.model_name = model_name or os.getenv("API_MODEL_NAME", "llama3.1-8b")
         self.api_key = (
             api_key or os.getenv("CEREBRAS_API_KEY") or os.getenv("OPENAI_API_KEY")
         )

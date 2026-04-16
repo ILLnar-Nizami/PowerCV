@@ -73,7 +73,7 @@ class LLMProviderFactory:
                 overrides.get("model_name")
                 or os.getenv("MODEL_NAME")
                 or os.getenv("LLM_MODEL")
-                or "gpt-oss-120b"
+                or "llama3.1-8b"
             ),
             api_key=(
                 overrides.get("api_key")
@@ -116,7 +116,7 @@ class LLMProviderFactory:
                 )
             if not config.model_name:
                 config.model_name = os.getenv("CEREBRAS_MODEL") or os.getenv(
-                    "CEREBRAS_MODEL_NAME", "gpt-oss-120b"
+                    "CEREBRAS_MODEL_NAME", "llama3.1-8b"
                 )
 
         elif provider_type == ProviderType.OPENAI:

@@ -560,7 +560,7 @@ jobs:
 
 # AI Provider (Cerebras - Recommended)
 CEREBRAS_API_KEY=your_key_here
-CEREBRAS_MODEL=gpt-oss-120b
+CEREBRAS_MODEL=llama3.1-8b
 
 # Alternative Providers
 # Deepseek

@@ -34,7 +34,7 @@ class CerebrasClient(AIClientBase):
         self,
         api_key: Optional[str] = None,
         api_base: str = "https://api.cerebras.ai/v1",
-        model: str = "gpt-oss-120b",
+        model: str = "llama3.1-8b",
     ):
         self.api_key = api_key or os.getenv("CEREBRAS_API_KEY")
         if not self.api_key:
