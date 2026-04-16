@@ -144,5 +144,5 @@ def test_get_provider_info():
         info = client.get_provider_info()
 
         assert info["provider"] == "openai"
-        assert info["model"] == "openai/gpt-4-turbo"
+        assert info["model"] == "gpt-4o-mini"
         assert "fallback_models" in info
