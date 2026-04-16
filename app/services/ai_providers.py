@@ -22,18 +22,18 @@ class AIProviderClient:
     # Supported providers and their models
     PROVIDERS = {
         "cerebras": {
-            "model": "cerebras/gpt-oss-120b",
-            "fallback": ["openai/gpt-4-turbo", "deepseek/deepseek-chat"],
+            "model": "llama3.1-8b",
+            "fallback": ["deepseek/deepseek-chat"],
             "key": "CEREBRAS_API_KEY",
         },
         "openai": {
-            "model": "openai/gpt-4-turbo",
-            "fallback": ["cerebras/gpt-oss-120b", "deepseek/deepseek-chat"],
+            "model": "gpt-4o-mini",
+            "fallback": ["deepseek/deepseek-chat"],
             "key": "OPENAI_API_KEY",
         },
         "deepseek": {
             "model": "deepseek/deepseek-chat",
-            "fallback": ["openai/gpt-4-turbo", "cerebras/gpt-oss-120b"],
+            "fallback": ["openai/gpt-4o-mini"],
             "key": "DEEPSEEK_API_KEY",
         },
     }

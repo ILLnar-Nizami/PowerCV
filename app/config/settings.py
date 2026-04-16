@@ -114,7 +114,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("CEREBRAS_API_BASE"),
     )
     cerebras_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("CEREBRAS_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("CEREBRAS_MODEL")
     )
 
     # OpenAI
@@ -189,10 +189,10 @@ class Settings(BaseSettings):
 
     # AI Model tiers configuration
     fast_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("FAST_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("FAST_MODEL")
     )
     balanced_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("BALANCED_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("BALANCED_MODEL")
     )
     quality_model: str = Field(
         default="gpt-4", validation_alias=AliasChoices("QUALITY_MODEL")

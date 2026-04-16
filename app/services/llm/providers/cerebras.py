@@ -71,11 +71,10 @@ class CerebrasProvider(BaseLLMProvider):
             if tokens_used:
                 # Cerebras pricing (example rates - update with actual rates)
                 pricing = {
-                    "gpt-oss-120b": {"input": 0.70, "output": 0.80},
-                    "gpt-oss-20b": {"input": 0.35, "output": 0.45},
+                    "llama3.1-8b": {"input": 0.10, "output": 0.10},
                 }
                 model_pricing = pricing.get(
-                    self.config.model_name, pricing["gpt-oss-120b"]
+                    self.config.model_name, pricing["llama3.1-8b"]
                 )
                 cost_usd = (tokens_used["prompt_tokens"] / 1000000) * model_pricing[
                     "input"
