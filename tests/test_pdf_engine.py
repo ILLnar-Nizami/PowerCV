@@ -86,14 +86,16 @@ class TestPDFHelperFunctions:
         template = create_page_header_template()
 
         assert "font-family" in template
-        assert "{pageNumber}" in template
+        assert "pageNumber" in template
+        assert "totalPages" in template
 
     def test_create_page_header_template_with_title(self):
         """Test header template with custom title."""
         template = create_page_header_template(title="My Resume")
 
         assert "My Resume" in template
-        assert "{pageNumber}" in template
+        assert "pageNumber" in template
+        assert "totalPages" in template
 
     def test_create_page_header_template_custom_style(self):
         """Test header template with custom styling."""
@@ -110,8 +112,8 @@ class TestPDFHelperFunctions:
         template = create_page_footer_template()
 
         assert "font-family" in template
-        assert "{pageNumber}" in template
-        assert "{total}" in template
+        assert "pageNumber" in template
+        assert "totalPages" in template
 
     def test_create_page_footer_template_alignment(self):
         """Test footer template with different alignments."""

@@ -11,5 +11,8 @@ httpx>=0.25.0
 # Configuration
 python-dotenv>=1.0.0
 
+# OpenAI-compatible clients (OpenAI, Cerebras, DeepSeek, OpenRouter)
+openai>=1.0
+
 # Utilities (if needed)
 # rich>=13.0.0  # optional, removed

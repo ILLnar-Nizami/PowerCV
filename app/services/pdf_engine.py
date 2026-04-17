@@ -133,8 +133,8 @@ class PlaywrightPDFEngine:
             margins: Dict with 'top', 'bottom', 'left', 'right' in mm
             format: Paper format ('A4', 'Letter', 'Legal', 'A3', 'A5')
             scale: Content scale factor (1.0 = 100%)
-            header_template: HTML template for header (with {pageNumber} and {total} placeholders)
-            footer_template: HTML template for footer (with {pageNumber} and {total} placeholders)
+            header_template: HTML template for header (with <span class='pageNumber'></span> and <span class='totalPages'></span> placeholders)
+            footer_template: HTML template for footer (with <span class='pageNumber'></span> and <span class='totalPages'></span> placeholders)
             print_background: Whether to print background graphics and colors
 
         Returns:
@@ -252,14 +252,13 @@ def create_page_header_template(
     Returns:
         HTML header template string
     """
-    content = f"<span style='font-family: {font_family}; font-size: {font_size};'>"
+    # Use Playwright pagination classes: pageNumber, totalPages
+    left_part = f"<span style='font-family: {font_family}; font-size: {font_size};'>"
     if title:
-        content += title
-    content += "</span>"
-    return (
-        content
-        + "<span style='font-family: {font_family}; font-size: {font_size}; margin-left: 20px;'>{pageNumber}/{{total}}</span>"
-    )
+        left_part += title
+    left_part += "</span>"
+    right_part = f"<span style='font-family: {font_family}; font-size: {font_size}; margin-left: 20px;'><span class='pageNumber'></span> / <span class='totalPages'></span></span>"
+    return left_part + right_part
 
 
 def create_page_footer_template(
@@ -269,6 +268,8 @@ def create_page_footer_template(
 ) -> str:
     """Create a standard footer template for PDF pages.
 
+    Uses Playwright pagination CSS classes: pageNumber, totalPages.
+
     Args:
         font_family: Font family for footer text
         font_size: Font size for footer text
@@ -277,11 +278,9 @@ def create_page_footer_template(
     Returns:
         HTML footer template string
     """
-    return f"""<span style='font-family: {font_family}; font-size: {font_size}; margin: auto; padding: 0 20px;'>
-<div style='width: 100%; text-align: {align};'>
-Page {{pageNumber}} of {{total}}
-</div>
-</span>"""
+    return f"""<div style='width: 100%; text-align: {align}; font-family: {font_family}; font-size: {font_size};'>
+Page <span class='pageNumber'></span> of <span class='totalPages'></span>
+</div>"""
 
 
 # Browser cleanup on shutdown

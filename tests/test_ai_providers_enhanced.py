@@ -107,7 +107,10 @@ class TestOllamaClient:
         """Test Ollama chat completion."""
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
-        mock_response.json = MagicMock(return_value={"message": {"content": "test"}})
+        # Ollama raw response format
+        mock_response.json = MagicMock(
+            return_value={"message": {"content": "test"}, "done": True}
+        )
 
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -118,7 +121,9 @@ class TestOllamaClient:
         client = OllamaClient(api_base="http://localhost:11434", model="llama3.1")
         result = await client.chat_completion([{"role": "user", "content": "hello"}])
 
-        assert "message" in result
+        # Verify normalized OpenAI-style response
+        assert "choices" in result
+        assert result["choices"][0]["message"]["content"] == "test"
 
 
 class TestAnthropicClient:
@@ -130,7 +135,10 @@ class TestAnthropicClient:
         """Test Anthropic chat completion."""
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
-        mock_response.json = MagicMock(return_value={"content": [{"text": "test"}]})
+        # Anthropic raw response format
+        mock_response.json = MagicMock(
+            return_value={"content": [{"text": "test"}], "stop_reason": "end_turn"}
+        )
 
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -147,7 +155,9 @@ class TestAnthropicClient:
                 ]
             )
 
-        assert "content" in result
+        # Verify normalized OpenAI-style response
+        assert "choices" in result
+        assert result["choices"][0]["message"]["content"] == "test"
 
 
 class TestDeepSeekClient:
@@ -187,8 +197,14 @@ class TestGoogleGeminiClient:
         """Test Google Gemini chat completion."""
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
+        # Google Gemini raw response format
         mock_response.json = MagicMock(
-            return_value={"candidates": [{"content": {"parts": [{"text": "test"}]}}]}
+            return_value={
+                "candidates": [
+                    {"content": {"parts": [{"text": "test"}]}, "finishReason": "stop"}
+                ],
+                "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 20},
+            }
         )
 
         mock_client = AsyncMock()
@@ -203,7 +219,9 @@ class TestGoogleGeminiClient:
                 [{"role": "user", "content": "hello"}]
             )
 
-        assert "candidates" in result
+        # Verify normalized OpenAI-style response
+        assert "choices" in result
+        assert result["choices"][0]["message"]["content"] == "test"
 
 
 class TestOpenRouterClient:

@@ -1,5 +1,33 @@
 ---
 
+---
+
+# Changelog - v3.3.5 (2026-04-17)
+
+## Codex Review Fixes
+
+### Fixed
+- **Anthropic API Authentication**: Changed header from `Authorization: Bearer` to `x-api-key` as required by Anthropic Messages API. This fixes provider switching when `anthropic` is selected.
+- **AI Provider Response Normalization**: All non-OpenAI clients now return OpenAI-compatible response structure `{"choices": [{"message": {"role": "assistant", "content": "..."}}]}` to ensure downstream code (CVAnalyzer, CVOptimizer, CoverLetterGenerator) works uniformly across all providers.
+  - `AnthropicClient`: Maps `content[0].text` → `choices[0].message.content`, includes `stop_reason` mapping.
+  - `GoogleGeminiClient`: Maps `candidates[0].content.parts[0].text` → normalized format, includes `finishReason` mapping.
+  - `OllamaClient`: Maps `message.content` → normalized format, includes usage token counts.
+- **Playwright PDF Pagination**: Fixed footer and header templates to use CSS classes `pageNumber` and `totalPages` instead of broken `{pageNumber}`/`{total}` placeholder syntax. Exported PDFs now show correct page numbers.
+- **Test Updates**: `tests/test_ai_providers_enhanced.py` updated to expect normalized responses for Anthropic, Google, Ollama. `tests/test_pdf_engine.py` updated to check for pagination CSS classes.
+
+### Changed
+- **ai-service/requirements.txt**: Added explicit `openai>=1.0` dependency (required by CerebrasClient and OpenAIProvider which use the official OpenAI SDK with custom base URLs).
+- **Docker image**: Rebuilt with updated AI service dependencies (no size change; still ~305MB for main API).
+
+## Files Modified
+- `ai-service/clients/providers.py` (Anthropic header fix, response normalization for Anthropic/Google/Ollama)
+- `ai-service/requirements.txt` (added openai package)
+- `app/services/pdf_engine.py` (header/footer template fixes)
+- `tests/test_ai_providers_enhanced.py` (3 test updates for normalized responses)
+- `tests/test_pdf_engine.py` (2 test updates for pagination class checks)
+
+---
+
 # Changelog - v3.3.4 (2026-04-17)
 
 ## Code Quality & Dependency Cleanup
