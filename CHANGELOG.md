@@ -1,3 +1,75 @@
+---
+
+# Changelog - v3.3.4 (2026-04-17)
+
+## Type Safety & Code Quality
+
+### Fixed
+- **MyPy Type Errors**: Resolved 28 type errors across `app/web/core.py`, `app/web/dashboard.py`, and `app/main.py` where `Jinja2Templates.TemplateResponse` was called with incorrect argument order. Corrected all calls to use proper FastAPI signature: `TemplateResponse(request, "template.html", context)` instead of `TemplateResponse("template.html", {"request": request})`.
+- **Black Formatting**: Auto-fixed formatting issues in `scripts/init_postgres.py` and `scripts/test_production_ai_caching.py`.
+
+### Changed
+- **Code Quality**: All `app/` modules now pass `mypy --strict` with zero errors. Scripts directory maintains relaxed type checking as allowed by CI.
+
+## Files Modified
+- `app/web/core.py` (lines 44, 68, 89)
+- `app/web/dashboard.py` (lines 39, 63, 87, 112, 141, 169, 201, 226)
+- `app/main.py` (lines 289-291, 300-304, 338-344)
+- `scripts/init_postgres.py` (formatting)
+- `scripts/test_production_ai_caching.py` (formatting)
+
+---
+
+# Changelog - v3.3.3 (2026-04-16)
+
+## Dependency Optimization & Image Size Reduction
+
+### Added
+- None
+
+### Changed
+- **API Dependencies**: Aggressively pruned `requirements.txt` – removed unused heavy packages (charset-normalizer, setuptools, itsdangerous, markdown, pypdf, requests, uvloop, rich, click, langchain, langchain-community, langchain-ollama, pytesseract, pdf2image, markitdown, playwright, litellm). Added missing runtime dependencies (PyPDF2, python-docx, aiohttp). Result: ~300MB reduction in installed packages.
+- **Docker Image**: Removed heavyweight system packages (chromium, tesseract-ocr, poppler-utils) from final stage; added minimal `libmagic1` for `python-magic` support. Main API image size now **305MB** (well under 500MB target).
+- **Code Cleanup**: 
+  - Removed deprecated `/api/comprehensive/cost-tracking` endpoint that relied on `AIProviderClient`/litellm.
+  - Cleaned up unused imports; kept comprehensive optimizer functional with `langchain-core`/`langchain-openai` only.
+- **Tests**: All 213 tests passing; coverage at **91%** (maintained).
+
+### Fixed
+- Potential import errors for optional packages (pytesseract, pdf2image, markitdown) are gracefully handled via conditional imports.
+
+## Files Modified
+- `requirements.txt`
+- `Dockerfile`
+- `app/api/routers/comprehensive_optimizer.py`
+- `app/services/__init__.py` (no functional changes, kept for compatibility)
+
+# Changelog - v3.3.2 (2026-04-16)
+
+## Fixed
+
+### Docker Startup Fixes
+- **Critical AI Service Import Error**: Resolved `ModuleNotFoundError: main` in AI service container.
+  - Root cause: Dockerfile used `uv pip install --system` which installed packages globally instead of into the virtualenv, leaving `/opt/venv` empty and causing missing `uvicorn`.
+  - Changed to `uv pip install` (venv-relative) in builder stage. API and AI services now start correctly.
+  - Rebuilt images and removed orphan `powercv-frontend` container.
+  - Impact: All services healthy; API and AI service responsive.
+- **Playwright PDF Engine Tests**: Fixed failing tests due to missing Chromium browser detection.
+  - Removed premature `RuntimeError` when system Chromium not found; allows Playwright to use its bundled browser.
+  - Fixed async test for AI provider base class to use async/await.
+  - Tests: 105/105 passing in `tests/`, 198/198 in full suite.
+  - Files: `app/services/pdf_engine.py`, `tests/test_ai_providers_enhanced.py`
+
+### Dependency Optimization
+- **AI Service Dependencies**: Pruned `ai-service/requirements.txt` to minimal set (fastapi, uvicorn, httpx, pydantic, python-dotenv). Removed unused heavy ML packages (torch, sentence-transformers, scikit-learn, langchain*, tiktoken) that inflated image from 5.5GB to **158MB**.
+- **API Dependencies**: Removed unused packages (langchain, requests, markdown, pypdf, itsdangerous, setuptools, charset-normalizer, uvloop, rich, click, lxml). Added missing `email-validator` for `pydantic.EmailStr`. Reduced site-packages by ~300MB (still in progress).
+- **Dockerfile**: Fixed venv installation command; ensured proper PATH and venv usage.
+
+### Test Infrastructure
+- **Playwright Browser**: Installed Chromium browser for local test environment (`playwright install chromium`), enabling PDF engine tests to run.
+
+---
+
 # Changelog - v3.3.1 (2026-02-22)
 
 ## Dependency & Security Updates

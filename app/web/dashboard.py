@@ -36,7 +36,7 @@ async def dashboard(
     -------
         HTMLResponse: The dashboard HTML page
     """
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard.html", {"request": request})
 
 
 @web_router.get(
@@ -60,7 +60,7 @@ async def master_cv_management(
     -------
         HTMLResponse: The master CV management HTML page
     """
-    return templates.TemplateResponse("master_cv.html", {"request": request})
+    return templates.TemplateResponse(request, "master_cv.html", {"request": request})
 
 
 @web_router.get(
@@ -84,7 +84,7 @@ async def template_gallery(
     -------
         HTMLResponse: The template gallery HTML page
     """
-    return templates.TemplateResponse("templates.html", {"request": request})
+    return templates.TemplateResponse(request, "templates.html", {"request": request})
 
 
 @web_router.get(
@@ -109,7 +109,7 @@ async def create_resume(
     -------
         HTMLResponse: The rendered resume creation page
     """
-    return templates.TemplateResponse("create.html", {"request": request})
+    return templates.TemplateResponse(request, "create.html", {"request": request})
 
 
 @web_router.get(
@@ -138,7 +138,7 @@ async def view_resume(
     # In a complete implementation, we would fetch the resume data
     # from the API and pass it to the template
     return templates.TemplateResponse(
-        "resume_view.html", {"request": request, "resume_id": resume_id}
+        request, "resume_view.html", {"request": request, "resume_id": resume_id}
     )
 
 
@@ -166,6 +166,7 @@ async def optimize_resume_page(
         HTMLResponse: Rendered resume optimization page
     """
     return templates.TemplateResponse(
+        request,
         "resume_optimize.html",
         {
             "request": request,
@@ -196,7 +197,9 @@ async def cover_letter_composer(
     -------
         HTMLResponse: The cover letter composer HTML page
     """
-    return templates.TemplateResponse("cover_letter.html", {"request": request})
+    return templates.TemplateResponse(
+        request, "cover_letter.html", {"request": request}
+    )
 
 
 @web_router.get(
@@ -220,4 +223,4 @@ async def settings(
     -------
         HTMLResponse: The rendered settings page
     """
-    return templates.TemplateResponse("settings.html", {"request": request})
+    return templates.TemplateResponse(request, "settings.html", {"request": request})

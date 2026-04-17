@@ -9,31 +9,32 @@ ai_service_path = os.path.join(project_root, "ai-service")
 sys.path.insert(0, ai_service_path)
 os.chdir(ai_service_path)
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from clients.providers import (
-    get_ai_client,
-    CerebrasClient,
-    OpenAIClient,
+    AIClientBase,
     AnthropicClient,
+    CerebrasClient,
     DeepSeekClient,
     GoogleGeminiClient,
     OllamaClient,
+    OpenAIClient,
     OpenRouterClient,
-    AIClientBase,
+    get_ai_client,
 )
 
 
 class TestAIClientBase:
     """Test base AI client functionality."""
 
-    def test_base_class_raises_not_implemented(self):
+    @pytest.mark.asyncio
+    async def test_base_class_raises_not_implemented(self):
         """Test base class raises NotImplementedError."""
         client = AIClientBase("key", "http://base", "model")
 
         with pytest.raises(NotImplementedError):
-            client.chat_completion([])
+            await client.chat_completion([])
 
 
 class TestGetAIClient:

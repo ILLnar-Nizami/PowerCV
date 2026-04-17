@@ -1,13 +1,14 @@
 """Tests for PDF engine enhancements."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.pdf_engine import (
     PlaywrightPDFEngine,
-    render_resume_to_pdf,
-    create_page_header_template,
     create_page_footer_template,
+    create_page_header_template,
+    render_resume_to_pdf,
 )
 
 
@@ -123,16 +124,18 @@ class TestRenderResumeToPDF:
     """Test render_resume_to_pdf convenience function."""
 
     @pytest.mark.asyncio
-    async def test_render_with_all_options(self):
+    async def test_render_with_all_options(self, tmp_path):
         """Test rendering with all options."""
         with patch("app.services.pdf_engine.PlaywrightPDFEngine") as MockEngine:
             mock_instance = AsyncMock()
-            mock_instance.generate_pdf = AsyncMock(return_value="/output/test.pdf")
+            mock_instance.generate_pdf = AsyncMock(
+                return_value=str(tmp_path / "test.pdf")
+            )
             MockEngine.return_value = mock_instance
 
             result = await render_resume_to_pdf(
                 html_template="<html>Test</html>",
-                output_dir="/output",
+                output_dir=str(tmp_path),
                 filename="test",
                 margins={"top": 15, "bottom": 15},
                 format="A4",
@@ -141,4 +144,4 @@ class TestRenderResumeToPDF:
                 print_background=False,
             )
 
-        assert result == "/output/test.pdf"
+        assert result == str(tmp_path / "test.pdf")

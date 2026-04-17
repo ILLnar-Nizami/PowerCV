@@ -287,7 +287,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
             )
         # For web requests, render our custom 404 page
         return templates.TemplateResponse(
-            "404.html", {"request": request}, status_code=404
+            request, "404.html", {"request": request}, status_code=404
         )
 
     # For API routes, return JSON error
@@ -298,8 +298,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
     # For other errors on web routes, show a simple error page
     return templates.TemplateResponse(
+        request,
         "404.html",
-        {"request": request, "status_code": exc.status_code, "detail": str(exc.detail)},
+        {
+            "request": request,
+            "status_code": exc.status_code,
+            "detail": str(exc.detail),
+        },
         status_code=exc.status_code,
     )
 
@@ -336,6 +341,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     # For web routes, show an error page with validation details
     return templates.TemplateResponse(
+        request,
         "404.html",
         {
             "request": request,

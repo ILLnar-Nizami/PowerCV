@@ -41,7 +41,7 @@ async def home(
     -------
         HTMLResponse: The rendered home page
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {"request": request})
 
 
 @core_web_router.get(
@@ -65,7 +65,7 @@ async def about(
     -------
         HTMLResponse: The rendered about page
     """
-    return templates.TemplateResponse("about.html", {"request": request})
+    return templates.TemplateResponse(request, "about.html", {"request": request})
 
 
 @core_web_router.get(
@@ -86,4 +86,6 @@ async def contribution(
     -------
         HTMLResponse: Rendered HTML template for contribution page
     """
-    return templates.TemplateResponse("contribution.html", {"request": request})
+    return templates.TemplateResponse(
+        request, "contribution.html", {"request": request}
+    )

@@ -109,7 +109,8 @@ NICE TO HAVE:
             self.choices = [MockChoice(content)]
             self.usage = {"prompt_tokens": 1200, "completion_tokens": 800}
 
-    mock_response = MockResponse("""{
+    mock_response = MockResponse(
+        """{
   "ats_score": 85,
   "keyword_analysis": {
     "matched_keywords": [
@@ -133,7 +134,8 @@ NICE TO HAVE:
     "Add a brief mention of any reinforcement learning or NLP experience"
   ],
   "summary": "Strong candidate with excellent technical skills. Minor gaps in cloud deployment technologies that could be addressed."
-}""")
+}"""
+    )
 
     with patch(
         "app.services.ai_providers.completion", new_callable=AsyncMock

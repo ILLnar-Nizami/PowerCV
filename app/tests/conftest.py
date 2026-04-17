@@ -388,12 +388,12 @@ def load_json_fixture(fixture_name: str) -> Dict[str, Any]:
 
 def assert_ats_score_in_range(score, min_score=0, max_score=100):
     """Assert that ATS score is within valid range."""
-    assert isinstance(score, (int, float)), (
-        f"ATS score must be numeric, got {type(score)}"
-    )
-    assert min_score <= score <= max_score, (
-        f"ATS score {score} outside range [{min_score}, {max_score}]"
-    )
+    assert isinstance(
+        score, (int, float)
+    ), f"ATS score must be numeric, got {type(score)}"
+    assert (
+        min_score <= score <= max_score
+    ), f"ATS score {score} outside range [{min_score}, {max_score}]"
 
 
 def assert_response_structure(response_data, required_fields: list):

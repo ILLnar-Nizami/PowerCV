@@ -1,63 +1,35 @@
 # PowerCV Production Requirements
 # Core dependencies
-bcrypt>=4.0.0
 fastapi[standard]>=0.104.0
-uvicorn[standard]>=0.24.0
 redis>=5.0.0
-charset-normalizer>=3.3.2
-setuptools>=69.0.0
-python-multipart>=0.0.6
-itsdangerous>=2.1.0
-httpx>=0.25.0
-websockets>=12.0
+bcrypt>=4.0.0
+pyjwt>=2.8.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+PyYAML>=6.0.1
 slowapi>=0.1.9
 asgiref>=3.7.0
 jinja2>=3.1.0
-pyjwt>=2.8.0
-markdown>=3.5.0
-pypdf>=3.17.0
-langchain>=0.0.300
+websockets>=12.0
+httpx>=0.25.0
+
+# AI and LLM providers
 langchain-openai>=0.0.2
-langchain-ollama>=0.0.1
-langchain-community>=0.0.10
-PyYAML>=6.0.1
+openai>=1.0
+aiohttp>=3.9.0
 
-# Additional dependencies for Cerebras integration
-python-dotenv>=1.0.0
-requests>=2.31.0
-pydantic>=2.5.0
-uvloop>=0.19.0
-
-# Unified AI management
-litellm>=1.0.0
-
-# Error tracking
-sentry-sdk>=1.38.0
-
-# Job Description Scraping
+# Document processing
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
-
-# CLI and Configuration
-rich>=13.0.0
-click>=8.0.0
-
-# File validation
 python-magic>=0.4.0
+PyPDF2>=3.0.0
+python-docx>=1.1.0
+email-validator>=2.0.0
 
-# PostgreSQL database driver
+# Database
 asyncpg>=0.29.0
-
-# MongoDB driver (for bson module)
 pymongo>=4.6.0
 motor>=3.3.0
 
-# OCR and PDF processing
-pytesseract>=0.3.10
-pdf2image>=1.17.0
-
-# MarkItDown for document parsing
-markitdown>=0.1.0
-
-# Playwright for WYSIWYG PDF generation
-playwright>=1.40.0
+# Error tracking
+sentry-sdk>=1.38.0

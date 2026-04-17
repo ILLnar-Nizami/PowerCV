@@ -140,11 +140,8 @@ class PlaywrightPDFEngine:
         Returns:
             Path to generated PDF file
         """
-        if not self.browser_executable:
-            raise RuntimeError(
-                "No browser available. Install Chromium or Chrome, "
-                "or run: playwright install chromium"
-            )
+        # Allow Playwright to use its bundled browser if system browser not detected
+        # _get_browser will handle launching with or without executable_path
 
         # Default margins (20mm standard margins)
         if margins is None:
