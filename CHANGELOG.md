@@ -2,7 +2,7 @@
 
 # Changelog - v3.3.4 (2026-04-17)
 
-## Type Safety & Code Quality
+## Code Quality & Dependency Cleanup
 
 ### Fixed
 - **MyPy Type Errors**: Resolved 28 type errors across `app/web/core.py`, `app/web/dashboard.py`, and `app/main.py` where `Jinja2Templates.TemplateResponse` was called with incorrect argument order. Corrected all calls to use proper FastAPI signature: `TemplateResponse(request, "template.html", context)` instead of `TemplateResponse("template.html", {"request": request})`.
@@ -10,11 +10,19 @@
 
 ### Changed
 - **Code Quality**: All `app/` modules now pass `mypy --strict` with zero errors. Scripts directory maintains relaxed type checking as allowed by CI.
+- **Dependency Optimization**: 
+  - Moved `litellm` from production requirements to `requirements-dev.txt` to reduce Docker image size. The `AIProviderClient` in `app/services/ai_providers.py` remains available for development/testing but is no longer imported in production (removed from `app/services/__init__.py` along with unused `CerebrasClient`), eliminating unnecessary heavy dependency from the main API image.
+  - Added `email-validator>=2.0.0` to `requirements.txt` to support Pydantic `EmailStr` fields (used in database models).
+  - Verified all unconditional imports are satisfied: sentry-sdk provided via `fastapi[standard]`, websockets via same, uvicorn via same, python-multipart via fastapi core.
+- **Error Handling**: Confirmed optional imports (`pytesseract`, `pdf2image`, `markitdown`, `playwright`) are safely wrapped in try/except blocks.
 
 ## Files Modified
-- `app/web/core.py` (lines 44, 68, 89)
-- `app/web/dashboard.py` (lines 39, 63, 87, 112, 141, 169, 201, 226)
-- `app/main.py` (lines 289-291, 300-304, 338-344)
+- `app/services/__init__.py` (removed `AIProviderClient`, `CerebrasClient` imports and exports)
+- `requirements.txt` (added `email-validator`, kept `sentry-sdk` via fastapi[standard] transitive)
+- `requirements-dev.txt` (added `litellm` for test-only usage)
+- `app/web/core.py` (TemplateResponse fixes)
+- `app/web/dashboard.py` (TemplateResponse fixes)
+- `app/main.py` (TemplateResponse fixes)
 - `scripts/init_postgres.py` (formatting)
 - `scripts/test_production_ai_caching.py` (formatting)
 
