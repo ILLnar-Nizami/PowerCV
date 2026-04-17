@@ -2,6 +2,23 @@
 
 ---
 
+# Changelog - v3.3.6 (2026-04-17)
+
+## CI & Docker Fixes
+
+### Fixed
+- **CI Python Version Matrix**: Updated `.github/workflows/ci.yml` to test only on Python 3.12, aligning with project's `python = "^3.12"` requirement in `pyproject.toml`. This resolves Black formatting check failures caused by Python 3.11 parser incompatibility with Python 3.12-formatted code (Black `target-version: py312`).
+- **Docker CI Test Command**: Updated `docker-compose.ci.yml` to install dev dependencies (`pip install -r requirements-dev.txt`) before running pytest, ensuring test dependencies are available in CI container environment. Previously failed with `No module named pytest`.
+
+### Changed
+- **CI/CD Pipeline**: All checks (Black, isort, mypy, pytest, Docker build) now pass on Python 3.12 only, simplifying matrix and ensuring consistency.
+
+## Files Modified
+- `.github/workflows/ci.yml` (removed Python 3.11 from matrix)
+- `docker-compose.ci.yml` (added dev dependency installation before tests)
+
+---
+
 # Changelog - v3.3.5 (2026-04-17)
 
 ## Codex Review Fixes
