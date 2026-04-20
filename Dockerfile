@@ -13,11 +13,18 @@ FROM python:3.12-slim AS builder
 # Install uv for fast dependency installation
 RUN pip install uv
 
-# Copy requirements and install into venv
+# Copy production requirements and install into venv
 COPY requirements.txt .
 ENV VIRTUAL_ENV=/opt/venv PATH="/opt/venv/bin:$PATH"
 RUN python -m venv /opt/venv && \
     uv pip install --no-cache -r requirements.txt
+
+# Optionally install dev dependencies if DEV=1
+ARG DEV=0
+COPY requirements-dev.txt .
+RUN if [ "$DEV" = "1" ]; then \
+      uv pip install --no-cache -r requirements-dev.txt; \
+    fi
 
 # Final stage
 FROM python:3.12-slim

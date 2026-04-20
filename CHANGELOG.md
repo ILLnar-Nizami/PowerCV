@@ -8,14 +8,18 @@
 
 ### Fixed
 - **CI Python Version Matrix**: Updated `.github/workflows/ci.yml` to test only on Python 3.12, aligning with project's `python = "^3.12"` requirement in `pyproject.toml`. This resolves Black formatting check failures caused by Python 3.11 parser incompatibility with Python 3.12-formatted code (Black `target-version: py312`).
-- **Docker CI Test Command**: Updated `docker-compose.ci.yml` to install dev dependencies (`pip install -r requirements-dev.txt`) before running pytest, ensuring test dependencies are available in CI container environment. Previously failed with `No module named pytest`.
+- **Docker CI Environment**: Refactored `docker-compose.ci.yml` to use `DEV=1` build-arg (pre-installs dev dependencies in image) and mount required test artifacts (root-level `tests/`, `pytest.ini`, `app.sh`, `ai-service/`, and `app/tests/`) as read-only volumes. This ensures all test dependencies and data are available without bloating production image. Previously failed with `No module named pytest` and missing test directories.
+- **App Help Banner**: Added `print_banner` call to `show_usage()` in `app.sh` so PowerCV branding appears on `help` command, making the test `test_banner_displays_power_cv` independent of script path.
 
 ### Changed
+- **Dockerfile**: Removed copying of test artifacts and AI service code from production image. Dev dependencies are conditionally installed via `DEV` build-arg; CI uses this to include `pytest`, `mypy`, etc. Production image remains lean (~455MB).
 - **CI/CD Pipeline**: All checks (Black, isort, mypy, pytest, Docker build) now pass on Python 3.12 only, simplifying matrix and ensuring consistency.
 
 ## Files Modified
 - `.github/workflows/ci.yml` (removed Python 3.11 from matrix)
-- `docker-compose.ci.yml` (added dev dependency installation before tests)
+- `docker-compose.ci.yml` (added volume mounts for tests/config/script/ai-service, uses DEV=1 build)
+- `Dockerfile` (removed test/AI-service copies; kept DEV conditional for dev deps)
+- `app.sh` (added banner in `show_usage`)
 
 ---
 

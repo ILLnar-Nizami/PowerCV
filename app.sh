@@ -40,6 +40,7 @@ REDIS_PORT="${REDIS_PORT:-6379}"
 MONGODB_PORT="${MONGODB_PORT:-27018}"
 
 show_usage() {
+    print_banner
     echo "Usage: $0 [command]"
     echo ""
     echo "Commands:"

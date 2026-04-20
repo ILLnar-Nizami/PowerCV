@@ -25,6 +25,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        DEV: 1
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/powercv_test
       - REDIS_URL=redis://redis:6379
@@ -37,9 +39,17 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+    volumes:
+      # Mount root-level tests, pytest config, CLI script, and AI service for CI (read-only)
+      - ./tests:/app/tests:ro
+      - ./pytest.ini:/app/pytest.ini:ro
+      - ./app.sh:/app/app.sh:ro
+      # Mount app-level tests (ignored by .dockerignore)
+      - ./app/tests:/app/app/tests:ro
+      # Mount AI service code (needed for AI provider tests)
+      - ./ai-service:/app/ai-service:ro
     command: >
       sh -c "
-        pip install -r requirements-dev.txt &&
-        python -m pytest tests/ -v --timeout=300 &&
-        python -m pytest app/tests/ -v --timeout=300
+        python -m pytest tests/ -v &&
+        python -m pytest app/tests/ -v
       "
