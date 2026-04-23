@@ -112,7 +112,7 @@ def validate_file_upload(
             )
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Maximum size: {max_size // (1024*1024)}MB",
+                detail=f"File too large. Maximum size: {max_size // (1024 * 1024)}MB",
             )
 
         # Validate MIME type using python-magic
@@ -124,7 +124,7 @@ def validate_file_upload(
                 result.errors.append(f"MIME type not allowed: {mime_type}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"File type not detected as valid document",
+                    detail="File type not detected as valid document",
                 )
         except Exception as e:
             logger.warning(f"Could not determine MIME type: {e}")
@@ -412,5 +412,5 @@ def validate_request_size(request_size: int, max_size: int = 10 * 1024 * 1024) -
     if request_size > max_size:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"Request too large. Maximum size: {max_size // (1024*1024)}MB",
+            detail=f"Request too large. Maximum size: {max_size // (1024 * 1024)}MB",
         )

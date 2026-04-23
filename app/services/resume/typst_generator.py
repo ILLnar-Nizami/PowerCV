@@ -53,7 +53,7 @@ class TypstGenerator:
             block_end_string="%>",
             comment_start_string="<#",
             comment_end_string="#>",
-            autoescape=False,  # Typst is text-based, we handle escaping manually
+            autoescape=False,  # nosec B701 - Typst is text-based, we handle escaping manually
         )
 
         self.env.filters["typst_escape"] = self.typst_escape

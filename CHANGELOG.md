@@ -2,6 +2,29 @@
 
 ---
 
+# Changelog - v3.3.7 (2026-04-23)
+
+## Security & Linting Fixes
+
+### Fixed
+- **Bandit Security Issues**: Fixed weak MD5 hashing vulnerability (`B324`) in `app/services/ai/fast_optimizer.py` by setting `usedforsecurity=False`.
+- **Jinja2 Autoescape**: Addressed false positive `B701` Jinja2 autoescape warning in `app/services/resume/typst_generator.py` (Typst does not use HTML escaping).
+- **Ruff Linting Errors**: Removed unused imports across `app/services/pdf_engine.py`, `app/services/regenerator.py`, `app/services/enrichment.py`, and `app/core/validation.py` to fix F401 warnings. Fixed method parameter naming `cls` to `self` in `app/core/validation.py`.
+- **Typing & Formatting**: Applied Ruff formatting fixes and ensured zero high-severity security vulnerabilities.
+
+### Changed
+- Ran comprehensive backend unit tests (105/105 passed) and frontend Vitest unit tests (20/20 passed) to validate stability.
+
+## Files Modified
+- `app/services/ai/fast_optimizer.py`
+- `app/services/resume/typst_generator.py`
+- `app/services/pdf_engine.py`
+- `app/services/regenerator.py`
+- `app/services/enrichment.py`
+- `app/core/validation.py`
+
+---
+
 # Changelog - v3.3.6 (2026-04-17)
 
 ## CI & Docker Fixes

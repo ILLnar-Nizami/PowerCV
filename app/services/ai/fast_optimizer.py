@@ -183,7 +183,7 @@ class UltraFastResumeOptimizer:
 
     def _get_keywords(self, job_description: str) -> List[str]:
         """Extract keywords using cache or minimal LLM call"""
-        cached_key = hashlib.md5(job_description.encode()).hexdigest()
+        cached_key = hashlib.md5(job_description.encode(), usedforsecurity=False).hexdigest()
         cached = KeywordCache.get(cached_key)
         if cached:
             return cached

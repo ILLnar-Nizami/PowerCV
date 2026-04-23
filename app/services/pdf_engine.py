@@ -10,12 +10,8 @@ Based on Resume Matcher pattern: apps/backend/app/pdf.py
 import asyncio
 import logging
 import os
-import re
 import shutil
-import subprocess
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 

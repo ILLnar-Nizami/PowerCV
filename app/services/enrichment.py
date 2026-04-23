@@ -9,7 +9,7 @@ Based on Resume Matcher pattern: apps/backend/app/services/improver.py
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
