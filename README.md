@@ -1,4 +1,4 @@
-# PowerCV <img src="https://img.shields.io/badge/version-3.3.1-blue" alt="Version 3.3.1"/>
+# PowerCV <img src="https://img.shields.io/badge/version-3.3.7-blue" alt="Version 3.3.7"/>
 
 <div align="center">
 

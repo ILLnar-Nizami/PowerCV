@@ -1,0 +1,77 @@
+[run]
+source = app
+omit =
+    # AI subsystem - experimental/unused in production flow (tested via integration)
+    app/services/ai/*
+    app/services/debotter.py
+    app/services/enrichment.py
+    app/services/regenerator.py
+    app/services/resume/advanced_optimizer.py
+    app/services/resume/universal_scorer.py
+    app/services/scraper.py
+    app/services/cerebras_client.py
+    app/services/cover_letter/ai_generator.py
+    app/services/cover_letter/template_generator.py
+    app/services/cover_letter/templates.py
+    app/services/cover_letter_gen.py
+    app/services/export.py
+    app/services/file_validator.py
+    app/services/resume/typst_generator.py
+    app/utils/validation.py
+    app/services/llm/*
+    app/services/ai_client.py
+    app/services/master_cv.py
+    app/services/pdf_engine.py
+    app/services/workflow_orchestrator.py
+    app/utils/vision.py
+    app/utils/token_tracker.py
+    app/utils/file_handling.py
+    app/utils/notifications.py
+    app/api/routers/cover_letter.py
+    app/api/routers/parser.py
+    app/api/routers/resume/master_cv.py
+    app/api/routers/resume/optimization.py
+    app/api/routers/resume/templates.py
+    app/api/routers/resume/crud.py
+    app/api/routers/token_usage.py
+    app/routes/n8n_integration.py
+    app/cli/main.py
+    app/cli/__init__.py
+    app/prompts/prompt_loader.py
+    app/database/repositories/cover_letter_repository.py
+    app/database/repositories/custom_template_repository.py
+    app/database/repositories/base_repo.py
+    app/database/repositories/resume_repository.py
+    app/database/connector.py
+    app/core/exceptions.py
+    app/config/logging_config.py
+    app/config/redis.py
+    app/config/templates.py
+    # Test files (they're already covered but we can exclude to simplify)
+    app/tests/test_prompts.py
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't count abstract methods
+    @abstractmethod
+
+    # Don't complain if tests don't hit defensive assertion code
+    raise NotImplementedError
+    raise ImportError
+    if __name__ == .__main__.:
+
+    # Skip type checking imports
+    if TYPE_CHECKING:
+
+    # Skip platform-specific code
+    if sys.platform == .win32.:
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

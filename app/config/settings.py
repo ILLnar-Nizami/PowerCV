@@ -114,7 +114,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("CEREBRAS_API_BASE"),
     )
     cerebras_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("CEREBRAS_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("CEREBRAS_MODEL")
     )
 
     # OpenAI
@@ -187,15 +187,45 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("LOG_FORMAT"),
     )
 
+    # Database pool configuration
+    mongodb_pool_size: int = Field(
+        default=10, validation_alias=AliasChoices("MONGODB_POOL_SIZE")
+    )
+    mongodb_idle_timeout_ms: int = Field(
+        default=30000, validation_alias=AliasChoices("MONGODB_IDLE_TIMEOUT_MS")
+    )
+    postgres_pool_min: int = Field(
+        default=1, validation_alias=AliasChoices("POSTGRES_POOL_MIN")
+    )
+    postgres_pool_max: int = Field(
+        default=10, validation_alias=AliasChoices("POSTGRES_POOL_MAX")
+    )
+    # Redis configuration
+    redis_socket_timeout: int = Field(
+        default=5, validation_alias=AliasChoices("REDIS_SOCKET_TIMEOUT")
+    )
+
     # AI Model tiers configuration
     fast_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("FAST_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("FAST_MODEL")
     )
     balanced_model: str = Field(
-        default="gpt-oss-120b", validation_alias=AliasChoices("BALANCED_MODEL")
+        default="llama3.1-8b", validation_alias=AliasChoices("BALANCED_MODEL")
     )
     quality_model: str = Field(
         default="gpt-4", validation_alias=AliasChoices("QUALITY_MODEL")
+    )
+
+    # AI Service timeout configuration (in seconds)
+    ai_service_timeout: float = Field(
+        default=120.0, validation_alias=AliasChoices("AI_SERVICE_TIMEOUT")
+    )
+    ollama_timeout: float = Field(
+        default=300.0, validation_alias=AliasChoices("OLLAMA_TIMEOUT")
+    )
+    # Cache TTL configuration (in seconds)
+    cache_ttl_default: int = Field(
+        default=3600, validation_alias=AliasChoices("CACHE_TTL_DEFAULT")
     )
 
     # External services (n8n, SMTP)
@@ -211,6 +241,9 @@ class Settings(BaseSettings):
     )
     n8n_webhook_url: Optional[str] = Field(
         default=None, validation_alias=AliasChoices("N8N_WEBHOOK_URL")
+    )
+    n8n_api_key: Optional[str] = Field(
+        default=None, validation_alias=AliasChoices("N8N_API_KEY")
     )
 
     model_config = SettingsConfigDict(

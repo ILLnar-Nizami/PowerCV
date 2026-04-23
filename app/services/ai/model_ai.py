@@ -373,7 +373,7 @@ if __name__ == "__main__":
     API_KEY = "dummy-key"
     # Using Cerebras defaults if available, otherwise just placeholders
     CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY", "")
-    MODEL_NAME = "gpt-oss-120b"
+    MODEL_NAME = "llama3.1-8b"
 
     model = AtsResumeOptimizer(
         model_name=MODEL_NAME,

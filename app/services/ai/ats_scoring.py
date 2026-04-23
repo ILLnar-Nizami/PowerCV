@@ -396,7 +396,7 @@ def demo_ats_scorer_llm():
 
     load_dotenv()
     api_key = os.getenv("CEREBRASAI_API_KEY")
-    model_name = os.getenv("API_MODEL_NAME", "gpt-oss-120b")
+    model_name = os.getenv("API_MODEL_NAME", "llama3.1-8b")
     api_base = os.getenv("API_BASE", "https://api.cerebras.ai/v1")
 
     scorer = ATSScorerLLM(api_key=api_key, model_name=model_name, api_base=api_base)

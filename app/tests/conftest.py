@@ -66,7 +66,7 @@ def mock_env_vars():
     env_vars = {
         "CEREBRAS_API_KEY": "sk-mock-cerebras-key",
         "CEREBRAS_API_BASE": "https://api.cerebras.ai/v1",
-        "CEREBRAS_MODEL": "gpt-oss-120b",
+        "CEREBRAS_MODEL": "llama3.1-8b",
         "OPENAI_API_KEY": "",
         "OPENAI_API_BASE": "https://api.openai.com/v1",
         "MONGODB_URI": "mongodb://localhost:27017/powercv-test",

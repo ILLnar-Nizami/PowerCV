@@ -10,12 +10,8 @@ Based on Resume Matcher pattern: apps/backend/app/pdf.py
 import asyncio
 import logging
 import os
-import re
 import shutil
-import subprocess
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +117,9 @@ class PlaywrightPDFEngine:
         margins: Dict[str, float] = None,
         format: str = "A4",
         scale: float = 1.0,
+        header_template: Optional[str] = None,
+        footer_template: Optional[str] = None,
+        print_background: bool = True,
     ) -> str:
         """Generate PDF from HTML content using headless Chromium.
 
@@ -128,17 +127,17 @@ class PlaywrightPDFEngine:
             html_content: Complete HTML document with CSS styling
             output_path: Destination path for PDF file
             margins: Dict with 'top', 'bottom', 'left', 'right' in mm
-            format: Paper format ('A4', 'Letter', etc.)
+            format: Paper format ('A4', 'Letter', 'Legal', 'A3', 'A5')
             scale: Content scale factor (1.0 = 100%)
+            header_template: HTML template for header (with <span class='pageNumber'></span> and <span class='totalPages'></span> placeholders)
+            footer_template: HTML template for footer (with <span class='pageNumber'></span> and <span class='totalPages'></span> placeholders)
+            print_background: Whether to print background graphics and colors
 
         Returns:
             Path to generated PDF file
         """
-        if not self.browser_executable:
-            raise RuntimeError(
-                "No browser available. Install Chromium or Chrome, "
-                "or run: playwright install chromium"
-            )
+        # Allow Playwright to use its bundled browser if system browser not detected
+        # _get_browser will handle launching with or without executable_path
 
         # Default margins (20mm standard margins)
         if margins is None:
@@ -165,8 +164,10 @@ class PlaywrightPDFEngine:
                     "left": f"{margins.get('left', 20)}mm",
                     "right": f"{margins.get('right', 20)}mm",
                 },
-                print_background=True,
-                display_header_footer=False,
+                print_background=print_background,
+                display_header_footer=bool(header_template or footer_template),
+                header_template=header_template,
+                footer_template=footer_template,
             )
 
             logger.info(f"PDF generated: {output_path}")
@@ -192,6 +193,10 @@ async def render_resume_to_pdf(
     output_dir: str,
     filename: str,
     margins: Dict[str, float] = None,
+    format: str = "A4",
+    header_template: Optional[str] = None,
+    footer_template: Optional[str] = None,
+    print_background: bool = True,
 ) -> str:
     """Render a resume HTML template to PDF.
 
@@ -200,6 +205,10 @@ async def render_resume_to_pdf(
         output_dir: Directory to save PDF
         filename: Output filename (without extension)
         margins: Optional margin overrides
+        format: Paper format ('A4', 'Letter', etc.)
+        header_template: HTML template for header
+        footer_template: HTML template for footer
+        print_background: Whether to print background graphics
 
     Returns:
         Full path to generated PDF
@@ -215,10 +224,59 @@ async def render_resume_to_pdf(
         html_content=html_template,
         output_path=output_path,
         margins=margins,
-        format="A4",
+        format=format,
+        header_template=header_template,
+        footer_template=footer_template,
+        print_background=print_background,
     )
 
     return output_path
+
+
+def create_page_header_template(
+    title: Optional[str] = None,
+    font_family: str = "Arial",
+    font_size: str = "10px",
+) -> str:
+    """Create a standard header template for PDF pages.
+
+    Args:
+        title: Optional title to show in header
+        font_family: Font family for header text
+        font_size: Font size for header text
+
+    Returns:
+        HTML header template string
+    """
+    # Use Playwright pagination classes: pageNumber, totalPages
+    left_part = f"<span style='font-family: {font_family}; font-size: {font_size};'>"
+    if title:
+        left_part += title
+    left_part += "</span>"
+    right_part = f"<span style='font-family: {font_family}; font-size: {font_size}; margin-left: 20px;'><span class='pageNumber'></span> / <span class='totalPages'></span></span>"
+    return left_part + right_part
+
+
+def create_page_footer_template(
+    font_family: str = "Arial",
+    font_size: str = "10px",
+    align: str = "center",
+) -> str:
+    """Create a standard footer template for PDF pages.
+
+    Uses Playwright pagination CSS classes: pageNumber, totalPages.
+
+    Args:
+        font_family: Font family for footer text
+        font_size: Font size for footer text
+        align: Text alignment ('left', 'center', 'right')
+
+    Returns:
+        HTML footer template string
+    """
+    return f"""<div style='width: 100%; text-align: {align}; font-family: {font_family}; font-size: {font_size};'>
+Page <span class='pageNumber'></span> of <span class='totalPages'></span>
+</div>"""
 
 
 # Browser cleanup on shutdown

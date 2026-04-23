@@ -1,24 +1,18 @@
-# AI Service Dependencies
-# FastAPI and server
+# AI Service Minimal Dependencies
+# Core framework
 fastapi>=0.109.0
 uvicorn>=0.27.0
+pydantic>=2.5.0
 python-multipart>=0.0.6
 
-# AI and ML
-openai>=1.10.0
-langchain>=0.1.0
-langchain-community>=0.0.20
-langchain-openai>=0.0.5
-langchain-ollama>=0.0.1
+# HTTP client
+httpx>=0.25.0
 
-# ML and NLP
-scikit-learn>=1.4.0
-sentence-transformers>=3.0.0
-tiktoken>=0.6.0
-
-# Configuration and utilities
-pydantic>=2.5.0
+# Configuration
 python-dotenv>=1.0.0
-PyYAML>=6.0
-httpx>=0.26.0
-rich>=13.7.0
+
+# OpenAI-compatible clients (OpenAI, Cerebras, DeepSeek, OpenRouter)
+openai>=1.0
+
+# Utilities (if needed)
+# rich>=13.0.0  # optional, removed

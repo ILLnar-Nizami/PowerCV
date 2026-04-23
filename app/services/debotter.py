@@ -10,7 +10,7 @@ Based on Resume Matcher pattern: apps/backend/app/services/refiner.py
 import logging
 import re
 from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

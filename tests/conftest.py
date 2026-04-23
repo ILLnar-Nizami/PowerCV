@@ -22,10 +22,10 @@ def mock_settings():
     settings = MagicMock()
     settings.cerebras_api_key = "test-cerebras-api-key-for-ci"
     settings.cerebras_api_base = "https://api.cerebras.ai/v1"
-    settings.cerebras_model = "gpt-oss-120b"
+    settings.cerebras_model = "llama3.1-8b"
     settings.openai_api_key = "test-openai-api-key-for-ci"
     settings.openai_api_base = "https://api.openai.com/v1"
-    settings.openai_model = "gpt-4-turbo"
+    settings.openai_model = "gpt-4o-mini"
     settings.deepseek_api_key = "test-deepseek-api-key-for-ci"
     settings.deepseek_api_base = "https://api.deepseek.com/v1"
     settings.deepseek_model = "deepseek-chat"

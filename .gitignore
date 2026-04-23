@@ -169,7 +169,6 @@ node_modules
 *.out
 .env
 
-myresumo-prd.md
 .ruff_cache/
 
 # Security and sensitive files
@@ -211,11 +210,13 @@ personal_data.py
 # Reports folder (single-use, not for production)
 reports/
 
-# Exclude all markdown files except README.md, CONTRIBUTING.md, and prompts
+# Exclude all markdown files except README.md, CONTRIBUTING.md, CHANGELOG.md, and prompts
 *.md
 !README.md
 !CHANGELOG.md
 !CONTRIBUTING.md
+!AGENT_CONSOLIDATED_RULES.md
+!frontend/CHANGELOG.md
 !app/prompts/*.md
 !app/prompts/*.json
 

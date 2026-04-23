@@ -287,7 +287,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
             )
         # For web requests, render our custom 404 page
         return templates.TemplateResponse(
-            "404.html", {"request": request}, status_code=404
+            request, "404.html", {"request": request}, status_code=404
         )
 
     # For API routes, return JSON error
@@ -298,8 +298,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
     # For other errors on web routes, show a simple error page
     return templates.TemplateResponse(
+        request,
         "404.html",
-        {"request": request, "status_code": exc.status_code, "detail": str(exc.detail)},
+        {
+            "request": request,
+            "status_code": exc.status_code,
+            "detail": str(exc.detail),
+        },
         status_code=exc.status_code,
     )
 
@@ -336,6 +341,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     # For web routes, show an error page with validation details
     return templates.TemplateResponse(
+        request,
         "404.html",
         {
             "request": request,
@@ -371,15 +377,14 @@ async def add_response_headers(request: Request, call_next):
 # Add middleware and static file mounts
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-Request-ID",
+    ],  # Restrictive headers
 )
 
 app.mount(

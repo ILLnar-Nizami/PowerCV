@@ -1,13 +1,14 @@
 """Debug script to inspect 500 error responses."""
 
 import sys
+from pathlib import Path
 
 from bson.objectid import ObjectId
 from fastapi.testclient import TestClient
 
 from app.main import app
 
-sys.path.insert(0, "/home/illnar/Projects/PowerCV")
+sys.path.insert(0, str(Path(__file__).parent))
 
 
 client = TestClient(app)

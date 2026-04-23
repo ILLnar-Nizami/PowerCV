@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def replace_in_file(filepath, old_text, new_text):
@@ -17,7 +18,7 @@ def replace_in_file(filepath, old_text, new_text):
 
 
 def main():
-    root_dir = "/home/illnar/Projects/PowerCV"
+    root_dir = Path(__file__).parent.parent
     old_text = "MyResumo"
     new_text = "PowerCV"
 

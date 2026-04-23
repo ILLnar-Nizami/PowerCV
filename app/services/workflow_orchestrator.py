@@ -6,12 +6,17 @@ import re
 from typing import Dict, List, Optional
 
 from ..config.redis import get_redis
+from ..config.settings import get_settings
 from ..utils.shared_utils import TextProcessor
 from .cover_letter_gen import CoverLetterGenerator
 from .cv_analyzer import CVAnalyzer
 from .cv_optimizer import CVOptimizer
 
 logger = logging.getLogger(__name__)
+
+# Get settings for configurable values
+settings = get_settings()
+CACHE_TTL = settings.cache_ttl_default  # Configurable cache TTL
 
 
 class CVWorkflowOrchestrator:
@@ -163,8 +168,8 @@ class CVWorkflowOrchestrator:
             ),
         }
 
-        # Cache the result for 1 hour
-        await self.redis.setex(cache_key, 3600, json.dumps(result))
+        # Cache the result with configurable TTL
+        await self.redis.setex(cache_key, CACHE_TTL, json.dumps(result))
         logger.info(f"Workflow completed and cached. ATS Score: {result['ats_score']}")
         return result
 

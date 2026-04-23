@@ -2,11 +2,13 @@
 
 import logging
 import os
+import secrets
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from app.config.settings import get_settings
 from app.services.ai_client import get_ai_client
 from app.services.cv_analyzer import CVAnalyzer
 from app.services.workflow_orchestrator import CVWorkflowOrchestrator
@@ -14,13 +16,60 @@ from app.services.workflow_orchestrator import CVWorkflowOrchestrator
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/n8n", tags=["n8n"])
 
-# API key authentication
-N8N_API_KEY = os.getenv("N8N_API_KEY", "changeme")
+# API key authentication - use settings with validation
+settings = get_settings()
+
+# Require explicit configuration in production; fail securely if not set
+_N8N_API_KEY = os.getenv("N8N_API_KEY") or settings.n8n_api_key
+
+# Service singletons for performance
+_analyzer_instance: Optional[CVAnalyzer] = None
+_orchestrator_instance: Optional[CVWorkflowOrchestrator] = None
+
+
+def get_n8n_api_key() -> str:
+    """Get N8N API key with security validation.
+
+    Returns:
+        str: The configured API key
+
+    Raises:
+        ValueError: If API key is not configured in production
+    """
+    if not _N8N_API_KEY:
+        if settings.environment == "production":
+            raise ValueError("N8N_API_KEY must be configured in production environment")
+        # Generate a secure random key for development only
+        logger.warning("N8N_API_KEY not set - generating ephemeral key for development")
+        return f"dev-{secrets.token_urlsafe(32)}"
+    return _N8N_API_KEY
+
+
+def get_cv_analyzer() -> CVAnalyzer:
+    """Get singleton CVAnalyzer instance for better performance."""
+    global _analyzer_instance
+    if _analyzer_instance is None:
+        _analyzer_instance = CVAnalyzer()
+        logger.info("Created CVAnalyzer singleton")
+    return _analyzer_instance
+
+
+def get_workflow_orchestrator() -> CVWorkflowOrchestrator:
+    """Get singleton CVWorkflowOrchestrator instance for better performance."""
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = CVWorkflowOrchestrator()
+        logger.info("Created CVWorkflowOrchestrator singleton")
+    return _orchestrator_instance
 
 
 def verify_api_key(x_api_key: str = Header(...)):
     """Verify n8n API key."""
-    if x_api_key != N8N_API_KEY:
+    expected_key = get_n8n_api_key()
+    # Use constant-time comparison to prevent timing attacks
+    import hmac
+
+    if not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return x_api_key
 
@@ -74,7 +123,8 @@ async def analyze_cv(
     try:
         logger.info(f"n8n analysis request from user: {request.user_id}")
 
-        analyzer = CVAnalyzer()
+        # Use singleton for better performance
+        analyzer = get_cv_analyzer()
         analysis = await analyzer.analyze(request.cv_text, request.jd_text)
 
         # Simplified response for n8n
@@ -102,7 +152,8 @@ async def optimize_cv(
     try:
         logger.info(f"n8n optimization request from user: {request.user_id}")
 
-        orchestrator = CVWorkflowOrchestrator()
+        # Use singleton for better performance
+        orchestrator = get_workflow_orchestrator()
         result = await orchestrator.optimize_cv_for_job(
             cv_text=request.cv_text,
             jd_text=request.jd_text,
@@ -198,8 +249,8 @@ async def list_providers(api_key: str = Depends(verify_api_key)):
         # Check which providers are configured
         available_providers = []
         provider_configs = {
-            "cerebras": {"model": "gpt-oss-120b", "key": "CEREBRAS_API_KEY"},
-            "openai": {"model": "gpt-4", "key": "OPENAI_API_KEY"},
+            "cerebras": {"model": "llama3.1-8b", "key": "CEREBRAS_API_KEY"},
+            "openai": {"model": "gpt-4o-mini", "key": "OPENAI_API_KEY"},
         }
 
         for provider_name, config in provider_configs.items():

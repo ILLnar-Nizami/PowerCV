@@ -1,3 +1,155 @@
+---
+
+---
+
+# Changelog - v3.3.7 (2026-04-23)
+
+## Security & Linting Fixes
+
+### Fixed
+- **Bandit Security Issues**: Fixed weak MD5 hashing vulnerability (`B324`) in `app/services/ai/fast_optimizer.py` by setting `usedforsecurity=False`.
+- **Jinja2 Autoescape**: Addressed false positive `B701` Jinja2 autoescape warning in `app/services/resume/typst_generator.py` (Typst does not use HTML escaping).
+- **Ruff Linting Errors**: Removed unused imports across `app/services/pdf_engine.py`, `app/services/regenerator.py`, `app/services/enrichment.py`, and `app/core/validation.py` to fix F401 warnings. Fixed method parameter naming `cls` to `self` in `app/core/validation.py`.
+- **Typing & Formatting**: Applied Ruff formatting fixes and ensured zero high-severity security vulnerabilities.
+
+### Changed
+- Ran comprehensive backend unit tests (105/105 passed) and frontend Vitest unit tests (20/20 passed) to validate stability.
+
+## Files Modified
+- `app/services/ai/fast_optimizer.py`
+- `app/services/resume/typst_generator.py`
+- `app/services/pdf_engine.py`
+- `app/services/regenerator.py`
+- `app/services/enrichment.py`
+- `app/core/validation.py`
+
+---
+
+# Changelog - v3.3.6 (2026-04-17)
+
+## CI & Docker Fixes
+
+### Fixed
+- **CI Python Version Matrix**: Updated `.github/workflows/ci.yml` to test only on Python 3.12, aligning with project's `python = "^3.12"` requirement in `pyproject.toml`. This resolves Black formatting check failures caused by Python 3.11 parser incompatibility with Python 3.12-formatted code (Black `target-version: py312`).
+- **Docker CI Environment**: Refactored `docker-compose.ci.yml` to use `DEV=1` build-arg (pre-installs dev dependencies in image) and mount required test artifacts (root-level `tests/`, `pytest.ini`, `app.sh`, `ai-service/`, and `app/tests/`) as read-only volumes. This ensures all test dependencies and data are available without bloating production image. Previously failed with `No module named pytest` and missing test directories.
+- **App Help Banner**: Added `print_banner` call to `show_usage()` in `app.sh` so PowerCV branding appears on `help` command, making the test `test_banner_displays_power_cv` independent of script path.
+
+### Changed
+- **Dockerfile**: Removed copying of test artifacts and AI service code from production image. Dev dependencies are conditionally installed via `DEV` build-arg; CI uses this to include `pytest`, `mypy`, etc. Production image remains lean (~455MB).
+- **CI/CD Pipeline**: All checks (Black, isort, mypy, pytest, Docker build) now pass on Python 3.12 only, simplifying matrix and ensuring consistency.
+
+## Files Modified
+- `.github/workflows/ci.yml` (removed Python 3.11 from matrix)
+- `docker-compose.ci.yml` (added volume mounts for tests/config/script/ai-service, uses DEV=1 build)
+- `Dockerfile` (removed test/AI-service copies; kept DEV conditional for dev deps)
+- `app.sh` (added banner in `show_usage`)
+
+---
+
+# Changelog - v3.3.5 (2026-04-17)
+
+## Codex Review Fixes
+
+### Fixed
+- **Anthropic API Authentication**: Changed header from `Authorization: Bearer` to `x-api-key` as required by Anthropic Messages API. This fixes provider switching when `anthropic` is selected.
+- **AI Provider Response Normalization**: All non-OpenAI clients now return OpenAI-compatible response structure `{"choices": [{"message": {"role": "assistant", "content": "..."}}]}` to ensure downstream code (CVAnalyzer, CVOptimizer, CoverLetterGenerator) works uniformly across all providers.
+  - `AnthropicClient`: Maps `content[0].text` → `choices[0].message.content`, includes `stop_reason` mapping.
+  - `GoogleGeminiClient`: Maps `candidates[0].content.parts[0].text` → normalized format, includes `finishReason` mapping.
+  - `OllamaClient`: Maps `message.content` → normalized format, includes usage token counts.
+- **Playwright PDF Pagination**: Fixed footer and header templates to use CSS classes `pageNumber` and `totalPages` instead of broken `{pageNumber}`/`{total}` placeholder syntax. Exported PDFs now show correct page numbers.
+- **Test Updates**: `tests/test_ai_providers_enhanced.py` updated to expect normalized responses for Anthropic, Google, Ollama. `tests/test_pdf_engine.py` updated to check for pagination CSS classes.
+
+### Changed
+- **ai-service/requirements.txt**: Added explicit `openai>=1.0` dependency (required by CerebrasClient and OpenAIProvider which use the official OpenAI SDK with custom base URLs).
+- **Docker image**: Rebuilt with updated AI service dependencies (no size change; still ~305MB for main API).
+
+## Files Modified
+- `ai-service/clients/providers.py` (Anthropic header fix, response normalization for Anthropic/Google/Ollama)
+- `ai-service/requirements.txt` (added openai package)
+- `app/services/pdf_engine.py` (header/footer template fixes)
+- `tests/test_ai_providers_enhanced.py` (3 test updates for normalized responses)
+- `tests/test_pdf_engine.py` (2 test updates for pagination class checks)
+
+---
+
+# Changelog - v3.3.4 (2026-04-17)
+
+## Code Quality & Dependency Cleanup
+
+### Fixed
+- **MyPy Type Errors**: Resolved 28 type errors across `app/web/core.py`, `app/web/dashboard.py`, and `app/main.py` where `Jinja2Templates.TemplateResponse` was called with incorrect argument order. Corrected all calls to use proper FastAPI signature: `TemplateResponse(request, "template.html", context)` instead of `TemplateResponse("template.html", {"request": request})`.
+- **Black Formatting**: Auto-fixed formatting issues in `scripts/init_postgres.py` and `scripts/test_production_ai_caching.py`.
+
+### Changed
+- **Code Quality**: All `app/` modules now pass `mypy --strict` with zero errors. Scripts directory maintains relaxed type checking as allowed by CI.
+- **Dependency Optimization**: 
+  - Moved `litellm` from production requirements to `requirements-dev.txt` to reduce Docker image size. The `AIProviderClient` in `app/services/ai_providers.py` remains available for development/testing but is no longer imported in production (removed from `app/services/__init__.py` along with unused `CerebrasClient`), eliminating unnecessary heavy dependency from the main API image.
+  - Added `email-validator>=2.0.0` to `requirements.txt` to support Pydantic `EmailStr` fields (used in database models).
+  - Verified all unconditional imports are satisfied: sentry-sdk provided via `fastapi[standard]`, websockets via same, uvicorn via same, python-multipart via fastapi core.
+- **Error Handling**: Confirmed optional imports (`pytesseract`, `pdf2image`, `markitdown`, `playwright`) are safely wrapped in try/except blocks.
+
+## Files Modified
+- `app/services/__init__.py` (removed `AIProviderClient`, `CerebrasClient` imports and exports)
+- `requirements.txt` (added `email-validator`, kept `sentry-sdk` via fastapi[standard] transitive)
+- `requirements-dev.txt` (added `litellm` for test-only usage)
+- `app/web/core.py` (TemplateResponse fixes)
+- `app/web/dashboard.py` (TemplateResponse fixes)
+- `app/main.py` (TemplateResponse fixes)
+- `scripts/init_postgres.py` (formatting)
+- `scripts/test_production_ai_caching.py` (formatting)
+
+---
+
+# Changelog - v3.3.3 (2026-04-16)
+
+## Dependency Optimization & Image Size Reduction
+
+### Added
+- None
+
+### Changed
+- **API Dependencies**: Aggressively pruned `requirements.txt` – removed unused heavy packages (charset-normalizer, setuptools, itsdangerous, markdown, pypdf, requests, uvloop, rich, click, langchain, langchain-community, langchain-ollama, pytesseract, pdf2image, markitdown, playwright, litellm). Added missing runtime dependencies (PyPDF2, python-docx, aiohttp). Result: ~300MB reduction in installed packages.
+- **Docker Image**: Removed heavyweight system packages (chromium, tesseract-ocr, poppler-utils) from final stage; added minimal `libmagic1` for `python-magic` support. Main API image size now **305MB** (well under 500MB target).
+- **Code Cleanup**: 
+  - Removed deprecated `/api/comprehensive/cost-tracking` endpoint that relied on `AIProviderClient`/litellm.
+  - Cleaned up unused imports; kept comprehensive optimizer functional with `langchain-core`/`langchain-openai` only.
+- **Tests**: All 213 tests passing; coverage at **91%** (maintained).
+
+### Fixed
+- Potential import errors for optional packages (pytesseract, pdf2image, markitdown) are gracefully handled via conditional imports.
+
+## Files Modified
+- `requirements.txt`
+- `Dockerfile`
+- `app/api/routers/comprehensive_optimizer.py`
+- `app/services/__init__.py` (no functional changes, kept for compatibility)
+
+# Changelog - v3.3.2 (2026-04-16)
+
+## Fixed
+
+### Docker Startup Fixes
+- **Critical AI Service Import Error**: Resolved `ModuleNotFoundError: main` in AI service container.
+  - Root cause: Dockerfile used `uv pip install --system` which installed packages globally instead of into the virtualenv, leaving `/opt/venv` empty and causing missing `uvicorn`.
+  - Changed to `uv pip install` (venv-relative) in builder stage. API and AI services now start correctly.
+  - Rebuilt images and removed orphan `powercv-frontend` container.
+  - Impact: All services healthy; API and AI service responsive.
+- **Playwright PDF Engine Tests**: Fixed failing tests due to missing Chromium browser detection.
+  - Removed premature `RuntimeError` when system Chromium not found; allows Playwright to use its bundled browser.
+  - Fixed async test for AI provider base class to use async/await.
+  - Tests: 105/105 passing in `tests/`, 198/198 in full suite.
+  - Files: `app/services/pdf_engine.py`, `tests/test_ai_providers_enhanced.py`
+
+### Dependency Optimization
+- **AI Service Dependencies**: Pruned `ai-service/requirements.txt` to minimal set (fastapi, uvicorn, httpx, pydantic, python-dotenv). Removed unused heavy ML packages (torch, sentence-transformers, scikit-learn, langchain*, tiktoken) that inflated image from 5.5GB to **158MB**.
+- **API Dependencies**: Removed unused packages (langchain, requests, markdown, pypdf, itsdangerous, setuptools, charset-normalizer, uvloop, rich, click, lxml). Added missing `email-validator` for `pydantic.EmailStr`. Reduced site-packages by ~300MB (still in progress).
+- **Dockerfile**: Fixed venv installation command; ensured proper PATH and venv usage.
+
+### Test Infrastructure
+- **Playwright Browser**: Installed Chromium browser for local test environment (`playwright install chromium`), enabling PDF engine tests to run.
+
+---
+
 # Changelog - v3.3.1 (2026-02-22)
 
 ## Dependency & Security Updates
