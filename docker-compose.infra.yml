@@ -1,0 +1,66 @@
+# PowerCV — MBP Local Infrastructure
+# Lightweight docker stack for MacBook Pro (arm64).
+# Use via: make -f Makefile.mbp infra-up
+# Only runs databases — backend/frontend/LLM run natively.
+
+services:
+  mongodb:
+    image: mongo:7.0
+    platform: linux/arm64/v8
+    container_name: powercv-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: powercv
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-powercv123}
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    platform: linux/arm64/v8
+    container_name: powercv-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15
+    platform: linux/arm64/v8
+    container_name: powercv-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-powercv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-powercv_dev_password_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-powercv}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-powercv} -d ${POSTGRES_DB:-powercv}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  mongodb_data:
+  redis_data:
+  postgres_data:

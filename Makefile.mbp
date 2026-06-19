@@ -1,0 +1,181 @@
+# PowerCV — MacBook Pro (Apple Silicon) Makefile
+# Targets for local development with turboquant LLM.
+#
+# Prerequisites:
+#   brew install python uv node docker docker-compose
+#   git clone https://github.com/TheTom/llama-cpp-turboquant.git
+#
+# Quick start:
+#   make infra-up        # Start MongoDB, Redis, PostgreSQL in Docker
+#   make setup-python    # Create venv + install deps
+#   make run-llm         # Start turboquant llama-server with Qwen3.5-9B
+#   make run-be          # Start FastAPI backend (separate terminal)
+#   make run-fe          # Start Vite frontend (separate terminal)
+#   make run-all         # Everything in one shot
+
+SHELL := /bin/zsh
+.ONESHELL:
+
+ENV_FILE := .env.mbp
+
+# ── Detect paths ────────────────────────────────────────────────────────────
+TURBOQUANT_DIR ?= $(HOME)/code/llama-cpp-turboquant
+QWEN_GGUF ?= $(HOME)/models/Qwen3.5-9B-Q4_K_M.gguf
+PYTHON := $(shell which python3)
+UV := $(shell which uv)
+
+# ── Docker Infra ────────────────────────────────────────────────────────────
+
+.PHONY: infra-up infra-down infra-logs infra-status
+
+infra-up:
+	@echo "=== Starting Docker infra (MongoDB, Redis, PostgreSQL) ==="
+	docker compose -f docker-compose.infra.yml up -d
+	@echo "Waiting for services to be healthy..."
+	@for i in 1 2 3 4 5 6 7 8 9 10; do
+		sleep 3
+		if docker compose -f docker-compose.infra.yml ps --format json | grep -q '"Health":"healthy"'; then
+			break
+		fi
+	done
+	docker compose -f docker-compose.infra.yml ps
+	@echo "=== Infra ready ==="
+
+infra-down:
+	docker compose -f docker-compose.infra.yml down
+
+infra-logs:
+	docker compose -f docker-compose.infra.yml logs -f
+
+infra-status:
+	docker compose -f docker-compose.infra.yml ps
+
+# ── Python Environment ──────────────────────────────────────────────────────
+
+.PHONY: setup-python clean-python
+
+VENV := .venv-mbp
+
+setup-python:
+	@echo "=== Setting up Python virtual environment ==="
+	$(PYTHON) -m venv $(VENV)
+	source $(VENV)/bin/activate && pip install --upgrade pip uv
+	source $(VENV)/bin/activate && uv pip install -r requirements.txt
+	source $(VENV)/bin/activate && uv pip install -r requirements-dev.txt
+	@echo "=== venv ready: source $(VENV)/bin/activate ==="
+
+clean-python:
+	rm -rf $(VENV)
+
+# ── LLM (turboquant llama-server) ───────────────────────────────────────────
+
+.PHONY: build-turboquant run-llm stop-llm
+
+build-turboquant:
+	@echo "=== Building turboquant with Metal support ==="
+	@if [ ! -d "$(TURBOQUANT_DIR)" ]; then
+		echo "Cloning turboquant..."
+		git clone https://github.com/TheTom/llama-cpp-turboquant.git "$(TURBOQUANT_DIR)"
+	fi
+	cd "$(TURBOQUANT_DIR)" && \
+		cmake -B build -DLLAMA_METAL=ON && \
+		cmake --build build -j $$(sysctl -n hw.logicalcpu)
+	@echo "=== turboquant built: $(TURBOQUANT_DIR)/build/bin/llama-server ==="
+
+run-llm:
+	@echo "=== Starting turboquant llama-server with Qwen3.5-9B ==="
+	@if [ ! -f "$(QWEN_GGUF)" ]; then
+		echo "ERROR: Qwen GGUF not found at $(QWEN_GGUF)"
+		echo "Download from: https://huggingface.co/unsloth/Qwen3.5-9B-GGUF"
+		exit 1
+	fi
+	@if [ ! -f "$(TURBOQUANT_DIR)/build/bin/llama-server" ]; then
+		echo "turboquant not built. Run 'make build-turboquant' first."
+		exit 1
+	fi
+	"$(TURBOQUANT_DIR)/build/bin/llama-server" \
+		-m "$(QWEN_GGUF)" \
+		--host 0.0.0.0 \
+		--port 8080 \
+		-ngl 32 \
+		--temp 0.3 \
+		--ctx-size 16384 \
+		--batch-size 512 \
+		--ubatch-size 512 \
+		--parallel 1 \
+		--rope-freq-base 1000000
+
+stop-llm:
+	-pkill -f llama-server
+	@echo "=== llama-server stopped ==="
+
+# ── Backend (FastAPI) ───────────────────────────────────────────────────────
+
+.PHONY: run-be run-be-prod
+
+run-be:
+	@echo "=== Starting FastAPI backend on port $(APP_PORT) ==="
+	source $(VENV)/bin/activate && \
+		export $$(grep -v '^\s*#' $(ENV_FILE) | xargs) && \
+		uvicorn app.main:app --reload --host 0.0.0.0 --port $(APP_PORT)
+
+run-be-prod:
+	source $(VENV)/bin/activate && \
+		export $$(grep -v '^\s*#' $(ENV_FILE) | xargs) && \
+		uvicorn app.main:app --host 0.0.0.0 --port $(APP_PORT) --workers 2
+
+# ── Frontend (Vite + React) ─────────────────────────────────────────────────
+
+.PHONY: run-fe run-fe-build
+
+run-fe:
+	@echo "=== Starting Vite frontend dev server ==="
+	cd frontend && npm run dev
+
+run-fe-build:
+	cd frontend && npm run build
+
+# ── All-in-one ──────────────────────────────────────────────────────────────
+
+.PHONY: run-all stop-all setup-all
+
+run-all: infra-up run-llm
+	@echo ""
+	@echo "=== Infrastructure up. Start backend and frontend in separate terminals: ==="
+	@echo "  make run-be"
+	@echo "  make run-fe"
+	@echo ""
+	@echo "Backend will be at:  http://localhost:$(APP_PORT)"
+	@echo "Frontend will be at: http://localhost:5173"
+	@echo "API docs:            http://localhost:$(APP_PORT)/docs"
+	@echo "turboquant:          http://localhost:8080"
+
+stop-all: infra-down stop-llm
+	@echo "=== All services stopped ==="
+
+setup-all: infra-up setup-python build-turboquant
+	@echo "=== Setup complete. Ready to develop. ==="
+
+# ── Utility ─────────────────────────────────────────────────────────────────
+
+.PHONY: help lint test
+
+help:
+	@echo "PowerCV MBP Makefile"
+	@echo ""
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:' Makefile.mbp | sort | \
+		while IFS=: read -r target _; do \
+			desc=$$(grep -A1 "^$${target}:" Makefile.mbp | tail -1 | sed 's/^# //'); \
+			printf "  %-25s %s\n" "$${target}" "$${desc}"; \
+		done
+
+lint:
+	source $(VENV)/bin/activate && \
+		export $$(grep -v '^\s*#' $(ENV_FILE) | xargs) && \
+		ruff check app/ ai-service/
+
+test:
+	source $(VENV)/bin/activate && \
+		export $$(grep -v '^\s*#' $(ENV_FILE) | xargs) && \
+		pytest tests/ app/tests/ -v --tb=short
